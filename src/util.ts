@@ -8,3 +8,18 @@ export function openCryptowatchLink (cryptoName: string) {
     '_blank'
   )
 }
+
+export function breakLiteralPair (pair: string) {
+  return {
+    symbol: pair.split('-')[0],
+    quote: pair.split('-')[1]
+  }
+}
+
+export function sortAlphabetically (array: string[]) {
+  return array.sort((a, b) => {
+    if (a < b) { return -1 }
+    if (a > b) { return 1 }
+    return 0
+  })
+}

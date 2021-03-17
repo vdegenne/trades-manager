@@ -1,6 +1,7 @@
-import {customElement, html, LitElement} from 'lit-element'
-import { TradeManager, Trades } from './trades'
+import {customElement, html, LitElement, query} from 'lit-element'
 import { TradesInterface } from './TradesInterface';
+import '@material/mwc-snackbar'
+import { Snackbar } from '@material/mwc-snackbar';
 
 declare global {
   interface Window {
@@ -10,7 +11,9 @@ declare global {
 
 @customElement('app-container')
 class AppContainer extends LitElement {
-  private tradesInterface: TradesInterface;
+  public tradesInterface: TradesInterface;
+
+  @query('mwc-snackbar') snackbar!: Snackbar;
 
   constructor() {
     super()
@@ -23,6 +26,13 @@ class AppContainer extends LitElement {
     return html`
 
     ${this.tradesInterface}
+
+    <mwc-snackbar></mwc-snackbar>
     `
+  }
+
+  toast (message: string) {
+    this.snackbar.labelText = message;
+    this.snackbar.show()
   }
 }

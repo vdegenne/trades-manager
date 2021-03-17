@@ -1,3 +1,5 @@
+import { AvailableExchanges, ExchangesManager } from "./ExchangesManager"
+
 export type KrakenTradeObject = {
   pair: string,
   type: 'buy' | 'sell',
@@ -21,13 +23,20 @@ export type TradeUnit = {
 // }
 
 export type Trade = {
+  symbol: string,
+  quote: string,
   type: 'buy'|'sell',
   price: number,
-  volume: number
+  volume: number,
+  fees?: number
 }
 
-export type Trades = {
-  [pair: string]: Trade[]
+export type TradeSession = {
+  id: number,
+  exchange: AvailableExchanges,
+  symbol: string,
+  quote: string,
+  trades: Trade[]
 }
 
 export type TradesSummary = {
@@ -38,41 +47,39 @@ export type TradesSummary = {
 
 
 export class TradeManager {
-  private trades: Trades
+  public sessions: TradeSession[]
 
-  constructor(trades?: Trades) {
-    this.trades = trades || {}
+  constructor(tradeSessions?: TradeSession[]) {
+    this.sessions = tradeSessions || []
   }
 
-  addTrade(asset: string, trade: Trade) {
-    if (!(asset in this.trades)) {
-      this.trades[asset] = []
-    }
-    this.trades[asset].push(trade)
+  createSession (exchange: AvailableExchanges, symbol: string, quote: string) {
+    this.sessions.push({
+      id: Date.now(),
+      exchange,
+      symbol,
+      quote,
+      trades: []
+    })
   }
 
-  deleteAsset(assetName: string) {
-    delete this.trades[assetName]
-    console.log(this.trades)
+  addTrade(trade: Trade, session: TradeSession) {
+    session.trades.push(trade)
   }
 
-  get assets () {
-    return Object.keys(this.trades)
+  getPairTrades (pair: string) {
+    return this.sessions[pair]
   }
 
-  getAssetTrades (assetName: string) {
-    return this.trades[assetName]
-  }
-
-  getSummarizedTrade (assetName: string) {
-    if (!(assetName in this.trades)) {
+  getSummarizedTrade (pair: string) {
+    if (!(pair in this.sessions)) {
       return undefined;
     }
-    return summarizeTrades(this.trades[assetName])
+    return summarizeTrades(this.sessions[pair])
   }
 
   toString () {
-    return JSON.stringify(this.trades)
+    return JSON.stringify(this.sessions)
   }
 }
 

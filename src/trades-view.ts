@@ -1,39 +1,45 @@
 import { css, customElement, html, LitElement } from "lit-element";
 import { TradeManager } from "./trades";
+import { TradesInterface } from "./TradesInterface";
 import { round } from "./util";
 import { openCryptowatchLink } from "./util";
+import '@material/mwc-icon-button'
 
 
 @customElement('trades-view')
 export class TradesView extends LitElement {
-  private trades: TradeManager;
+  private interface: TradesInterface;
 
-  constructor(tradeManager?: TradeManager) {
+  constructor(tradesInterface: TradesInterface) {
     super()
-    this.trades = tradeManager || new TradeManager()
+    this.interface = tradesInterface;
   }
 
   render () {
     return html`
-    ${this.trades.assets.map(asset => {
-      return this.assetTemplate(asset)
+    ${this.interface.tradesManager.pairs.map(pair => {
+      return this.pairTemplate(pair)
     })}
     `
   }
 
-  assetTemplate (assetName: string) {
-    const summary = this.trades.getSummarizedTrade(assetName)!
-    const activeProfit = window.app.cryptos.find(c => c.name === assetName)!.getLastPrice()! * summary.volume;
-    const overallProfit = round(summary.profit + activeProfit)
+  pairTemplate (pair: string) {
+    const summary = this.interface.tradesManager.getSummarizedTrade(pair)!
+    let activeProfit, overallProfit;
+    const coingeckoPair = this.interface.coingeckoManager.getPair(pair)
+    if (coingeckoPair) {
+      activeProfit = coingeckoPair.price! * summary.volume;
+      overallProfit = round(summary.profit + activeProfit)
+    }
 
     return html`
     <div class="asset"
-        @mousedown="${(e:MouseEvent) => {if (e.button === 2) openCryptowatchLink(assetName)}}">
-      <span class="name">${assetName}</span>
+        @mousedown="${(e:MouseEvent) => {if (e.button === 2) openCryptowatchLink(pair)}}">
+      <span class="name">${pair}</span>
       <span class="profit"
         style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit}€</span>
       <mwc-icon-button icon="close"
-        @click="${() => this.deleteAsset(assetName)}"></mwc-icon-button>
+        @click="${() => this.deleteAsset(pair)}"></mwc-icon-button>
     </div>
     <style>
       .asset {
@@ -57,14 +63,10 @@ export class TradesView extends LitElement {
   deleteAsset (assetName: string) {
     const accept = window.confirm('Are you sure ?')
     if (accept) {
-      this.trades.deleteAsset(assetName)
+      this.interface.deleteAsset(assetName)
       this.requestUpdate()
       window.app.toast('asset deleted')
-      this.saveTrades()
+      this.interface.saveTrades()
     }
-  }
-
-  saveTrades () {
-    localStorage.setItem('trades', this.trades.toString())
   }
 }
