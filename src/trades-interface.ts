@@ -129,8 +129,6 @@ export class TradesInterface extends LitElement {
   render () {
     this.tradesView.requestUpdate()
 
-    console.log('god damn')
-
     const exchanges = ExchangesManager.getAvailableExchanges()
     let symbols;
     let quotes;

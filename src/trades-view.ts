@@ -29,10 +29,16 @@ export class TradesView extends LitElement {
   .session {
     display: flex;
     align-items: center;
-    padding: 14px;
+    padding: 11px;
     background-color: #eeeeee;
     justify-content: space-between;
     margin: 5px 0;
+    cursor: pointer;
+    transition: background-color linear .2s;
+    border-radius: 5px;
+  }
+  .session:hover {
+    background-color: #e4e4e4;
   }
   .session > .name {
     display: flex;
