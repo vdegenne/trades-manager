@@ -27,7 +27,7 @@ class AppContainer extends LitElement {
 
   static styles = css`
   :host {
-    --mdc-theme-primary: #009688;
+    --mdc-theme-primary: #004d40;
   }
   `
 
