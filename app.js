@@ -49531,7 +49531,7 @@ let TradesInterface = class TradesInterface extends LitElement {
       ${!this.tradesManager.sessions.length ? html `
       <div style="text-align:center">
         <div style="font-size:24px;margin:38px 0">no sessions yet</div>
-        <img src="/images/empty.gif">
+        <img src="./images/empty.gif">
       </div>
       ` : nothing}
       ${this.tradesView}
