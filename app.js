@@ -6433,25 +6433,43 @@ class TradeManager {
         this.sessions = tradeSessions || [];
     }
     createSession(exchange, symbol, quote) {
-        this.sessions.push({
+        const session = {
             id: Date.now(),
             exchange,
             symbol,
             quote,
             trades: []
-        });
+        };
+        this.sessions.push(session);
+        return session;
     }
-    addTrade(trade, session) {
+    addTrade(session, trade) {
         session.trades.push(trade);
+    }
+    deleteSession(session) {
+        this.sessions.splice(this.sessions.indexOf(session), 1);
+    }
+    deleteTrade(trade, session) {
+        if (!session) {
+            session = this.getTradesSession(trade);
+            if (!session) {
+                return false;
+            }
+        }
+        const indexOfTrade = session.trades.indexOf(trade);
+        if (indexOfTrade === -1)
+            return false;
+        session.trades.splice(indexOfTrade, 1);
+        return true;
+    }
+    getTradesSession(trade) {
+        return this.sessions.find(s => s.trades.indexOf(trade) >= 0);
     }
     getPairTrades(pair) {
         return this.sessions[pair];
     }
-    getSummarizedTrade(pair) {
-        if (!(pair in this.sessions)) {
-            return undefined;
-        }
-        return summarizeTrades(this.sessions[pair]);
+    getSummarizedSessionTrades(session) {
+        return summarizeSessionTrades(session);
     }
     toString() {
         return JSON.stringify(this.sessions);
@@ -6477,8 +6495,8 @@ class TradeManager {
 //   }
 //   return trades
 // }
-function summarizeTrades(trades) {
-    return trades.reduce((acc, trade) => {
+function summarizeSessionTrades(session) {
+    return session.trades.reduce((acc, trade) => {
         if (trade.type === 'buy') {
             acc.profit -= trade.price * trade.volume;
             acc.volume += trade.volume;
@@ -15882,8 +15900,8 @@ TabBar = __decorate([
 function round(value, precision = 2) {
     return Math.round(value * (10 ** precision)) / (10 ** precision);
 }
-function openCryptowatchLink(cryptoName) {
-    window.open(`https://cryptowat.ch/charts/KRAKEN:${cryptoName}-EUR`, '_blank');
+function openCryptowatchLink(session) {
+    window.open(`https://cryptowat.ch/charts/${session.exchange}:${session.symbol}-${session.quote}`, '_blank');
 }
 function sortAlphabetically(array) {
     return array.sort((a, b) => {
@@ -15895,6 +15913,21 @@ function sortAlphabetically(array) {
         }
         return 0;
     });
+}
+function firstLetterUpperCase(text) {
+    if (!text)
+        return undefined;
+    return text[0].toUpperCase() + text.slice(1);
+}
+function formatQuote(quote) {
+    switch (quote.toLowerCase()) {
+        case 'eur':
+            return '€';
+        case 'usd':
+            return '$';
+        default:
+            return ` ${quote}`;
+    }
 }
 
 /** @soyCompatible */
@@ -16047,68 +16080,6 @@ IconButton.styles = style$1;
 IconButton = __decorate([
     customElement('mwc-icon-button')
 ], IconButton);
-
-let TradesView = class TradesView extends LitElement {
-    constructor(tradesInterface) {
-        super();
-        this.interface = tradesInterface;
-    }
-    render() {
-        return html `
-    ${this.interface.tradesManager.pairs.map(pair => {
-            return this.pairTemplate(pair);
-        })}
-    `;
-    }
-    pairTemplate(pair) {
-        const summary = this.interface.tradesManager.getSummarizedTrade(pair);
-        let activeProfit, overallProfit;
-        const coingeckoPair = this.interface.coingeckoManager.getPair(pair);
-        if (coingeckoPair) {
-            activeProfit = coingeckoPair.price * summary.volume;
-            overallProfit = round(summary.profit + activeProfit);
-        }
-        return html `
-    <div class="asset"
-        @mousedown="${(e) => { if (e.button === 2)
-            openCryptowatchLink(pair); }}">
-      <span class="name">${pair}</span>
-      <span class="profit"
-        style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit}€</span>
-      <mwc-icon-button icon="close"
-        @click="${() => this.deleteAsset(pair)}"></mwc-icon-button>
-    </div>
-    <style>
-      .asset {
-        display: flex;
-        align-items: center;
-        padding: 0 0 0 14px;
-        background-color: #eeeeee;
-        justify-content: space-between;
-        margin: 1px 0;
-      }
-      .asset > .name {
-        font-size: 16px;
-        font-weight: 500;
-        width: 60px;
-        text-align: left
-      }
-    </style>
-    `;
-    }
-    deleteAsset(assetName) {
-        const accept = window.confirm('Are you sure ?');
-        if (accept) {
-            this.interface.deleteAsset(assetName);
-            this.requestUpdate();
-            window.app.toast('asset deleted');
-            this.interface.saveTrades();
-        }
-    }
-};
-TradesView = __decorate([
-    customElement('trades-view')
-], TradesView);
 
 /**
  * Helpers.
@@ -16292,7 +16263,7 @@ class PairsManager {
     getPair(symbol, quote) {
         return this.pairs.find(p => p.symbol === symbol && p.quote === quote);
     }
-    addPair(symbol, quote, updatePairs = true) {
+    async addPair(symbol, quote, updatePairs = true) {
         if (!this.isPairAvailable(symbol, quote)) {
             return false;
         }
@@ -16301,18 +16272,19 @@ class PairsManager {
                 symbol,
                 quote
             });
-            if (updatePairs)
-                this.updatePairs();
+        }
+        if (updatePairs) {
+            await this.updatePairs();
         }
         return true;
     }
-    updatePairs() {
+    async updatePairs() {
         if (this.updateTimeout) {
             clearTimeout(this.updateTimeout);
             this.updateTimeout = undefined;
         }
         this.updateTimeout = setTimeout(() => this.updatePairs(), this.timeoutMs);
-        this.updateFunction();
+        await this.updateFunction();
     }
     /**
      * This function will fetch information from coingecko to update the data structure (price)
@@ -16320,7 +16292,7 @@ class PairsManager {
      * it will trigger code execution and reset the timer
      */
     async updateFunction() {
-        // window.app.tradesInterface.requestUpdate()
+        window.app.tradesInterface.tradesView.requestUpdate();
     }
     getAvailableSymbols() {
         return [];
@@ -16336,6 +16308,1503 @@ class PairsManager {
         else {
             return undefined;
         }
+    }
+}
+
+var krakenPairs = [
+	{
+		id: "AAVEAUD",
+		s: "AAVE",
+		q: "AUD"
+	},
+	{
+		id: "AAVEETH",
+		s: "AAVE",
+		q: "ETH"
+	},
+	{
+		id: "AAVEEUR",
+		s: "AAVE",
+		q: "EUR"
+	},
+	{
+		id: "AAVEGBP",
+		s: "AAVE",
+		q: "GBP"
+	},
+	{
+		id: "AAVEUSD",
+		s: "AAVE",
+		q: "USD"
+	},
+	{
+		id: "AAVEXBT",
+		s: "AAVE",
+		q: "XBT"
+	},
+	{
+		id: "ADAAUD",
+		s: "ADA",
+		q: "AUD"
+	},
+	{
+		id: "ADAETH",
+		s: "ADA",
+		q: "ETH"
+	},
+	{
+		id: "ADAEUR",
+		s: "ADA",
+		q: "EUR"
+	},
+	{
+		id: "ADAGBP",
+		s: "ADA",
+		q: "GBP"
+	},
+	{
+		id: "ADAUSD",
+		s: "ADA",
+		q: "USD"
+	},
+	{
+		id: "ADAUSDT",
+		s: "ADA",
+		q: "USDT"
+	},
+	{
+		id: "ADAXBT",
+		s: "ADA",
+		q: "XBT"
+	},
+	{
+		id: "ALGOETH",
+		s: "ALGO",
+		q: "ETH"
+	},
+	{
+		id: "ALGOEUR",
+		s: "ALGO",
+		q: "EUR"
+	},
+	{
+		id: "ALGOGBP",
+		s: "ALGO",
+		q: "GBP"
+	},
+	{
+		id: "ALGOUSD",
+		s: "ALGO",
+		q: "USD"
+	},
+	{
+		id: "ALGOXBT",
+		s: "ALGO",
+		q: "XBT"
+	},
+	{
+		id: "ANTETH",
+		s: "ANT",
+		q: "ETH"
+	},
+	{
+		id: "ANTEUR",
+		s: "ANT",
+		q: "EUR"
+	},
+	{
+		id: "ANTUSD",
+		s: "ANT",
+		q: "USD"
+	},
+	{
+		id: "ANTXBT",
+		s: "ANT",
+		q: "XBT"
+	},
+	{
+		id: "ATOMAUD",
+		s: "ATOM",
+		q: "AUD"
+	},
+	{
+		id: "ATOMETH",
+		s: "ATOM",
+		q: "ETH"
+	},
+	{
+		id: "ATOMEUR",
+		s: "ATOM",
+		q: "EUR"
+	},
+	{
+		id: "ATOMGBP",
+		s: "ATOM",
+		q: "GBP"
+	},
+	{
+		id: "ATOMUSD",
+		s: "ATOM",
+		q: "USD"
+	},
+	{
+		id: "ATOMXBT",
+		s: "ATOM",
+		q: "XBT"
+	},
+	{
+		id: "AUDJPY",
+		s: "AUD",
+		q: "JPY"
+	},
+	{
+		id: "AUDUSD",
+		s: "AUD",
+		q: "USD"
+	},
+	{
+		id: "BALETH",
+		s: "BAL",
+		q: "ETH"
+	},
+	{
+		id: "BALEUR",
+		s: "BAL",
+		q: "EUR"
+	},
+	{
+		id: "BALUSD",
+		s: "BAL",
+		q: "USD"
+	},
+	{
+		id: "BALXBT",
+		s: "BAL",
+		q: "XBT"
+	},
+	{
+		id: "BATETH",
+		s: "BAT",
+		q: "ETH"
+	},
+	{
+		id: "BATEUR",
+		s: "BAT",
+		q: "EUR"
+	},
+	{
+		id: "BATUSD",
+		s: "BAT",
+		q: "USD"
+	},
+	{
+		id: "BATXBT",
+		s: "BAT",
+		q: "XBT"
+	},
+	{
+		id: "BCHAUD",
+		s: "BCH",
+		q: "AUD"
+	},
+	{
+		id: "BCHETH",
+		s: "BCH",
+		q: "ETH"
+	},
+	{
+		id: "BCHEUR",
+		s: "BCH",
+		q: "EUR"
+	},
+	{
+		id: "BCHGBP",
+		s: "BCH",
+		q: "GBP"
+	},
+	{
+		id: "BCHJPY",
+		s: "BCH",
+		q: "JPY"
+	},
+	{
+		id: "BCHUSD",
+		s: "BCH",
+		q: "USD"
+	},
+	{
+		id: "BCHUSDT",
+		s: "BCH",
+		q: "USDT"
+	},
+	{
+		id: "BCHXBT",
+		s: "BCH",
+		q: "XBT"
+	},
+	{
+		id: "COMPETH",
+		s: "COMP",
+		q: "ETH"
+	},
+	{
+		id: "COMPEUR",
+		s: "COMP",
+		q: "EUR"
+	},
+	{
+		id: "COMPUSD",
+		s: "COMP",
+		q: "USD"
+	},
+	{
+		id: "COMPXBT",
+		s: "COMP",
+		q: "XBT"
+	},
+	{
+		id: "CRVETH",
+		s: "CRV",
+		q: "ETH"
+	},
+	{
+		id: "CRVEUR",
+		s: "CRV",
+		q: "EUR"
+	},
+	{
+		id: "CRVUSD",
+		s: "CRV",
+		q: "USD"
+	},
+	{
+		id: "CRVXBT",
+		s: "CRV",
+		q: "XBT"
+	},
+	{
+		id: "DAIEUR",
+		s: "DAI",
+		q: "EUR"
+	},
+	{
+		id: "DAIUSD",
+		s: "DAI",
+		q: "USD"
+	},
+	{
+		id: "DAIUSDT",
+		s: "DAI",
+		q: "USDT"
+	},
+	{
+		id: "DASHEUR",
+		s: "DASH",
+		q: "EUR"
+	},
+	{
+		id: "DASHUSD",
+		s: "DASH",
+		q: "USD"
+	},
+	{
+		id: "DASHXBT",
+		s: "DASH",
+		q: "XBT"
+	},
+	{
+		id: "DOTAUD",
+		s: "DOT",
+		q: "AUD"
+	},
+	{
+		id: "DOTETH",
+		s: "DOT",
+		q: "ETH"
+	},
+	{
+		id: "DOTEUR",
+		s: "DOT",
+		q: "EUR"
+	},
+	{
+		id: "DOTGBP",
+		s: "DOT",
+		q: "GBP"
+	},
+	{
+		id: "DOTUSD",
+		s: "DOT",
+		q: "USD"
+	},
+	{
+		id: "DOTUSDT",
+		s: "DOT",
+		q: "USDT"
+	},
+	{
+		id: "DOTXBT",
+		s: "DOT",
+		q: "XBT"
+	},
+	{
+		id: "EOSETH",
+		s: "EOS",
+		q: "ETH"
+	},
+	{
+		id: "EOSEUR",
+		s: "EOS",
+		q: "EUR"
+	},
+	{
+		id: "EOSUSD",
+		s: "EOS",
+		q: "USD"
+	},
+	{
+		id: "EOSUSDT",
+		s: "EOS",
+		q: "USDT"
+	},
+	{
+		id: "EOSXBT",
+		s: "EOS",
+		q: "XBT"
+	},
+	{
+		id: "ETH2.SETH",
+		s: "ETH2.S",
+		q: "ETH"
+	},
+	{
+		id: "ETHAUD",
+		s: "ETH",
+		q: "AUD"
+	},
+	{
+		id: "ETHCHF",
+		s: "ETH",
+		q: "CHF"
+	},
+	{
+		id: "ETHDAI",
+		s: "ETH",
+		q: "DAI"
+	},
+	{
+		id: "ETHUSDC",
+		s: "ETH",
+		q: "USDC"
+	},
+	{
+		id: "ETHUSDT",
+		s: "ETH",
+		q: "USDT"
+	},
+	{
+		id: "EURAUD",
+		s: "EUR",
+		q: "AUD"
+	},
+	{
+		id: "EURCAD",
+		s: "EUR",
+		q: "CAD"
+	},
+	{
+		id: "EURCHF",
+		s: "EUR",
+		q: "CHF"
+	},
+	{
+		id: "EURGBP",
+		s: "EUR",
+		q: "GBP"
+	},
+	{
+		id: "EURJPY",
+		s: "EUR",
+		q: "JPY"
+	},
+	{
+		id: "EWTEUR",
+		s: "EWT",
+		q: "EUR"
+	},
+	{
+		id: "EWTGBP",
+		s: "EWT",
+		q: "GBP"
+	},
+	{
+		id: "EWTUSD",
+		s: "EWT",
+		q: "USD"
+	},
+	{
+		id: "EWTXBT",
+		s: "EWT",
+		q: "XBT"
+	},
+	{
+		id: "FILAUD",
+		s: "FIL",
+		q: "AUD"
+	},
+	{
+		id: "FILETH",
+		s: "FIL",
+		q: "ETH"
+	},
+	{
+		id: "FILEUR",
+		s: "FIL",
+		q: "EUR"
+	},
+	{
+		id: "FILGBP",
+		s: "FIL",
+		q: "GBP"
+	},
+	{
+		id: "FILUSD",
+		s: "FIL",
+		q: "USD"
+	},
+	{
+		id: "FILXBT",
+		s: "FIL",
+		q: "XBT"
+	},
+	{
+		id: "FLOWETH",
+		s: "FLOW",
+		q: "ETH"
+	},
+	{
+		id: "FLOWEUR",
+		s: "FLOW",
+		q: "EUR"
+	},
+	{
+		id: "FLOWGBP",
+		s: "FLOW",
+		q: "GBP"
+	},
+	{
+		id: "FLOWUSD",
+		s: "FLOW",
+		q: "USD"
+	},
+	{
+		id: "FLOWXBT",
+		s: "FLOW",
+		q: "XBT"
+	},
+	{
+		id: "GNOETH",
+		s: "GNO",
+		q: "ETH"
+	},
+	{
+		id: "GNOEUR",
+		s: "GNO",
+		q: "EUR"
+	},
+	{
+		id: "GNOUSD",
+		s: "GNO",
+		q: "USD"
+	},
+	{
+		id: "GNOXBT",
+		s: "GNO",
+		q: "XBT"
+	},
+	{
+		id: "GRTAUD",
+		s: "GRT",
+		q: "AUD"
+	},
+	{
+		id: "GRTETH",
+		s: "GRT",
+		q: "ETH"
+	},
+	{
+		id: "GRTEUR",
+		s: "GRT",
+		q: "EUR"
+	},
+	{
+		id: "GRTGBP",
+		s: "GRT",
+		q: "GBP"
+	},
+	{
+		id: "GRTUSD",
+		s: "GRT",
+		q: "USD"
+	},
+	{
+		id: "GRTXBT",
+		s: "GRT",
+		q: "XBT"
+	},
+	{
+		id: "ICXETH",
+		s: "ICX",
+		q: "ETH"
+	},
+	{
+		id: "ICXEUR",
+		s: "ICX",
+		q: "EUR"
+	},
+	{
+		id: "ICXUSD",
+		s: "ICX",
+		q: "USD"
+	},
+	{
+		id: "ICXXBT",
+		s: "ICX",
+		q: "XBT"
+	},
+	{
+		id: "KAVAETH",
+		s: "KAVA",
+		q: "ETH"
+	},
+	{
+		id: "KAVAEUR",
+		s: "KAVA",
+		q: "EUR"
+	},
+	{
+		id: "KAVAUSD",
+		s: "KAVA",
+		q: "USD"
+	},
+	{
+		id: "KAVAXBT",
+		s: "KAVA",
+		q: "XBT"
+	},
+	{
+		id: "KEEPETH",
+		s: "KEEP",
+		q: "ETH"
+	},
+	{
+		id: "KEEPEUR",
+		s: "KEEP",
+		q: "EUR"
+	},
+	{
+		id: "KEEPUSD",
+		s: "KEEP",
+		q: "USD"
+	},
+	{
+		id: "KEEPXBT",
+		s: "KEEP",
+		q: "XBT"
+	},
+	{
+		id: "KNCETH",
+		s: "KNC",
+		q: "ETH"
+	},
+	{
+		id: "KNCEUR",
+		s: "KNC",
+		q: "EUR"
+	},
+	{
+		id: "KNCUSD",
+		s: "KNC",
+		q: "USD"
+	},
+	{
+		id: "KNCXBT",
+		s: "KNC",
+		q: "XBT"
+	},
+	{
+		id: "KSMAUD",
+		s: "KSM",
+		q: "AUD"
+	},
+	{
+		id: "KSMETH",
+		s: "KSM",
+		q: "ETH"
+	},
+	{
+		id: "KSMEUR",
+		s: "KSM",
+		q: "EUR"
+	},
+	{
+		id: "KSMGBP",
+		s: "KSM",
+		q: "GBP"
+	},
+	{
+		id: "KSMUSD",
+		s: "KSM",
+		q: "USD"
+	},
+	{
+		id: "KSMXBT",
+		s: "KSM",
+		q: "XBT"
+	},
+	{
+		id: "LINKAUD",
+		s: "LINK",
+		q: "AUD"
+	},
+	{
+		id: "LINKETH",
+		s: "LINK",
+		q: "ETH"
+	},
+	{
+		id: "LINKEUR",
+		s: "LINK",
+		q: "EUR"
+	},
+	{
+		id: "LINKGBP",
+		s: "LINK",
+		q: "GBP"
+	},
+	{
+		id: "LINKUSD",
+		s: "LINK",
+		q: "USD"
+	},
+	{
+		id: "LINKUSDT",
+		s: "LINK",
+		q: "USDT"
+	},
+	{
+		id: "LINKXBT",
+		s: "LINK",
+		q: "XBT"
+	},
+	{
+		id: "LSKETH",
+		s: "LSK",
+		q: "ETH"
+	},
+	{
+		id: "LSKEUR",
+		s: "LSK",
+		q: "EUR"
+	},
+	{
+		id: "LSKUSD",
+		s: "LSK",
+		q: "USD"
+	},
+	{
+		id: "LSKXBT",
+		s: "LSK",
+		q: "XBT"
+	},
+	{
+		id: "LTCAUD",
+		s: "LTC",
+		q: "AUD"
+	},
+	{
+		id: "LTCETH",
+		s: "LTC",
+		q: "ETH"
+	},
+	{
+		id: "LTCGBP",
+		s: "LTC",
+		q: "GBP"
+	},
+	{
+		id: "LTCUSDT",
+		s: "LTC",
+		q: "USDT"
+	},
+	{
+		id: "MANAETH",
+		s: "MANA",
+		q: "ETH"
+	},
+	{
+		id: "MANAEUR",
+		s: "MANA",
+		q: "EUR"
+	},
+	{
+		id: "MANAUSD",
+		s: "MANA",
+		q: "USD"
+	},
+	{
+		id: "MANAXBT",
+		s: "MANA",
+		q: "XBT"
+	},
+	{
+		id: "NANOETH",
+		s: "NANO",
+		q: "ETH"
+	},
+	{
+		id: "NANOEUR",
+		s: "NANO",
+		q: "EUR"
+	},
+	{
+		id: "NANOUSD",
+		s: "NANO",
+		q: "USD"
+	},
+	{
+		id: "NANOXBT",
+		s: "NANO",
+		q: "XBT"
+	},
+	{
+		id: "OCEANEUR",
+		s: "OCEAN",
+		q: "EUR"
+	},
+	{
+		id: "OCEANGBP",
+		s: "OCEAN",
+		q: "GBP"
+	},
+	{
+		id: "OCEANUSD",
+		s: "OCEAN",
+		q: "USD"
+	},
+	{
+		id: "OCEANXBT",
+		s: "OCEAN",
+		q: "XBT"
+	},
+	{
+		id: "OMGETH",
+		s: "OMG",
+		q: "ETH"
+	},
+	{
+		id: "OMGEUR",
+		s: "OMG",
+		q: "EUR"
+	},
+	{
+		id: "OMGUSD",
+		s: "OMG",
+		q: "USD"
+	},
+	{
+		id: "OMGXBT",
+		s: "OMG",
+		q: "XBT"
+	},
+	{
+		id: "OXTETH",
+		s: "OXT",
+		q: "ETH"
+	},
+	{
+		id: "OXTEUR",
+		s: "OXT",
+		q: "EUR"
+	},
+	{
+		id: "OXTUSD",
+		s: "OXT",
+		q: "USD"
+	},
+	{
+		id: "OXTXBT",
+		s: "OXT",
+		q: "XBT"
+	},
+	{
+		id: "PAXGETH",
+		s: "PAXG",
+		q: "ETH"
+	},
+	{
+		id: "PAXGEUR",
+		s: "PAXG",
+		q: "EUR"
+	},
+	{
+		id: "PAXGUSD",
+		s: "PAXG",
+		q: "USD"
+	},
+	{
+		id: "PAXGXBT",
+		s: "PAXG",
+		q: "XBT"
+	},
+	{
+		id: "QTUMETH",
+		s: "QTUM",
+		q: "ETH"
+	},
+	{
+		id: "QTUMEUR",
+		s: "QTUM",
+		q: "EUR"
+	},
+	{
+		id: "QTUMUSD",
+		s: "QTUM",
+		q: "USD"
+	},
+	{
+		id: "QTUMXBT",
+		s: "QTUM",
+		q: "XBT"
+	},
+	{
+		id: "REPV2ETH",
+		s: "REPV2",
+		q: "ETH"
+	},
+	{
+		id: "REPV2EUR",
+		s: "REPV2",
+		q: "EUR"
+	},
+	{
+		id: "REPV2USD",
+		s: "REPV2",
+		q: "USD"
+	},
+	{
+		id: "REPV2XBT",
+		s: "REPV2",
+		q: "XBT"
+	},
+	{
+		id: "SCETH",
+		s: "SC",
+		q: "ETH"
+	},
+	{
+		id: "SCEUR",
+		s: "SC",
+		q: "EUR"
+	},
+	{
+		id: "SCUSD",
+		s: "SC",
+		q: "USD"
+	},
+	{
+		id: "SCXBT",
+		s: "SC",
+		q: "XBT"
+	},
+	{
+		id: "SNXAUD",
+		s: "SNX",
+		q: "AUD"
+	},
+	{
+		id: "SNXETH",
+		s: "SNX",
+		q: "ETH"
+	},
+	{
+		id: "SNXEUR",
+		s: "SNX",
+		q: "EUR"
+	},
+	{
+		id: "SNXGBP",
+		s: "SNX",
+		q: "GBP"
+	},
+	{
+		id: "SNXUSD",
+		s: "SNX",
+		q: "USD"
+	},
+	{
+		id: "SNXXBT",
+		s: "SNX",
+		q: "XBT"
+	},
+	{
+		id: "STORJETH",
+		s: "STORJ",
+		q: "ETH"
+	},
+	{
+		id: "STORJEUR",
+		s: "STORJ",
+		q: "EUR"
+	},
+	{
+		id: "STORJUSD",
+		s: "STORJ",
+		q: "USD"
+	},
+	{
+		id: "STORJXBT",
+		s: "STORJ",
+		q: "XBT"
+	},
+	{
+		id: "TBTCETH",
+		s: "TBTC",
+		q: "ETH"
+	},
+	{
+		id: "TBTCEUR",
+		s: "TBTC",
+		q: "EUR"
+	},
+	{
+		id: "TBTCUSD",
+		s: "TBTC",
+		q: "USD"
+	},
+	{
+		id: "TBTCXBT",
+		s: "TBTC",
+		q: "XBT"
+	},
+	{
+		id: "TRXETH",
+		s: "TRX",
+		q: "ETH"
+	},
+	{
+		id: "TRXEUR",
+		s: "TRX",
+		q: "EUR"
+	},
+	{
+		id: "TRXUSD",
+		s: "TRX",
+		q: "USD"
+	},
+	{
+		id: "TRXXBT",
+		s: "TRX",
+		q: "XBT"
+	},
+	{
+		id: "UNIETH",
+		s: "UNI",
+		q: "ETH"
+	},
+	{
+		id: "UNIEUR",
+		s: "UNI",
+		q: "EUR"
+	},
+	{
+		id: "UNIUSD",
+		s: "UNI",
+		q: "USD"
+	},
+	{
+		id: "UNIXBT",
+		s: "UNI",
+		q: "XBT"
+	},
+	{
+		id: "USDCAUD",
+		s: "USDC",
+		q: "AUD"
+	},
+	{
+		id: "USDCEUR",
+		s: "USDC",
+		q: "EUR"
+	},
+	{
+		id: "USDCGBP",
+		s: "USDC",
+		q: "GBP"
+	},
+	{
+		id: "USDCHF",
+		s: "USD",
+		q: "CHF"
+	},
+	{
+		id: "USDCUSD",
+		s: "USDC",
+		q: "USD"
+	},
+	{
+		id: "USDCUSDT",
+		s: "USDC",
+		q: "USDT"
+	},
+	{
+		id: "USDTAUD",
+		s: "USDT",
+		q: "AUD"
+	},
+	{
+		id: "USDTCAD",
+		s: "USDT",
+		q: "CAD"
+	},
+	{
+		id: "USDTCHF",
+		s: "USDT",
+		q: "CHF"
+	},
+	{
+		id: "USDTEUR",
+		s: "USDT",
+		q: "EUR"
+	},
+	{
+		id: "USDTGBP",
+		s: "USDT",
+		q: "GBP"
+	},
+	{
+		id: "USDTJPY",
+		s: "USDT",
+		q: "JPY"
+	},
+	{
+		id: "USDTZUSD",
+		s: "USDT",
+		q: "USD"
+	},
+	{
+		id: "WAVESETH",
+		s: "WAVES",
+		q: "ETH"
+	},
+	{
+		id: "WAVESEUR",
+		s: "WAVES",
+		q: "EUR"
+	},
+	{
+		id: "WAVESUSD",
+		s: "WAVES",
+		q: "USD"
+	},
+	{
+		id: "WAVESXBT",
+		s: "WAVES",
+		q: "XBT"
+	},
+	{
+		id: "XBTAUD",
+		s: "XBT",
+		q: "AUD"
+	},
+	{
+		id: "XBTCHF",
+		s: "XBT",
+		q: "CHF"
+	},
+	{
+		id: "XBTDAI",
+		s: "XBT",
+		q: "DAI"
+	},
+	{
+		id: "XBTUSDC",
+		s: "XBT",
+		q: "USDC"
+	},
+	{
+		id: "XBTUSDT",
+		s: "XBT",
+		q: "USDT"
+	},
+	{
+		id: "XDGEUR",
+		s: "XDG",
+		q: "EUR"
+	},
+	{
+		id: "XDGUSD",
+		s: "XDG",
+		q: "USD"
+	},
+	{
+		id: "XETCXETH",
+		s: "ETC",
+		q: "ETH"
+	},
+	{
+		id: "XETCXXBT",
+		s: "ETC",
+		q: "XBT"
+	},
+	{
+		id: "XETCZEUR",
+		s: "ETC",
+		q: "EUR"
+	},
+	{
+		id: "XETCZUSD",
+		s: "ETC",
+		q: "USD"
+	},
+	{
+		id: "XETHXXBT",
+		s: "ETH",
+		q: "XBT"
+	},
+	{
+		id: "XETHZCAD",
+		s: "ETH",
+		q: "CAD"
+	},
+	{
+		id: "XETHZEUR",
+		s: "ETH",
+		q: "EUR"
+	},
+	{
+		id: "XETHZGBP",
+		s: "ETH",
+		q: "GBP"
+	},
+	{
+		id: "XETHZJPY",
+		s: "ETH",
+		q: "JPY"
+	},
+	{
+		id: "XETHZUSD",
+		s: "ETH",
+		q: "USD"
+	},
+	{
+		id: "XLTCXXBT",
+		s: "LTC",
+		q: "XBT"
+	},
+	{
+		id: "XLTCZEUR",
+		s: "LTC",
+		q: "EUR"
+	},
+	{
+		id: "XLTCZJPY",
+		s: "LTC",
+		q: "JPY"
+	},
+	{
+		id: "XLTCZUSD",
+		s: "LTC",
+		q: "USD"
+	},
+	{
+		id: "XMLNXETH",
+		s: "MLN",
+		q: "ETH"
+	},
+	{
+		id: "XMLNXXBT",
+		s: "MLN",
+		q: "XBT"
+	},
+	{
+		id: "XMLNZEUR",
+		s: "MLN",
+		q: "EUR"
+	},
+	{
+		id: "XMLNZUSD",
+		s: "MLN",
+		q: "USD"
+	},
+	{
+		id: "XREPXETH",
+		s: "REP",
+		q: "ETH"
+	},
+	{
+		id: "XREPXXBT",
+		s: "REP",
+		q: "XBT"
+	},
+	{
+		id: "XREPZEUR",
+		s: "REP",
+		q: "EUR"
+	},
+	{
+		id: "XREPZUSD",
+		s: "REP",
+		q: "USD"
+	},
+	{
+		id: "XRPAUD",
+		s: "XRP",
+		q: "AUD"
+	},
+	{
+		id: "XRPETH",
+		s: "XRP",
+		q: "ETH"
+	},
+	{
+		id: "XRPGBP",
+		s: "XRP",
+		q: "GBP"
+	},
+	{
+		id: "XRPUSDT",
+		s: "XRP",
+		q: "USDT"
+	},
+	{
+		id: "XTZAUD",
+		s: "XTZ",
+		q: "AUD"
+	},
+	{
+		id: "XTZETH",
+		s: "XTZ",
+		q: "ETH"
+	},
+	{
+		id: "XTZEUR",
+		s: "XTZ",
+		q: "EUR"
+	},
+	{
+		id: "XTZGBP",
+		s: "XTZ",
+		q: "GBP"
+	},
+	{
+		id: "XTZUSD",
+		s: "XTZ",
+		q: "USD"
+	},
+	{
+		id: "XTZXBT",
+		s: "XTZ",
+		q: "XBT"
+	},
+	{
+		id: "XXBTZCAD",
+		s: "XBT",
+		q: "CAD"
+	},
+	{
+		id: "XXBTZEUR",
+		s: "XBT",
+		q: "EUR"
+	},
+	{
+		id: "XXBTZGBP",
+		s: "XBT",
+		q: "GBP"
+	},
+	{
+		id: "XXBTZJPY",
+		s: "XBT",
+		q: "JPY"
+	},
+	{
+		id: "XXBTZUSD",
+		s: "XBT",
+		q: "USD"
+	},
+	{
+		id: "XXDGXXBT",
+		s: "XDG",
+		q: "XBT"
+	},
+	{
+		id: "XXLMXXBT",
+		s: "XLM",
+		q: "XBT"
+	},
+	{
+		id: "XXLMZAUD",
+		s: "XLM",
+		q: "AUD"
+	},
+	{
+		id: "XXLMZEUR",
+		s: "XLM",
+		q: "EUR"
+	},
+	{
+		id: "XXLMZGBP",
+		s: "XLM",
+		q: "GBP"
+	},
+	{
+		id: "XXLMZUSD",
+		s: "XLM",
+		q: "USD"
+	},
+	{
+		id: "XXMRXXBT",
+		s: "XMR",
+		q: "XBT"
+	},
+	{
+		id: "XXMRZEUR",
+		s: "XMR",
+		q: "EUR"
+	},
+	{
+		id: "XXMRZUSD",
+		s: "XMR",
+		q: "USD"
+	},
+	{
+		id: "XXRPXXBT",
+		s: "XRP",
+		q: "XBT"
+	},
+	{
+		id: "XXRPZCAD",
+		s: "XRP",
+		q: "CAD"
+	},
+	{
+		id: "XXRPZEUR",
+		s: "XRP",
+		q: "EUR"
+	},
+	{
+		id: "XXRPZJPY",
+		s: "XRP",
+		q: "JPY"
+	},
+	{
+		id: "XXRPZUSD",
+		s: "XRP",
+		q: "USD"
+	},
+	{
+		id: "XZECXXBT",
+		s: "ZEC",
+		q: "XBT"
+	},
+	{
+		id: "XZECZEUR",
+		s: "ZEC",
+		q: "EUR"
+	},
+	{
+		id: "XZECZUSD",
+		s: "ZEC",
+		q: "USD"
+	},
+	{
+		id: "YFIAUD",
+		s: "YFI",
+		q: "AUD"
+	},
+	{
+		id: "YFIETH",
+		s: "YFI",
+		q: "ETH"
+	},
+	{
+		id: "YFIEUR",
+		s: "YFI",
+		q: "EUR"
+	},
+	{
+		id: "YFIGBP",
+		s: "YFI",
+		q: "GBP"
+	},
+	{
+		id: "YFIUSD",
+		s: "YFI",
+		q: "USD"
+	},
+	{
+		id: "YFIXBT",
+		s: "YFI",
+		q: "XBT"
+	},
+	{
+		id: "ZEURZUSD",
+		s: "EUR",
+		q: "USD"
+	},
+	{
+		id: "ZGBPZUSD",
+		s: "GBP",
+		q: "USD"
+	},
+	{
+		id: "ZUSDZCAD",
+		s: "USD",
+		q: "CAD"
+	},
+	{
+		id: "ZUSDZJPY",
+		s: "USD",
+		q: "JPY"
+	}
+];
+
+class KrakenManager extends PairsManager {
+    constructor() {
+        super(...arguments);
+        this.timeoutMs = ms('10s');
+    }
+    isPairAvailable(symbol, quote) {
+        return krakenPairs.some(p => {
+            return p.s === symbol && p.q === quote;
+        });
+    }
+    async updateFunction() {
+        if (this.pairs.length === 0) {
+            return;
+        }
+        const result = (await (await fetch(`https://api.kraken.com/0/public/Ticker?pair=${this.getPairsString()}`)).json()).result;
+        for (const pair of this.pairs) {
+            pair.price = parseFloat(result[this.getIdFromPair(pair)].c[0]);
+            // pair.price = parseFloat(result.find(r => r.symbol === `${pair.symbol}${pair.quote}`).price)
+        }
+        super.updateFunction();
+    }
+    getAvailableSymbols() {
+        return [...new Set(krakenPairs.map(p => p.s))];
+    }
+    getAvailableQuotesFromSymbol(symbol) {
+        return [...new Set(krakenPairs.filter(p => p.s === symbol).map(p => p.q))];
+    }
+    getPairsString() {
+        return this.pairs.map(p => `${p.symbol}${p.quote}`).join(',');
+    }
+    // getPairFromId (id: string) {
+    //   const krakenPair = krakenPairs.find(p => p.id === id)
+    //   return this.pairs.find(p => p.symbol === krakenPair?.s && p.quote === krakenPair?.q)
+    // }
+    getIdFromPair(pair) {
+        return krakenPairs.find(p => p.s === pair.symbol && p.q === pair.quote)?.id;
     }
 }
 
@@ -21735,6 +23204,18 @@ var binancePairs = [
 	{
 		s: "BIFI",
 		q: "BUSD"
+	},
+	{
+		s: "LINA",
+		q: "BTC"
+	},
+	{
+		s: "LINA",
+		q: "BUSD"
+	},
+	{
+		s: "LINA",
+		q: "USDT"
 	}
 ];
 
@@ -47812,10 +49293,10 @@ class ExchangesManager {
     }
     static initializeExchangesFromSessions(sessions) {
         for (const session of sessions) {
-            for (const trade of session.trades) {
-                // false here means "don't call the update routine"
-                this.exchanges[session.exchange].addPair(trade.symbol, trade.quote, false);
-            }
+            // for (const trade of session.trades) {
+            // false here means "don't call the update routine"
+            this.exchanges[session.exchange].addPair(session.symbol, session.quote, false);
+            // }
         }
     }
     static startUpdateRoutines() {
@@ -47824,27 +49305,212 @@ class ExchangesManager {
         }
     }
     static getPrice(exchangeName, symbol, quote) {
-        return (this.exchanges[exchangeName].getPrice(symbol, quote));
+        return this.exchanges[exchangeName].getPrice(symbol, quote);
+    }
+    static async addPair(exchangeName, symbol, quote, updatePairs = true) {
+        await this.exchanges[exchangeName].addPair(symbol, quote, updatePairs);
     }
 }
 // order matters !
 ExchangesManager.exchanges = {
+    'kraken': new KrakenManager,
     'binance': new BinanceManager,
     'others': new CoingeckoPairsManager
 };
+window.exchangesManager = ExchangesManager;
+
+let TradesView = class TradesView extends LitElement {
+    constructor(tradesInterface) {
+        super();
+        this.interface = tradesInterface;
+    }
+    render() {
+        return html `
+    ${ExchangesManager.getAvailableExchanges().map(exchange => {
+            const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange);
+            if (sessions.length === 0)
+                return nothing;
+            return html `
+      <div class="exchange-frame">
+        <p>${firstLetterUpperCase(exchange)}</p>
+        ${sessions.map(session => {
+                return this.sessionTemplate(session);
+            })}
+      </div>
+      `;
+        })}
+    `;
+    }
+    sessionTemplate(session) {
+        const summary = this.interface.tradesManager.getSummarizedSessionTrades(session);
+        let activeProfit, overallProfit;
+        const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote);
+        if (price) {
+            activeProfit = price * summary.volume;
+            overallProfit = round(summary.profit + activeProfit, 5);
+        }
+        return html `
+    <div class="session"
+        @mousedown="${(e) => this.onSessionElementClick(e, session)}">
+      <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
+      <span class="profit"
+        style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit === 0 ? '' : overallProfit > 0 ? '+' : ''} ${overallProfit}${formatQuote(session.quote)}</span>
+      <mwc-icon-button icon="close"
+        @mousedown="${e => e.stopPropagation()}"
+        @click="${() => this.interface.removeSession(session)}"></mwc-icon-button>
+    </div>
+    <style>
+    </style>
+    `;
+    }
+    onSessionElementClick(e, session) {
+        if (e.button === 2) {
+            openCryptowatchLink(session);
+        }
+        else {
+            this.interface.sessionsInterface.open(session);
+        }
+    }
+};
+TradesView.styles = css `
+  .exchange-frame:not(:last-of-type) {
+    margin-bottom: 24px;
+  }
+  .exchange-frame > p:first-of-type {
+    margin-left: 12px;
+    font-weight: 500;
+    color: var(--mdc-theme-primary);
+  }
+  .session {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    background-color: #eeeeee;
+    justify-content: space-between;
+    margin: 5px 0;
+  }
+  .session > .name {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+    width: 60px;
+    text-align: left
+  }
+  .session > .name > mwc-icon {
+    margin: 0 5px;
+    color: #bdbdbd;
+  }
+  .session > mwc-icon-button {
+    --mdc-icon-size: 24px;
+    --mdc-icon-button-size: 32px;
+  }
+  `;
+TradesView = __decorate([
+    customElement('trades-view')
+], TradesView);
+
+let SessionInterface = class SessionInterface extends LitElement {
+    render() {
+        const trades = this.session?.trades.slice().reverse();
+        return html `
+    <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})">
+      <div style="width:600px"></div>
+      <div>
+      ${this.session ? html `
+        ${trades.length
+            ? trades.map(trade => this.tradeTemplate(trade, this.session))
+            : html `<div style="margin:38px;text-align:center">no trades</div>`}
+      ` : nothing}
+      </div>
+
+      <mwc-button unelevated slot="secondaryAction" icon="show_charts"
+          @click="${() => window.app.tradesInterface.open(this.session)}">add trade</mwc-button>
+      <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
+    </mwc-dialog>
+    `;
+    }
+    tradeTemplate(trade, session, eventful = true) {
+        return html `
+    <div class="trade">
+      <b style="color:${trade.type === 'buy' ? 'green' : 'red'}">${trade.type.toUpperCase()}</b>
+      <div><b>${trade.volume}</b> <b style="position:relative;top:-1px;color:#bdbdbd">@</b> <span>${trade.price} ${session.quote}</span></div>
+      ${eventful ? html `
+        <mwc-icon-button icon="close"
+          @click="${() => this.deleteTrade(trade)}"></mwc-icon-button>
+      ` : nothing}
+    </div>
+    <style>
+      .trade {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #eeeeee;
+        padding: 6px 6px 6px 12px;
+        cursor: pointer;
+        margin: 4px 0;
+      }
+      .trade > mwc-icon-button {
+        --mdc-icon-size: 20px;
+        --mdc-icon-button-size: 32px;
+      }
+    </style>
+    `;
+    }
+    open(session) {
+        this.session = session;
+        this.dialog.show();
+    }
+    async deleteTrade(trade) {
+        try {
+            await window.app.confirmDialog.open('Deleting Trade', html `
+        You are about to delete this trade :
+        <div style="margin:12px 0">
+        ${this.tradeTemplate(trade, this.session, false)}
+        </div>
+        Are you sure to continue ?
+      `);
+            window.app.tradesInterface.tradesManager.deleteTrade(trade);
+            window.app.tradesInterface.saveTrades();
+            // also we should make sure that the trades dialog get resetted
+            // because on a trade delete the volume change
+            window.app.tradesInterface.hardReset();
+            // window.app.tradesInterface.requestUpdate() // not necessary ? since the reset function will update the view
+            this.requestUpdate();
+            window.app.toast('trade deleted');
+        }
+        catch (e) {
+            /* canceled */
+        }
+    }
+};
+SessionInterface.styles = css `
+  `;
+__decorate([
+    property()
+], SessionInterface.prototype, "session", void 0);
+__decorate([
+    query('mwc-dialog')
+], SessionInterface.prototype, "dialog", void 0);
+SessionInterface = __decorate([
+    customElement('session-interface')
+], SessionInterface);
 
 const formTypes = ['form', 'text'];
 let TradesInterface = class TradesInterface extends LitElement {
     constructor() {
         super();
-        this.updating = false;
+        // @property()
+        // private updating = false
         this.formType = 'form';
         // creating the trade manager with local data if any
         this.tradesManager = new TradeManager(localStorage.getItem('trades') ? JSON.parse(localStorage.getItem('trades')) : []);
         // then here we should update the different pairs manager
         ExchangesManager.initializeExchangesFromSessions(this.tradesManager.sessions);
         // start the loops to fetch the prices
-        // ExchangesManager.startUpdateRoutines()
+        ExchangesManager.startUpdateRoutines();
+        // sessions interface
+        this.sessionsInterface = new SessionInterface();
         // trades view
         this.tradesView = new TradesView(this);
     }
@@ -47861,30 +49527,38 @@ let TradesInterface = class TradesInterface extends LitElement {
             }
         }
         return html `
-    <div style="text-align:center">
-      ${!this.tradesManager.sessions.length ? html `<div style="font-size:18px;margin:18px 0">no trades yet</div>` : nothing}
+    <div>
+      ${!this.tradesManager.sessions.length ? html `
+      <div style="text-align:center">
+        <div style="font-size:24px;margin:38px 0">no sessions yet</div>
+        <img src="/images/empty.gif">
+      </div>
+      ` : nothing}
       ${this.tradesView}
-      <mwc-button 
-        style="margin-top:20px"
-        @click="${() => this.openTransactionDialog()}" raised icon="add">add</mwc-button>
+      <div style="text-align:center">
+        <mwc-button 
+          style="margin-top:20px"
+          @click="${() => this.open()}" raised icon="add">add session</mwc-button>
+      </div>
     </div>
 
+    ${this.sessionsInterface}
 
-    <mwc-dialog id="trade" heading="Trade"
-        @opened="${this.fixOverflow}" open>
+    <mwc-dialog id="trade" heading="${this.session ? 'Add Trade' : 'Create Session'}"
+        @opened="${this.fixOverflow}">
       <form>
         <div style="width:650px"></div>
-        <mwc-tab-bar
+        <!-- <mwc-tab-bar
             @MDCTabBar:activated="${e => this.formType = formTypes[e.detail.index]}">
           <mwc-tab label="form"></mwc-tab>
           <mwc-tab label="text"></mwc-tab>
-        </mwc-tab-bar>
+        </mwc-tab-bar> -->
 
 
         <div class="form-content" ?show="${this.formType === 'form'}">
           <p>Exchange<sup>*</sup></p>
           <select name="exchange" @change="${e => this.onExchangeChange(e.target.value)}" required
-              ?disabled="${this.updating}">
+              ?disabled="${this.session !== undefined}">
             <option></option>
             ${exchanges.map(exchange => html `
             <option value="${exchange}">${exchange}</option>
@@ -47894,7 +49568,7 @@ let TradesInterface = class TradesInterface extends LitElement {
           <p>Symbol<sup>*</sup></p>
           <select name="symbol" @change="${e => this.onSymbolChange(e.target.value)}" required
               ?value="${this.symbol}"
-              ?disabled="${!symbols || this.updating}">
+              ?disabled="${!symbols || this.session !== undefined}">
             <option></option>
             ${symbols ? symbols.map(symbol => {
             return html `<option value="${symbol}">${symbol}</option>`;
@@ -47903,7 +49577,7 @@ let TradesInterface = class TradesInterface extends LitElement {
 
           <p>Quote<sup>*</sup></p>
           <select name="quote" @change="${e => this.onQuoteChange(e.target.value)}" required
-              ?disabled="${!quotes || this.updating}">
+              ?disabled="${!quotes || this.session !== undefined}">
             <option></option>
             ${quotes ? quotes.map(quote => {
             return html `<option value="${quote}">${quote}</option>`;
@@ -47912,29 +49586,49 @@ let TradesInterface = class TradesInterface extends LitElement {
 
           <p>Type</p>
           <mwc-formfield label="buy" style="--mdc-theme-text-primary-on-background:green">
-            <mwc-radio name="type" value="buy" checked></mwc-radio>
+            <mwc-radio name="type" value="buy" checked
+              @change="${() => this.requestUpdate()}"
+            ></mwc-radio>
           </mwc-formfield>
           <mwc-formfield label="sell" style="--mdc-theme-text-primary-on-background:red">
             <mwc-radio name="type" value="sell"
-              ?disabled="${!this.updating}"></mwc-radio>
+              @change="${() => this.requestUpdate()}"
+              ?disabled="${this.session === undefined || !this.session.trades.length}"></mwc-radio>
           </mwc-formfield>
 
-          <p>Price<sup>*</sup></p>
-          <mwc-textfield outlined required
-            validationMessage="required"
-            type="number"
-            name="price"></mwc-textfield>
+          <div id="inputs-box" style="text-align:right">
+            <p>Price<sup>*</sup></p>
+            <mwc-button outlined style="vertical-align:middle;margin-right:12px"
+              ?disabled="${this.exchange === undefined || this.symbol === undefined || this.quote === undefined}"
+              @click="${this.insertLastPrice}">last price</mwc-button>
+            <mwc-textfield outlined required
+              @keyup="${e => this.onNumberTypeInputChange('price', e.target.value)}"
+              validationMessage="required"
+              type="number"
+              min="0"
+              name="price"></mwc-textfield>
 
-          <p>Volume<sup>*</sup></p>
-          <mwc-textfield outlined required
-            validationMessage="required"
-            type="number"
-            name="volume"></mwc-textfield>
+            <p>Volume<sup>*</sup></p>
+            <mwc-button outlined style="vertical-align:middle;margin-right:12px"
+              ?hide="${!this.session || this.getType() !== 'sell'}"
+              @click="${this.insertMaxVolume}">max volume</mwc-button>
+            <mwc-textfield outlined required
+              @keyup="${e => this.onNumberTypeInputChange('volume', e.target.value)}"
+              validationMessage="required"
+              type="number"
+              min="0"
+              max="${this.session && this.getType() === 'sell' ? summarizeSessionTrades(this.session).volume : ''}"
+              helper="${this.session && this.getType() === 'sell' ? `Wallet : ${summarizeSessionTrades(this.session).volume} ${this.session.symbol}` : ''}"
+              ?helperPersistent="${!!this.session}"
+              name="volume"></mwc-textfield>
 
-          <p>Fees</p>
-          <mwc-textfield outlined
-            type="number"
-            name="fees"></mwc-textfield>
+            <p>Fees</p>
+            <mwc-textfield outlined
+              @keyup="${e => this.onNumberTypeInputChange('fees', e.target.value)}"
+              type="number"
+              min="0"
+              name="fees"></mwc-textfield>
+          </div>
         </div>
 
         <div class="form-content" ?show="${this.formType === 'text'}">
@@ -47944,18 +49638,22 @@ let TradesInterface = class TradesInterface extends LitElement {
           ETH-EUR:b:1440:1<br>
           means "(b)uying 1 ETH at 1440EUR"</p>
         </div>
+
+        <div style="height:50px;"></div>
       </form>
 
-      <mwc-button outlined slot="secondaryAction"
+      <mwc-button slot="secondaryAction"
         @click="${this.reset}">reset</mwc-button>
-      <mwc-button unelevated slot="secondaryAction"
-        @click="${this.submit}">trade</mwc-button>
-      <mwc-button slot="primaryAction" dialogAction="close">close</mwc-button>
-    </mwc-dialog>`;
+      <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
+      <mwc-button unelevated slot="primaryAction"
+        @click="${this.submit}" icon="show_charts">trade</mwc-button>
+    </mwc-dialog>
+    
+    `;
     }
     fixOverflow() {
-        this.transactionDialog.shadowRoot.querySelector('.mdc-dialog__surface').style.overflowY = 'visible';
-        this.transactionDialog.shadowRoot.querySelector('.mdc-dialog__content').style.overflow = 'visible';
+        // this.tradeDialog.shadowRoot!.querySelector<HTMLElement>('.mdc-dialog__surface')!.style.overflowY = 'visible'
+        // this.tradeDialog.shadowRoot!.querySelector<HTMLElement>('.mdc-dialog__content')!.style.overflow = 'visible'
     }
     onExchangeChange(value) {
         this.exchange = value;
@@ -47969,6 +49667,14 @@ let TradesInterface = class TradesInterface extends LitElement {
     onQuoteChange(value) {
         this.quote = value;
     }
+    onNumberTypeInputChange(inputName, value) {
+        // this.price = value
+        this.names[inputName].step = (1 / Math.pow(10, value.split('.')[1]?.length ?? 0)).toString();
+    }
+    // onVolumeChange (value) {
+    //   this.price = value
+    //   this.names['price'].step = (1 / Math.pow(10, value.split('.')[1]?.length ?? 0)).toString()
+    // }
     async setSession(session) {
         const names = this.names;
         names['exchange'].value = session.exchange;
@@ -47980,7 +49686,11 @@ let TradesInterface = class TradesInterface extends LitElement {
         names['quote'].value = session.quote;
         this.quote = session.quote;
         this.session = session;
-        this.updating = true;
+        // this.updating = true;
+    }
+    setTrade(session, trade) {
+        this.session = session;
+        this.trade = trade;
     }
     getType() {
         return this.shadowRoot.querySelector('[name=type][checked]').value;
@@ -48018,15 +49728,15 @@ let TradesInterface = class TradesInterface extends LitElement {
     //     }
     //   }
     // }
-    deleteAsset(assetName) {
-        const accept = window.confirm('Are you sure ?');
-        if (accept) {
-            this.trades.deleteAsset(assetName);
-            this.requestUpdate();
-            window.app.toast('asset deleted');
-            this.saveTrades();
-        }
-    }
+    // deleteAsset (assetName: string) {
+    //   const accept = window.confirm('Are you sure ?')
+    //   if (accept) {
+    //     this.trades.deleteAsset(assetName)
+    //     this.requestUpdate()
+    //     window.app.toast('asset deleted')
+    //     this.saveTrades()
+    //   }
+    // }
     get names() {
         const els = [...this.shadowRoot.querySelectorAll(`[name]`)].filter(el => {
             return !(el instanceof Radio) || el.checked;
@@ -48039,16 +49749,17 @@ let TradesInterface = class TradesInterface extends LitElement {
     //   }) as HTMLInputElement[]
     // }
     submit() {
-        const names = this.names;
-        // const formElements = Object.values(names)
-        for (const [elName, el] of Object.entries(names)) {
-            if (elName === 'type')
-                continue;
-            if (!el.checkValidity()) {
-                el.reportValidity();
+        if (this.formType === 'form') {
+            if (!this.validateForm()) {
                 return;
             }
         }
+        else if (this.formType === 'text') {
+            if (!this.validateTextForm()) {
+                return;
+            }
+        }
+        // const formElements = Object.values(names)
         // for (const el of formElements) {
         //   if (el instanceof Radio) continue
         //   if (el.getAttribute('name') === 'volume' || el.getAttribute('name') === 'price') {
@@ -48065,50 +49776,87 @@ let TradesInterface = class TradesInterface extends LitElement {
         //     return;
         //   }
         // }
-        const transac = Object.fromEntries(formElements.map(el => {
-            return [el.getAttribute('name'), el.value];
-        }));
-        // we make sure we can't sell more than we have
-        if (this.getType() === 'sell') {
-            const summary = this.tradesManager.getSummarizedTrade(`${transac.symbol}-${transac.currency}`);
-            if (parseFloat(transac.volume) > summary.volume) {
-                window.app.toast('not enough volume !');
-                this.getEl('volume').setCustomValidity(`not enought volume (max: ${summary.volume})`);
-                this.getEl('volume').reportValidity();
-                return;
+        if (this.formType === 'form') {
+            const formData = this.serializeForm();
+            // inserting the new pair in the appropriate exchange
+            ExchangesManager.addPair(formData.exchange, formData.symbol, formData.quote);
+            // if there is no session we should create it first
+            let session = this.session;
+            if (!session) {
+                session = this.tradesManager.createSession(formData.exchange, formData.symbol, formData.quote);
+            }
+            // then we add the trade
+            const { trade } = this.formDataToObjects(formData);
+            this.tradesManager.addTrade(session, trade);
+            window.app.toast(`${!this.session ? 'session and ' : ''}trade created`);
+            // we should also update the session interface
+            this.sessionsInterface.requestUpdate();
+        }
+        this.hardReset();
+        this.requestUpdate();
+        this.tradeDialog.close();
+        this.saveTrades();
+    }
+    validateForm() {
+        const names = this.names;
+        for (const [elName, el] of Object.entries(names)) {
+            if (elName === 'type')
+                continue;
+            if (!el.checkValidity()) {
+                el.reportValidity();
+                return false;
             }
         }
-        // we insert the new pair in the gecko manager before adding the trade
-        this.coingeckoManager.addPair(transac.symbol, transac.currency);
-        this.tradesManager.addTrade(`${transac.symbol}-${transac.currency}`, {
-            type: transac.type,
-            price: parseFloat(transac.price),
-            volume: parseFloat(transac.volume)
-        });
-        // this.transactionDialog.close()
-        this.reset();
-        window.app.toast('trade added');
-        this.requestUpdate();
-        this.transactionDialog.close();
-        this.saveTrades();
+        const formData = this.serializeForm();
+        // we should check if the trade tries to sell more volume than we have
+        if (formData.type === 'sell') {
+            const summary = this.tradesManager.getSummarizedSessionTrades(this.session);
+            if (parseFloat(formData.volume) > summary.volume) {
+                window.app.toast('Too much volume to sell');
+                return false;
+            }
+        }
+        return true;
+    }
+    validateTextForm() {
+        return false;
+    }
+    serializeForm() {
+        if (this.formType === 'form') {
+            return Object.fromEntries(Object.entries(this.names).map(([elName, el]) => [elName, el.value]));
+        }
+        else {
+            return {};
+        }
+    }
+    formDataToObjects(formData) {
+        const session = {};
+        const trade = {};
+        if (formData.exchange)
+            session.exchange = formData.exchange;
+        if (formData.symbol)
+            session.symbol = formData.symbol;
+        if (formData.quote)
+            session.quote = formData.quote;
+        if (formData.type)
+            trade.type = formData.type;
+        if (formData.price)
+            trade.price = parseFloat(formData.price);
+        if (formData.volume)
+            trade.volume = parseFloat(formData.volume);
+        if (formData.fees)
+            trade.volume = parseFloat(formData.fees);
+        return { session, trade };
     }
     saveTrades() {
         localStorage.setItem('trades', this.tradesManager.toString());
     }
-    openTransactionDialog(asset, price) {
-        this.reset();
-        if (asset) {
-            this.getEl('asset').value = asset;
-        }
-        if (price) {
-            this.getEl('price').value = price.toString();
-        }
-        this.transactionDialog.show();
-    }
     reset() {
         if (!this.session) {
+            this.onQuoteChange(undefined);
             this.onSymbolChange(undefined);
             this.onExchangeChange(undefined);
+            this.names['exchange'].value = '';
         }
         const names = this.names;
         names['price'].value = '';
@@ -48117,7 +49865,47 @@ let TradesInterface = class TradesInterface extends LitElement {
     }
     hardReset() {
         this.session = undefined;
+        this.trade = undefined;
+        this.shadowRoot.querySelector('mwc-radio[name=type][value=buy]').checked = true;
         this.reset();
+    }
+    async insertLastPrice() {
+        // add pair to make sure the price exists
+        await ExchangesManager.addPair(this.exchange, this.symbol, this.quote);
+        const price = ExchangesManager.getPrice(this.exchange, this.symbol, this.quote).toString();
+        this.names['price'].value = price;
+        this.onNumberTypeInputChange('price', price);
+    }
+    insertMaxVolume() {
+        const volume = summarizeSessionTrades(this.session).volume.toString();
+        this.names['volume'].value = volume;
+        this.onNumberTypeInputChange('volume', volume);
+    }
+    async removeSession(session) {
+        try {
+            await window.app.confirmDialog.open('Deleting Session', html `The session and all the trades inside will be lost.<br>Are you sure to continue?`);
+            this.tradesManager.deleteSession(session);
+            this.requestUpdate();
+            window.app.toast('session deleted');
+            this.saveTrades();
+        }
+        catch (e) {
+            // window.app.toast('canceled')
+        }
+    }
+    open(session) {
+        if (session) {
+            if (!this.session) {
+                this.hardReset();
+            }
+            this.setSession(session);
+        }
+        else {
+            if (this.session) {
+                this.hardReset();
+            }
+        }
+        this.tradeDialog.show();
     }
 };
 TradesInterface.styles = css `
@@ -48128,6 +49916,10 @@ TradesInterface.styles = css `
   .form-content {
     height: 0;
     overflow: hidden;
+  }
+
+  [hide] {
+    display:none;
   }
 
   [show] {
@@ -48147,10 +49939,14 @@ TradesInterface.styles = css `
   sup {
     color: red;
   }
+
+  #inputs-box {
+    text-align: right;
+  }
+  #inputs-box > mwc-textfield {
+    min-width: 232px;
+  }
   `;
-__decorate([
-    property()
-], TradesInterface.prototype, "updating", void 0);
 __decorate([
     property()
 ], TradesInterface.prototype, "formType", void 0);
@@ -48171,10 +49967,13 @@ __decorate([
 ], TradesInterface.prototype, "quote", void 0);
 __decorate([
     property()
-], TradesInterface.prototype, "asset", void 0);
+], TradesInterface.prototype, "price", void 0);
 __decorate([
-    query('mwc-dialog[heading=Transaction]')
-], TradesInterface.prototype, "transactionDialog", void 0);
+    property()
+], TradesInterface.prototype, "volume", void 0);
+__decorate([
+    query('mwc-dialog#trade')
+], TradesInterface.prototype, "tradeDialog", void 0);
 TradesInterface = __decorate([
     customElement('trades-interface')
 ], TradesInterface);
@@ -48699,6 +50498,50 @@ Snackbar = __decorate([
     customElement('mwc-snackbar')
 ], Snackbar);
 
+let ConfirmDialog = class ConfirmDialog extends LitElement {
+    constructor() {
+        super(...arguments);
+        this.label = '';
+        this.message = '';
+    }
+    render() {
+        return html `
+    <mwc-dialog heading="${this.label}">
+      <div>${this.message}</div>
+
+      <mwc-button outlined slot="secondaryAction" dialogAction="close"
+        @click="${() => this.promiseReject()}">cancel</mwc-button>
+      <mwc-button unelevated slot="primaryAction" style="--mdc-theme-primary:#f44336"
+        @click="${() => { this.promiseResolve(); this.dialog.close(); }}">confirm</mwc-button>
+    </mwc-dialog>
+    `;
+    }
+    open(label, message) {
+        if (!label) {
+            label = 'Are you sure ?';
+        }
+        this.label = label;
+        this.message = message;
+        this.dialog.show();
+        return new Promise((resolve, reject) => {
+            this.promiseResolve = resolve;
+            this.promiseReject = reject;
+        });
+    }
+};
+__decorate([
+    query('mwc-dialog')
+], ConfirmDialog.prototype, "dialog", void 0);
+__decorate([
+    property()
+], ConfirmDialog.prototype, "label", void 0);
+__decorate([
+    property()
+], ConfirmDialog.prototype, "message", void 0);
+ConfirmDialog = __decorate([
+    customElement('confirm-dialog')
+], ConfirmDialog);
+
 let AppContainer = class AppContainer extends LitElement {
     constructor() {
         super();
@@ -48707,8 +50550,9 @@ let AppContainer = class AppContainer extends LitElement {
     }
     render() {
         return html `
-
     ${this.tradesInterface}
+
+    <confirm-dialog></confirm-dialog>
 
     <mwc-snackbar></mwc-snackbar>
     `;
@@ -48718,9 +50562,17 @@ let AppContainer = class AppContainer extends LitElement {
         this.snackbar.show();
     }
 };
+AppContainer.styles = css `
+  :host {
+    --mdc-theme-primary: #009688;
+  }
+  `;
 __decorate([
     query('mwc-snackbar')
 ], AppContainer.prototype, "snackbar", void 0);
+__decorate([
+    query('confirm-dialog')
+], AppContainer.prototype, "confirmDialog", void 0);
 AppContainer = __decorate([
     customElement('app-container')
 ], AppContainer);

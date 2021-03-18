@@ -23,8 +23,8 @@ export type TradeUnit = {
 // }
 
 export type Trade = {
-  symbol: string,
-  quote: string,
+  // symbol: string,
+  // quote: string,
   type: 'buy'|'sell',
   price: number,
   volume: number,
@@ -54,28 +54,49 @@ export class TradeManager {
   }
 
   createSession (exchange: AvailableExchanges, symbol: string, quote: string) {
-    this.sessions.push({
+    const session: TradeSession = {
       id: Date.now(),
       exchange,
       symbol,
       quote,
       trades: []
-    })
+    }
+    this.sessions.push(session)
+    return session
   }
 
-  addTrade(trade: Trade, session: TradeSession) {
+  addTrade(session: TradeSession, trade: Trade) {
     session.trades.push(trade)
+  }
+
+  deleteSession (session: TradeSession) {
+    this.sessions.splice(this.sessions.indexOf(session), 1)
+  }
+
+  deleteTrade (trade: Trade, session?: TradeSession) {
+    if (!session) {
+      session = this.getTradesSession(trade)
+      if (!session) {
+        return false
+      }
+    }
+    const indexOfTrade = session.trades.indexOf(trade)
+    if (indexOfTrade === -1) return false
+
+    session.trades.splice(indexOfTrade, 1)
+    return true
+  }
+
+  getTradesSession (trade: Trade) {
+    return this.sessions.find(s => s.trades.indexOf(trade) >= 0)
   }
 
   getPairTrades (pair: string) {
     return this.sessions[pair]
   }
 
-  getSummarizedTrade (pair: string) {
-    if (!(pair in this.sessions)) {
-      return undefined;
-    }
-    return summarizeTrades(this.sessions[pair])
+  getSummarizedSessionTrades (session: TradeSession) {
+    return summarizeSessionTrades(session)
   }
 
   toString () {
@@ -105,8 +126,8 @@ export class TradeManager {
 //   return trades
 // }
 
-export function summarizeTrades (trades: Trade[]) {
-  return trades.reduce((acc, trade)  => {
+export function summarizeSessionTrades (session: TradeSession) {
+  return session.trades.reduce((acc, trade)  => {
     if (trade.type === 'buy') {
       acc.profit -= trade.price * trade.volume;
       acc.volume += trade.volume;

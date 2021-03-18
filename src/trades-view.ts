@@ -1,9 +1,11 @@
 import { css, customElement, html, LitElement } from "lit-element";
-import { TradeManager } from "./trades";
-import { TradesInterface } from "./TradesInterface";
-import { round } from "./util";
+import { nothing } from 'lit-html'
+import { Trade, TradeManager, TradeSession } from "./trades";
+import { TradesInterface } from "./trades-interface";
+import { firstLetterUpperCase, formatQuote, round } from "./util";
 import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
+import { ExchangesManager } from "./ExchangesManager";
 
 
 @customElement('trades-view')
@@ -15,58 +17,90 @@ export class TradesView extends LitElement {
     this.interface = tradesInterface;
   }
 
+  static styles = css`
+  .exchange-frame:not(:last-of-type) {
+    margin-bottom: 24px;
+  }
+  .exchange-frame > p:first-of-type {
+    margin-left: 12px;
+    font-weight: 500;
+    color: var(--mdc-theme-primary);
+  }
+  .session {
+    display: flex;
+    align-items: center;
+    padding: 14px;
+    background-color: #eeeeee;
+    justify-content: space-between;
+    margin: 5px 0;
+  }
+  .session > .name {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+    width: 60px;
+    text-align: left
+  }
+  .session > .name > mwc-icon {
+    margin: 0 5px;
+    color: #bdbdbd;
+  }
+  .session > mwc-icon-button {
+    --mdc-icon-size: 24px;
+    --mdc-icon-button-size: 32px;
+  }
+  `
+
   render () {
     return html`
-    ${this.interface.tradesManager.pairs.map(pair => {
-      return this.pairTemplate(pair)
+    ${ExchangesManager.getAvailableExchanges().map(exchange => {
+      const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange)
+
+      if (sessions.length === 0) return nothing
+
+      return html`
+      <div class="exchange-frame">
+        <p>${firstLetterUpperCase(exchange)}</p>
+        ${sessions.map(session => {
+          return this.sessionTemplate(session)
+        })}
+      </div>
+      `
     })}
     `
   }
 
-  pairTemplate (pair: string) {
-    const summary = this.interface.tradesManager.getSummarizedTrade(pair)!
+  sessionTemplate (session: TradeSession) {
+    const summary = this.interface.tradesManager.getSummarizedSessionTrades(session)
     let activeProfit, overallProfit;
-    const coingeckoPair = this.interface.coingeckoManager.getPair(pair)
-    if (coingeckoPair) {
-      activeProfit = coingeckoPair.price! * summary.volume;
-      overallProfit = round(summary.profit + activeProfit)
+    const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote)
+    if (price) {
+      activeProfit = price * summary.volume;
+      overallProfit = round(summary.profit + activeProfit, 5)
     }
 
     return html`
-    <div class="asset"
-        @mousedown="${(e:MouseEvent) => {if (e.button === 2) openCryptowatchLink(pair)}}">
-      <span class="name">${pair}</span>
+    <div class="session"
+        @mousedown="${(e) => this.onSessionElementClick(e, session)}">
+      <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
       <span class="profit"
-        style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit}€</span>
+        style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit === 0 ? '' : overallProfit > 0 ? '+' : ''} ${overallProfit}${formatQuote(session.quote)}</span>
       <mwc-icon-button icon="close"
-        @click="${() => this.deleteAsset(pair)}"></mwc-icon-button>
+        @mousedown="${e => e.stopPropagation()}"
+        @click="${() => this.interface.removeSession(session)}"></mwc-icon-button>
     </div>
     <style>
-      .asset {
-        display: flex;
-        align-items: center;
-        padding: 0 0 0 14px;
-        background-color: #eeeeee;
-        justify-content: space-between;
-        margin: 1px 0;
-      }
-      .asset > .name {
-        font-size: 16px;
-        font-weight: 500;
-        width: 60px;
-        text-align: left
-      }
     </style>
     `
   }
 
-  deleteAsset (assetName: string) {
-    const accept = window.confirm('Are you sure ?')
-    if (accept) {
-      this.interface.deleteAsset(assetName)
-      this.requestUpdate()
-      window.app.toast('asset deleted')
-      this.interface.saveTrades()
+  private onSessionElementClick (e: PointerEvent, session: TradeSession) {
+    if (e.button === 2) {
+      openCryptowatchLink(session)
+    }
+    else {
+      this.interface.sessionsInterface.open(session)
     }
   }
 }

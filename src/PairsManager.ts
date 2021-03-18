@@ -39,7 +39,7 @@ export class PairsManager implements PairsManagerInterface {
     return this.pairs.find(p => p.symbol === symbol && p.quote === quote)
   }
 
-  addPair (symbol: string, quote: string, updatePairs = true) {
+  async addPair (symbol: string, quote: string, updatePairs = true) {
     if (!this.isPairAvailable(symbol, quote)) {
       return false;
     }
@@ -49,22 +49,23 @@ export class PairsManager implements PairsManagerInterface {
         symbol,
         quote
       })
+    }
 
-      if (updatePairs)
-        this.updatePairs()
+    if (updatePairs) {
+      await this.updatePairs()
     }
 
     return true
   }
 
-  updatePairs () {
+  async updatePairs () {
     if (this.updateTimeout) {
       clearTimeout(this.updateTimeout)
       this.updateTimeout = undefined;
     }
     
     this.updateTimeout = setTimeout(() => this.updatePairs(), this.timeoutMs)
-    this.updateFunction()
+    await this.updateFunction()
   }
 
   /**
@@ -73,7 +74,7 @@ export class PairsManager implements PairsManagerInterface {
    * it will trigger code execution and reset the timer
    */
   async updateFunction () {
-    // window.app.tradesInterface.requestUpdate()
+    window.app.tradesInterface.tradesView.requestUpdate()
   }
 
   getAvailableSymbols() {

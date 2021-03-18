@@ -1,7 +1,9 @@
-import {customElement, html, LitElement, query} from 'lit-element'
-import { TradesInterface } from './TradesInterface';
+import {css, customElement, html, LitElement, query} from 'lit-element'
+import { TradesInterface } from './trades-interface';
 import '@material/mwc-snackbar'
+import './confirm-dialog'
 import { Snackbar } from '@material/mwc-snackbar';
+import { ConfirmDialog } from './confirm-dialog';
 
 declare global {
   interface Window {
@@ -14,6 +16,7 @@ class AppContainer extends LitElement {
   public tradesInterface: TradesInterface;
 
   @query('mwc-snackbar') snackbar!: Snackbar;
+  @query('confirm-dialog') confirmDialog!: ConfirmDialog;
 
   constructor() {
     super()
@@ -22,10 +25,17 @@ class AppContainer extends LitElement {
     this.tradesInterface = new TradesInterface()
   }
 
+  static styles = css`
+  :host {
+    --mdc-theme-primary: #009688;
+  }
+  `
+
   render () {
     return html`
-
     ${this.tradesInterface}
+
+    <confirm-dialog></confirm-dialog>
 
     <mwc-snackbar></mwc-snackbar>
     `
