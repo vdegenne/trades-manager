@@ -24,12 +24,21 @@ export class PairsManager implements PairsManagerInterface {
     }
   }
 
+  /**
+   * pairExists will check if the pair exists in the pairs list, hence
+   * if it was registered.
+   * Also check for `isPairAvailable` to understand the subtle difference. 
+   */
   pairExists (symbol: string, quote: string) {
     return this.pairs.some(p => {
       return p.symbol === symbol && p.quote === quote
     })
   }
 
+  /**
+   * isPairAvailable will check if the pair exists in the whole exchange
+   * and then if it is available for registration
+   */
   isPairAvailable(symbol: string, quote: string) {
     // should be overrided
     return false
@@ -74,7 +83,7 @@ export class PairsManager implements PairsManagerInterface {
    * it will trigger code execution and reset the timer
    */
   async updateFunction () {
-    window.app.tradesInterface.tradesView.requestUpdate()
+    window.app.tradesInterface.refreshUI()
   }
 
   getAvailableSymbols() {

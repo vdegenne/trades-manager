@@ -3,12 +3,18 @@ import { PairsManager, PairsManagerInterface } from "../PairsManager";
 import binancePairs from './binance-pairs.json'
 
 export class BinanceManager extends PairsManager implements PairsManagerInterface {
-  protected timeoutMs = ms('10s')
+  protected timeoutMs = ms('5s')
 
   isPairAvailable (symbol: string, quote: string) {
+    symbol = symbol.toUpperCase()
+    quote = quote.toUpperCase()
     return binancePairs.some(p => {
       return p.s === symbol && p.q === quote;
     })
+  }
+
+  async addPair (symbol: string, quote: string, updatePairs = true) {
+    return super.addPair(symbol.toUpperCase(), quote.toUpperCase(), updatePairs)
   }
 
   async updateFunction () {

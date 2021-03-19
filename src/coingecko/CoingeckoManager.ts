@@ -8,21 +8,28 @@ export class CoingeckoPairsManager extends PairsManager implements PairsManagerI
 
   isPairAvailable (symbol: string, quote: string) {
     if (!coingeckoSymbols.some(a => a.s === symbol)) {
-      // window.app.toast('This symbol doesn\'t exist')
       return false
     }
-    if (!coingeckoQuotes.some(q => q === quote)) {
-      // window.app.toast('This currency doesn\'t exist')
+    let lowercase = symbol.toLowerCase()
+    if (!coingeckoSymbols.some(a => a.s === lowercase)) {
+      return false
+    }
+    lowercase = quote.toLowerCase()
+    if (!coingeckoQuotes.some(q => q === lowercase)) {
       return false
     }
 
     return true
   }
 
+  async addPair(symbol: string, quote: string, updatePairs = true) {
+    return super.addPair(symbol, quote.toLowerCase(), updatePairs)
+  }
+
   buildCoingeckoAPIArguments () {
     return {
       ids: [...new Set(this.pairs.map(p => coingeckoSymbols.find(a => a.s === p.symbol)!.id))].join(','),
-      vs_currencies: [...new Set(this.pairs.map(p => p.quote))].join(',')
+      vs_currencies: [...new Set(this.pairs.map(p => p.quote.toLowerCase()))].join(',')
     }
   }
 
@@ -45,7 +52,7 @@ export class CoingeckoPairsManager extends PairsManager implements PairsManagerI
     for (const pair of this.pairs) {
       const id = this.getIdFromSymbol(pair.symbol)
       if (!id) continue
-      pair.price = result[id][pair.quote]
+      pair.price = result[id][pair.quote.toLowerCase()]
     }
 
     super.updateFunction()

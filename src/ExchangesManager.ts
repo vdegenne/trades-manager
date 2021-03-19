@@ -3,6 +3,7 @@ import { BinanceManager } from "./binance/BinanceManager";
 import { CoingeckoPairsManager } from "./coingecko/CoingeckoManager";
 import { PairsManager } from "./PairsManager"
 import { TradeSession } from "./trades";
+import { Currencies } from './app-container';
 
 export type Exchange = PairsManager;
 export type Exchanges = {
@@ -16,7 +17,7 @@ export class ExchangesManager {
     'kraken': new KrakenManager,
     'binance': new BinanceManager,
     'others': new CoingeckoPairsManager
-  };
+  }
 
   static getAvailableExchanges () {
     return Object.keys(this.exchanges)
@@ -33,10 +34,7 @@ export class ExchangesManager {
 
   static initializeExchangesFromSessions (sessions: TradeSession[]) {
     for (const session of sessions) {
-      // for (const trade of session.trades) {
-        // false here means "don't call the update routine"
-        this.exchanges[session.exchange].addPair(session.symbol, session.quote, false)
-      // }
+      this.addPair(session.exchange, session.symbol, session.quote, false)
     }
   }
 
@@ -51,7 +49,47 @@ export class ExchangesManager {
   }
 
   static async addPair (exchangeName: AvailableExchanges, symbol: string, quote: string, updatePairs = true) {
+    this.registerQuoteForConversion(symbol, exchangeName)
+    this.registerQuoteForConversion(quote, exchangeName)
     await this.exchanges[exchangeName].addPair(symbol, quote, updatePairs)
+  }
+
+  static registerQuoteForConversion (quote: string, preferredExchange?: AvailableExchanges) {
+    for (const currency of Currencies) {
+      // if there is a preferred exchange we should first check if the pair exists there
+      // unless it's "others" (coingecko which is slow)
+      if (preferredExchange && preferredExchange !== 'others') {
+        const exchange = this.exchanges[preferredExchange]
+        if (exchange.pairExists(quote, currency))
+          continue;
+
+        if (exchange.isPairAvailable(quote, currency)) {
+          exchange.addPair(quote, currency, false)
+          continue
+        }
+      }
+      
+      // if it exists somewhere we pass
+      if (this.pairExists(quote, currency))
+        continue;
+
+      // or else we just check everywhere if we can add it
+      for (const exchange of Object.values(this.exchanges)) {
+        if (exchange.isPairAvailable(quote, currency)) {
+          exchange.addPair(quote, currency, false)
+          break
+        }
+      }
+    }
+  }
+
+  static pairExists (symbol: string, quote: string) {
+    for (const exchange of Object.values(this.exchanges)) {
+      if (exchange.pairExists(symbol, quote)) {
+        return true;
+      }
+    }
+    return false
   }
 }
 

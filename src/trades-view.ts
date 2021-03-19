@@ -6,11 +6,14 @@ import { firstLetterUpperCase, formatQuote, round } from "./util";
 import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
 import { ExchangesManager } from "./ExchangesManager";
+import { ProfitAggregator, Aggregator } from "./profit-aggregator";
 
 
 @customElement('trades-view')
 export class TradesView extends LitElement {
   private interface: TradesInterface;
+
+  private aggregator!: ProfitAggregator;
 
   constructor(tradesInterface: TradesInterface) {
     super()
@@ -18,6 +21,11 @@ export class TradesView extends LitElement {
   }
 
   static styles = css`
+  :host {
+    display: block;
+    max-width: 1024px;
+    margin: 0 auto;
+  }
   .exchange-frame:not(:last-of-type) {
     margin-bottom: 24px;
   }
@@ -59,6 +67,8 @@ export class TradesView extends LitElement {
   `
 
   render () {
+    this.aggregator = new ProfitAggregator()
+
     return html`
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
       const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange)
@@ -74,6 +84,8 @@ export class TradesView extends LitElement {
       </div>
       `
     })}
+
+    ${(() => console.log(this.aggregator))()}
     `
   }
 
@@ -84,14 +96,19 @@ export class TradesView extends LitElement {
     if (price) {
       activeProfit = price * summary.volume;
       overallProfit = round(summary.profit + activeProfit, 5)
+      this.aggregator.pushUnit(session.exchange, session.quote, overallProfit)
     }
 
     return html`
     <div class="session"
         @mousedown="${(e) => this.onSessionElementClick(e, session)}">
       <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
-      <span class="profit"
-        style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit === 0 ? '' : overallProfit > 0 ? '+' : ''} ${overallProfit}${formatQuote(session.quote)}</span>
+      <div>
+        <span>${summary.volume} ${session.symbol}</span>
+        <span>/</span>
+        <span class="profit"
+          style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit === 0 ? '' : overallProfit > 0 ? '+' : ''} ${overallProfit}${formatQuote(session.quote)}</span>
+      </div>
       <mwc-icon-button icon="close"
         @mousedown="${e => e.stopPropagation()}"
         @click="${() => this.interface.removeSession(session)}"></mwc-icon-button>

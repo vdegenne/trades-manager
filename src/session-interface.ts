@@ -7,6 +7,12 @@ import { Dialog } from "@material/mwc-dialog";
 import { nothing } from "lit-html";
 import { firstLetterUpperCase } from "./util";
 
+declare global {
+  interface Window {
+    sessionInterface: SessionInterface
+  }
+}
+
 @customElement('session-interface')
 export class SessionInterface extends LitElement {
   @property()
@@ -16,6 +22,11 @@ export class SessionInterface extends LitElement {
 
   static styles = css`
   `
+
+  constructor() {
+    super()
+    window.sessionInterface = this
+  }
 
   render() {
     const trades = this.session?.trades.slice().reverse()
@@ -81,8 +92,8 @@ export class SessionInterface extends LitElement {
         </div>
         Are you sure to continue ?
       `)
-      window.app.tradesInterface.tradesManager.deleteTrade(trade)
-      window.app.tradesInterface.saveTrades()
+      window.tradesInterface.tradesManager.deleteTrade(trade)
+      window.spacesManager.save()
       // also we should make sure that the trades dialog get resetted
       // because on a trade delete the volume change
       window.app.tradesInterface.hardReset()

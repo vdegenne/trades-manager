@@ -6,6 +6,9 @@ export class KrakenManager extends PairsManager implements PairsManagerInterface
   protected timeoutMs = ms('10s')
 
   isPairAvailable (symbol: string, quote: string) {
+    symbol.toUpperCase()
+    quote.toUpperCase()
+    symbol = convertSymbol(symbol)
     return krakenPairs.some(p => {
       return p.s === symbol && p.q === quote;
     })
@@ -44,6 +47,18 @@ export class KrakenManager extends PairsManager implements PairsManagerInterface
   // }
 
   getIdFromPair (pair: Pair) {
-    return krakenPairs.find(p => p.s === pair.symbol && p.q === pair.quote)?.id
+    return krakenPairs.find(p => p.s === convertSymbol(pair.symbol) && p.q === pair.quote)?.id
   }
+}
+
+function convertSymbol (symbol: string) {
+  const conversionMap = {
+    'BTC': 'XBT'
+  }
+
+  if (symbol in conversionMap) {
+    return conversionMap[symbol]
+  }
+
+  return symbol
 }

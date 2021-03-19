@@ -11,7 +11,6 @@ import '@material/mwc-tab-bar'
 import { Radio } from "@material/mwc-radio";
 import { TradesView } from "./trades-view";
 import { nothing } from "lit-html";
-import { CoingeckoPairsManager } from "./coingecko/CoingeckoManager";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { formatQuote, sortAlphabetically } from "./util";
 import './session-interface'
@@ -27,12 +26,20 @@ type FormData = {
   fees: string;
 }
 
+declare global {
+  interface Window {
+    tradesInterface: TradesInterface;
+    sessions: TradeSession[];
+  }
+}
+
 const formTypes = ['form', 'text'] as const
 
 @customElement('trades-interface')
 export class TradesInterface extends LitElement {
-  public tradesManager: TradeManager
+  public tradesManager!: TradeManager
   public sessionsInterface: SessionInterface;
+  public tradesView: TradesView;
 
   // @property()
   // private updating = false
@@ -61,17 +68,32 @@ export class TradesInterface extends LitElement {
   // @property()
   // asset?: string;
 
-  public tradesView: TradesView;
 
   @query('mwc-dialog#trade') tradeDialog!: Dialog;
 
   constructor() {
     super()
 
+    // we load an empty TradeManager upon startup
+    // this.tradesManager = new TradeManager()
+
+    // sessions interface
+    this.sessionsInterface = new SessionInterface();
+
+    // trades view
+    this.tradesView = new TradesView(this)
+
+    window.tradesInterface = this
+    window.sessions = this.sessions
+  }
+
+  get sessions () {
+    return this.tradesManager?.sessions
+  }
+
+  loadSessions (sessions: TradeSession[]) {
     // creating the trade manager with local data if any
-    this.tradesManager = new TradeManager(
-      localStorage.getItem('trades') ? JSON.parse(localStorage.getItem('trades')!) : []
-    );
+    this.tradesManager = new TradeManager(sessions)
 
     // then here we should update the different pairs manager
     ExchangesManager.initializeExchangesFromSessions(this.tradesManager.sessions)
@@ -79,12 +101,13 @@ export class TradesInterface extends LitElement {
     // start the loops to fetch the prices
     ExchangesManager.startUpdateRoutines()
 
-    // sessions interface
-    this.sessionsInterface = new SessionInterface();
+    try { // trying to close the session interface dialog
+      this.sessionsInterface.dialog.close()
+    } catch (e) {}
 
-    // trades view
-    this.tradesView = new TradesView(this)
+    this.requestUpdate()
   }
+
 
   static styles = css`
   p {
@@ -141,18 +164,20 @@ export class TradesInterface extends LitElement {
 
     return html`
     <div>
-      ${!this.tradesManager.sessions.length ? html`
-      <div style="text-align:center">
-        <div style="font-size:24px;margin:38px 0">no sessions yet</div>
-        <img src="./images/empty.gif">
-      </div>
-      ` : nothing}
-      ${this.tradesView}
-      <div style="text-align:center">
-        <mwc-button 
-          style="margin-top:20px"
-          @click="${() => this.open()}" raised icon="add">add session</mwc-button>
-      </div>
+      ${this.tradesManager ? html`
+        ${!this.tradesManager.sessions.length ? html`
+        <div style="text-align:center">
+          <div style="font-size:24px;margin:38px 0">no sessions yet</div>
+          <img src="./images/empty.gif">
+        </div>
+        ` : nothing}
+        ${this.tradesView}
+        <div style="text-align:center">
+          <mwc-button 
+            style="margin-top:20px"
+            @click="${() => this.open()}" raised icon="add">add session</mwc-button>
+        </div>
+      ` : nothing }
     </div>
 
     ${this.sessionsInterface}
@@ -430,7 +455,7 @@ export class TradesInterface extends LitElement {
     this.hardReset()
     this.requestUpdate()
     this.tradeDialog.close()
-    this.saveTrades()
+    window.spacesManager.save()
   }
 
   validateForm () {
@@ -488,11 +513,6 @@ export class TradesInterface extends LitElement {
     return { session, trade }
   }
 
-  saveTrades () {
-    localStorage.setItem('trades', this.tradesManager.toString())
-  }
-
-
   reset() {
     if (!this.session) {
       this.onQuoteChange(undefined)
@@ -533,7 +553,7 @@ export class TradesInterface extends LitElement {
       this.tradesManager.deleteSession(session)
       this.requestUpdate()
       window.app.toast('session deleted')
-      this.saveTrades()
+      window.spacesManager.save()
     } catch (e) {
       // window.app.toast('canceled')
     }
@@ -552,5 +572,15 @@ export class TradesInterface extends LitElement {
       }
     }
     this.tradeDialog.show()
+  }
+
+  private refreshTimeout?: NodeJS.Timeout;
+  refreshUI () {
+    if (this.refreshTimeout) {
+      clearTimeout(this.refreshTimeout)
+      this.refreshTimeout = undefined
+    }
+
+    this.refreshTimeout = setTimeout(() => this.requestUpdate(), 1000)
   }
 }
