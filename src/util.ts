@@ -1,3 +1,4 @@
+import { html } from "lit-html";
 import { TradeSession } from "./trades";
 
 export function round(value: number, precision = 2) {
@@ -41,4 +42,33 @@ export function formatQuote (quote: string) {
     default:
       return ` ${quote}`
   }
+}
+
+export const symbolsMap = {
+  'EUR': '€',
+  'USD': '$',
+  'BTC': '₿',
+  'ETH': 'Ξ',
+  'USDT': '₮',
+  'BNB': 'Ƀ'
+}
+
+export const precisionsMap = {
+  'EUR': 2,
+  'USD': 2,
+  'ETH': 3,
+  'BTC': 3
+}
+
+export function formatOutputPrice (value: number, quote: string, sign = false) {
+  let symbol = symbolsMap[quote] || ` ${quote}`
+  let precision = precisionsMap[quote] || 5
+
+  return `${sign ? value > 0 ? '+ ' : '' : ''}${round(value, precision)}${symbol}`
+}
+
+export function outputPriceTemplate (value: number, quote: string) {
+  return html`
+  <span style="color:${value === 0 ? 'initial' : value > 0 ? 'green' : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  `
 }

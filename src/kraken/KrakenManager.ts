@@ -6,8 +6,6 @@ export class KrakenManager extends PairsManager implements PairsManagerInterface
   protected timeoutMs = ms('10s')
 
   isPairAvailable (symbol: string, quote: string) {
-    symbol.toUpperCase()
-    quote.toUpperCase()
     symbol = convertSymbol(symbol)
     return krakenPairs.some(p => {
       return p.s === symbol && p.q === quote;

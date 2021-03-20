@@ -6,15 +6,9 @@ export class BinanceManager extends PairsManager implements PairsManagerInterfac
   protected timeoutMs = ms('5s')
 
   isPairAvailable (symbol: string, quote: string) {
-    symbol = symbol.toUpperCase()
-    quote = quote.toUpperCase()
     return binancePairs.some(p => {
       return p.s === symbol && p.q === quote;
     })
-  }
-
-  async addPair (symbol: string, quote: string, updatePairs = true) {
-    return super.addPair(symbol.toUpperCase(), quote.toUpperCase(), updatePairs)
   }
 
   async updateFunction () {

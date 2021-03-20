@@ -23,7 +23,7 @@ declare global {
 export class SpacesManager extends LitElement {
   private spaces: Space[] = [];
 
-  space?: Space;
+  space!: Space;
 
   @property()
   private currency?: typeof Currencies[number];
@@ -82,7 +82,8 @@ export class SpacesManager extends LitElement {
   }
 
   loadSpace (space: Space) {
-    window.app.tradesInterface.loadSessions(space.sessions)
+    window.tradesInterface.loadSessions(space.sessions)
+    window.walletsManager.loadWallets(space.wallets)
 
     this.space = space;
     window.app.requestUpdate()

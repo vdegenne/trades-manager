@@ -10,26 +10,21 @@ export class CoingeckoPairsManager extends PairsManager implements PairsManagerI
     if (!coingeckoSymbols.some(a => a.s === symbol)) {
       return false
     }
-    let lowercase = symbol.toLowerCase()
-    if (!coingeckoSymbols.some(a => a.s === lowercase)) {
-      return false
-    }
-    lowercase = quote.toLowerCase()
-    if (!coingeckoQuotes.some(q => q === lowercase)) {
+    if (!coingeckoQuotes.some(q => q === quote)) {
       return false
     }
 
     return true
   }
 
-  async addPair(symbol: string, quote: string, updatePairs = true) {
-    return super.addPair(symbol, quote.toLowerCase(), updatePairs)
-  }
+  // async addPair(symbol: string, quote: string, updatePairs = true) {
+  //   return super.addPair(symbol, quote.toLowerCase(), updatePairs)
+  // }
 
   buildCoingeckoAPIArguments () {
     return {
       ids: [...new Set(this.pairs.map(p => coingeckoSymbols.find(a => a.s === p.symbol)!.id))].join(','),
-      vs_currencies: [...new Set(this.pairs.map(p => p.quote.toLowerCase()))].join(',')
+      vs_currencies: [...new Set(this.pairs.map(p => p.quote))].join(',')
     }
   }
 

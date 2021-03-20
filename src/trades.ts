@@ -41,7 +41,8 @@ export type TradeSession = {
 
 export type TradesSummary = {
   profit: number,
-  volume: number
+  volume: number,
+  investment: number
 }
 
 
@@ -131,15 +132,18 @@ export function summarizeSessionTrades (session: TradeSession) {
     if (trade.type === 'buy') {
       acc.profit -= trade.price * trade.volume;
       acc.volume += trade.volume;
+      acc.investment += trade.volume * trade.price;
     }
     else {
       acc.profit += trade.price * trade.volume;
       acc.volume -= trade.volume;
+      acc.investment -= trade.volume * trade.price;
     }
     return acc
   }, {
     profit: 0,
-    volume: 0
+    volume: 0,
+    investment: 0
   } as TradesSummary)
 }
 

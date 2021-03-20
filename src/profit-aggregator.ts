@@ -1,42 +1,62 @@
+import { html } from 'lit-html';
+import { Currency } from './app-container';
 import {AvailableExchanges, ExchangesManager, Exchange} from './ExchangesManager'
 
 export type AggregatorUnit = [string, number]
-export type Aggregator = {
-  [key in AvailableExchanges]: AggregatorUnit[]
-};
 
-export class ProfitAggregator {
-  private aggregator: Aggregator;
+export class Aggregator {
+  public units: AggregatorUnit[];
+  private exchangeName: AvailableExchanges;
 
-  constructor() {
-    // @ts-ignore
-    this.aggregator = Object.fromEntries(Object.keys(ExchangesManager.exchanges).map(name => [name, []]));
+  constructor(exchangeName: AvailableExchanges) {
+    this.units = []
+    this.exchangeName = exchangeName;
   }
 
-  pushUnit(exchangeName: AvailableExchanges, quote: string, profit: number) {
+  pushUnit(quote: string, profit: number) {
     // we should push the profit in the existing quote
-    const unit = this.aggregator[exchangeName].find(unit => unit[0] === quote)
+    const unit = this.units.find(unit => unit[0] === quote)
     if (unit) {
       unit[1] += profit;
       return
     }
-    this.aggregator[exchangeName].push([quote, profit])
+    this.units.push([quote, profit])
   }
 
-  resolveQuotes () {
-    const currency = window.app.currency
-    for (const [exchangeName, units] of Object.entries(this.aggregator)) {
-      for (const unit of units) {
-        // if the quote is different from the current currency
-        if (unit[0] !== currency) {
-          // We should get the price for conversion.
-          // Ideally the price should be the conversion of the quote in the current currency
-          // but there are some case where a pair for conversion is not available on any exchange
-          // in this case we should have a fallback where we convert the best conversion match returned
-          // from the conversion method to the current currency calculated from the currency conversion
-          // values imported from https://exchangeratesapi.io/.
+  resolveQuotes (currency: Currency) {
+    for (const unit of this.units) {
+      // if the quote is different from the current currency
+      if (unit[0] !== currency) {
+        // We should get the price for conversion.
+        // Ideally the price should be the conversion of the quote in the current currency
+        // but there are some case where a pair for conversion is not available on any exchange
+        // in this case we should have a fallback where we convert the best conversion match returned
+        // from the conversion method to the current currency calculated from the currency conversion
+        // values imported from https://exchangeratesapi.io/.
+        const { quote, price } = ExchangesManager.getConversionPrice(unit[0], currency, this.exchangeName as AvailableExchanges);
+        if (quote === currency && price !== undefined) {
+          unit[0] = quote
+          unit[1] = price * unit[1]
+        }
+        else {
+          // @todo implement in case there is no available conversion from the exchange system
         }
       }
     }
+    this.reduce()
+  }
+
+  reduce () {
+    const reduceds: AggregatorUnit[] = []
+    for (const unit of this.units) {
+      const reduced = reduceds.find(r => r[0] === unit[0])
+      if (reduced) {
+        reduced[1] += unit[1]
+      }
+      else {
+        reduceds.push([unit[0], unit[1]])
+      }
+    }
+    this.units = reduceds
   }
 }

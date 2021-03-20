@@ -12,6 +12,7 @@ import { Snackbar } from '@material/mwc-snackbar';
 import { ConfirmDialog } from './confirm-dialog';
 import { Dialog } from '@material/mwc-dialog';
 import { SpacesManager } from './SpacesManager';
+import { Wallets, WalletsManager } from './WalletsManager';
 
 declare global {
   interface Window {
@@ -26,10 +27,10 @@ export type Currency = typeof Currencies[number]
 class AppContainer extends LitElement {
   public spacesManager: SpacesManager = new SpacesManager();
 
-  @property()
-  public currency: typeof Currencies[number] = 'EUR'
-
   public tradesInterface: TradesInterface;
+
+  @property()
+  private walletsManager: WalletsManager;
 
   @query('mwc-snackbar') snackbar!: Snackbar;
   @query('confirm-dialog') confirmDialog!: ConfirmDialog;
@@ -40,6 +41,8 @@ class AppContainer extends LitElement {
     window.app = this
 
     this.tradesInterface = new TradesInterface()
+
+    this.walletsManager = new WalletsManager()
   }
 
   static styles = css`
@@ -55,7 +58,7 @@ class AppContainer extends LitElement {
   render () {
     return html`
     <header style="margin:7px;display:flex;align-items:center;justify-content:space-between">
-      <img src="./images/candles.png" width="32px" height="32px">
+      <img src="./images/logo.png" width="42px" height="42px">
       <div style="display:flex;align-items:center">
         <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button>
@@ -64,6 +67,8 @@ class AppContainer extends LitElement {
     </header>
 
     ${this.spacesManager}
+
+    ${this.walletsManager}
 
     ${this.tradesInterface}
 

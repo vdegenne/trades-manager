@@ -44,6 +44,15 @@ export class ExchangesManager {
     }
   }
 
+  static pairExists (symbol: string, quote: string) {
+    for (const exchange of Object.values(this.exchanges)) {
+      if (exchange.pairExists(symbol, quote)) {
+        return true;
+      }
+    }
+    return false
+  }
+
   static getPrice (exchangeName: AvailableExchanges, symbol: string, quote: string) {
     return this.exchanges[exchangeName].getPrice(symbol, quote)
   }
@@ -55,42 +64,59 @@ export class ExchangesManager {
   }
 
   static registerQuoteForConversion (quote: string, preferredExchange?: AvailableExchanges) {
+    let exchanges = Object.values(this.exchanges)
+    if (preferredExchange && preferredExchange !== 'others') {
+      exchanges = [this.exchanges[preferredExchange]].concat(
+        Object.entries(this.exchanges).filter(([exchangeName, exchange]) => exchangeName !== preferredExchange).map(([o, exchange]) => exchange)
+      )
+    }
     for (const currency of Currencies) {
-      // if there is a preferred exchange we should first check if the pair exists there
-      // unless it's "others" (coingecko which is slow)
-      if (preferredExchange && preferredExchange !== 'others') {
-        const exchange = this.exchanges[preferredExchange]
-        if (exchange.pairExists(quote, currency))
-          continue;
-
-        if (exchange.isPairAvailable(quote, currency)) {
-          exchange.addPair(quote, currency, false)
-          continue
+      for (const exchange of exchanges) {
+        if (exchange.pairExists(quote, currency) || exchange.pairExists(currency, quote)) {
+          break; // next currency
         }
-      }
-      
-      // if it exists somewhere we pass
-      if (this.pairExists(quote, currency))
-        continue;
 
-      // or else we just check everywhere if we can add it
-      for (const exchange of Object.values(this.exchanges)) {
+        // if it doesn't exist, we check if it's available
         if (exchange.isPairAvailable(quote, currency)) {
           exchange.addPair(quote, currency, false)
-          break
+          break; // next currency
+        }
+
+        // or else we check if the counter pair is available
+        if (exchange.isPairAvailable(currency, quote)) {
+          exchange.addPair(currency, quote, false)
+          break; // next currency
         }
       }
     }
   }
 
-  static pairExists (symbol: string, quote: string) {
-    for (const exchange of Object.values(this.exchanges)) {
-      if (exchange.pairExists(symbol, quote)) {
-        return true;
+  static getConversionPrice (symbol: string, preferredQuote: string, preferredExchange?: AvailableExchanges) {
+    const quotes = [preferredQuote].concat(Currencies.filter(c => c !== preferredQuote))
+    let exchanges = Object.values(this.exchanges)
+    if (preferredExchange && preferredExchange !== 'others') {
+      exchanges = [this.exchanges[preferredExchange]].concat(
+        Object.entries(this.exchanges).filter(([exchangeName, exchange]) => exchangeName !== preferredExchange).map(([o, exchange]) => exchange)
+      )
+    }
+    let price: number|undefined = undefined
+    for (const quote of quotes) {
+      for (const exchange of exchanges) {
+        // try to get the price (normal conversion)
+        price = exchange.getPrice(symbol, quote)
+        if (price) {
+          return { quote, price }
+        }
+        // or else we try to get the counter pair
+        price = exchange.getPrice(quote, symbol)
+        if (price) {
+          return { quote, price: 1/price }
+        }
       }
     }
-    return false
+    return { quote: undefined, price: undefined }
   }
+
 }
 
 declare global {

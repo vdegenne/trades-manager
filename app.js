@@ -6500,15 +6500,18 @@ function summarizeSessionTrades(session) {
         if (trade.type === 'buy') {
             acc.profit -= trade.price * trade.volume;
             acc.volume += trade.volume;
+            acc.investment += trade.volume * trade.price;
         }
         else {
             acc.profit += trade.price * trade.volume;
             acc.volume -= trade.volume;
+            acc.investment -= trade.volume * trade.price;
         }
         return acc;
     }, {
         profit: 0,
-        volume: 0
+        volume: 0,
+        investment: 0
     });
 }
 // export function reduceTrades(trades: Trades) {
@@ -15919,15 +15922,29 @@ function firstLetterUpperCase(text) {
         return undefined;
     return text[0].toUpperCase() + text.slice(1);
 }
-function formatQuote(quote) {
-    switch (quote.toLowerCase()) {
-        case 'eur':
-            return '€';
-        case 'usd':
-            return '$';
-        default:
-            return ` ${quote}`;
-    }
+const symbolsMap = {
+    'EUR': '€',
+    'USD': '$',
+    'BTC': '₿',
+    'ETH': 'Ξ',
+    'USDT': '₮',
+    'BNB': 'Ƀ'
+};
+const precisionsMap = {
+    'EUR': 2,
+    'USD': 2,
+    'ETH': 3,
+    'BTC': 3
+};
+function formatOutputPrice(value, quote, sign = false) {
+    let symbol = symbolsMap[quote] || ` ${quote}`;
+    let precision = precisionsMap[quote] || 5;
+    return `${sign ? value > 0 ? '+ ' : '' : ''}${round(value, precision)}${symbol}`;
+}
+function outputPriceTemplate(value, quote) {
+    return html `
+  <span style="color:${value === 0 ? 'initial' : value > 0 ? 'green' : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  `;
 }
 
 /** @soyCompatible */
@@ -17784,8 +17801,6 @@ class KrakenManager extends PairsManager {
         this.timeoutMs = ms('10s');
     }
     isPairAvailable(symbol, quote) {
-        symbol.toUpperCase();
-        quote.toUpperCase();
         symbol = convertSymbol(symbol);
         return krakenPairs.some(p => {
             return p.s === symbol && p.q === quote;
@@ -23237,6 +23252,38 @@ var binancePairs = [
 	{
 		s: "LINA",
 		q: "USDT"
+	},
+	{
+		s: "ADA",
+		q: "RUB"
+	},
+	{
+		s: "ENJ",
+		q: "BRL"
+	},
+	{
+		s: "ENJ",
+		q: "EUR"
+	},
+	{
+		s: "MATIC",
+		q: "EUR"
+	},
+	{
+		s: "NEO",
+		q: "TRY"
+	},
+	{
+		s: "PERP",
+		q: "BTC"
+	},
+	{
+		s: "PERP",
+		q: "BUSD"
+	},
+	{
+		s: "PERP",
+		q: "USDT"
 	}
 ];
 
@@ -23246,14 +23293,9 @@ class BinanceManager extends PairsManager {
         this.timeoutMs = ms('5s');
     }
     isPairAvailable(symbol, quote) {
-        symbol = symbol.toUpperCase();
-        quote = quote.toUpperCase();
         return binancePairs.some(p => {
             return p.s === symbol && p.q === quote;
         });
-    }
-    async addPair(symbol, quote, updatePairs = true) {
-        return super.addPair(symbol.toUpperCase(), quote.toUpperCase(), updatePairs);
     }
     async updateFunction() {
         if (this.pairs.length === 0) {
@@ -23276,87 +23318,87 @@ class BinanceManager extends PairsManager {
 var coingeckoSymbols = [
 	{
 		id: "",
-		s: "apeUSD-LINK-DEC21"
+		s: "APEUSD-LINK-DEC21"
 	},
 	{
 		id: "01coin",
-		s: "zoc"
+		s: "ZOC"
 	},
 	{
 		id: "0-5x-long-algorand-token",
-		s: "algohalf"
+		s: "ALGOHALF"
 	},
 	{
 		id: "0-5x-long-altcoin-index-token",
-		s: "althalf"
+		s: "ALTHALF"
 	},
 	{
 		id: "0-5x-long-balancer-token",
-		s: "balhalf"
+		s: "BALHALF"
 	},
 	{
 		id: "0-5x-long-bitcoin-cash-token",
-		s: "bchhalf"
+		s: "BCHHALF"
 	},
 	{
 		id: "0-5x-long-bitcoin-sv-token",
-		s: "bsvhalf"
+		s: "BSVHALF"
 	},
 	{
 		id: "0-5x-long-bitcoin-token",
-		s: "half"
+		s: "HALF"
 	},
 	{
 		id: "0-5x-long-cardano-token",
-		s: "adahalf"
+		s: "ADAHALF"
 	},
 	{
 		id: "0-5x-long-chainlink-token",
-		s: "linkhalf"
+		s: "LINKHALF"
 	},
 	{
 		id: "0-5x-long-cosmos-token",
-		s: "atomhalf"
+		s: "ATOMHALF"
 	},
 	{
 		id: "0-5x-long-defi-index-token",
-		s: "defihalf"
+		s: "DEFIHALF"
 	},
 	{
 		id: "0-5x-long-dogecoin-token",
-		s: "dogehalf"
+		s: "DOGEHALF"
 	},
 	{
 		id: "0-5x-long-dragon-index-token",
-		s: "drgnhalf"
+		s: "DRGNHALF"
 	},
 	{
 		id: "0-5x-long-echange-token-index-token",
-		s: "exchhalf"
+		s: "EXCHHALF"
 	},
 	{
 		id: "0-5x-long-eos-token",
-		s: "eoshalf"
+		s: "EOSHALF"
 	},
 	{
 		id: "0-5x-long-ethereum-classic-token",
-		s: "etchalf"
+		s: "ETCHALF"
 	},
 	{
 		id: "0-5x-long-ethereum-token",
-		s: "ethhalf"
+		s: "ETHHALF"
 	},
 	{
 		id: "0-5x-long-kyber-network-token",
-		s: "knchalf"
+		s: "KNCHALF"
 	},
 	{
 		id: "0-5x-long-matic-token",
-		s: "matichalf"
+		s: "MATICHALF"
 	},
 	{
 		id: "0-5x-long-midcap-index-token",
-		s: "midhalf"
+		s: "MIDHALF"
 	},
 	{
 		id: "0-5x-long-okb-token",
@@ -23368,59 +23410,59 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "0-5x-long-privacy-index-token",
-		s: "privhalf"
+		s: "PRIVHALF"
 	},
 	{
 		id: "0-5x-long-shitcoin-index-token",
-		s: "halfshit"
+		s: "HALFSHIT"
 	},
 	{
 		id: "0-5x-long-swipe-token",
-		s: "sxphalf"
+		s: "SXPHALF"
 	},
 	{
 		id: "0-5x-long-tether-gold-token",
-		s: "xauthalf"
+		s: "XAUTHALF"
 	},
 	{
 		id: "0-5x-long-tezos-token",
-		s: "xtzhalf"
+		s: "XTZHALF"
 	},
 	{
 		id: "0-5x-long-theta-network-token",
-		s: "thetahalf"
+		s: "THETAHALF"
 	},
 	{
 		id: "0-5x-long-xrp-token",
-		s: "xrphalf"
+		s: "XRPHALF"
 	},
 	{
 		id: "0cash",
-		s: "zch"
+		s: "ZCH"
 	},
 	{
 		id: "0chain",
-		s: "zcn"
+		s: "ZCN"
 	},
 	{
 		id: "0x",
-		s: "zrx"
+		s: "ZRX"
 	},
 	{
 		id: "0xcert",
-		s: "zxc"
+		s: "ZXC"
 	},
 	{
 		id: "0xmonero",
-		s: "0xmr"
+		s: "0XMR"
 	},
 	{
 		id: "100-waves-eth-usd-yield-set",
-		s: "100w"
+		s: "100W"
 	},
 	{
 		id: "10x-gg",
-		s: "xgg"
+		s: "XGG"
 	},
 	{
 		id: "12ships",
@@ -23432,55 +23474,55 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "1ai",
-		s: "1ai"
+		s: "1AI"
 	},
 	{
 		id: "1clicktoken",
-		s: "1ct"
+		s: "1CT"
 	},
 	{
 		id: "1inch",
-		s: "1inch"
+		s: "1INCH"
 	},
 	{
 		id: "1irstgold",
-		s: "1gold"
+		s: "1GOLD"
 	},
 	{
 		id: "1million-token",
-		s: "1mt"
+		s: "1MT"
 	},
 	{
 		id: "1world",
-		s: "1wo"
+		s: "1WO"
 	},
 	{
 		id: "1x-long-btc-implied-volatility-token",
-		s: "bvol"
+		s: "BVOL"
 	},
 	{
 		id: "1x-short-algorand-token",
-		s: "algohedge"
+		s: "ALGOHEDGE"
 	},
 	{
 		id: "1x-short-bitcoin-cash-token",
-		s: "bchhedge"
+		s: "BCHHEDGE"
 	},
 	{
 		id: "1x-short-bitcoin-token",
-		s: "hedge"
+		s: "HEDGE"
 	},
 	{
 		id: "1x-short-bnb-token",
-		s: "bnbhedge"
+		s: "BNBHEDGE"
 	},
 	{
 		id: "1x-short-btc-implied-volatility",
-		s: "ibvol"
+		s: "IBVOL"
 	},
 	{
 		id: "1x-short-cardano-token",
-		s: "adahedge"
+		s: "ADAHEDGE"
 	},
 	{
 		id: "1x-short-chainlink-token",
@@ -23488,83 +23530,83 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "1x-short-compound-token-token",
-		s: "comphedge"
+		s: "COMPHEDGE"
 	},
 	{
 		id: "1x-short-compound-usdt-token",
-		s: "cusdthedge"
+		s: "CUSDTHEDGE"
 	},
 	{
 		id: "1x-short-cosmos-token",
-		s: "atomhedge"
+		s: "ATOMHEDGE"
 	},
 	{
 		id: "1x-short-defi-index-token",
-		s: "defihedge"
+		s: "DEFIHEDGE"
 	},
 	{
 		id: "1x-short-dogecoin-token",
-		s: "dogehedge"
+		s: "DOGEHEDGE"
 	},
 	{
 		id: "1x-short-eos-token",
-		s: "eoshedge"
+		s: "EOSHEDGE"
 	},
 	{
 		id: "1x-short-ethereum-token",
-		s: "ethhedge"
+		s: "ETHHEDGE"
 	},
 	{
 		id: "1x-short-exchange-token-index-token",
-		s: "exchhedge"
+		s: "EXCHHEDGE"
 	},
 	{
 		id: "1x-short-litecoin-token",
-		s: "ltchedge"
+		s: "LTCHEDGE"
 	},
 	{
 		id: "1x-short-matic-token",
-		s: "matichedge"
+		s: "MATICHEDGE"
 	},
 	{
 		id: "1x-short-okb-token",
-		s: "okbhedge"
+		s: "OKBHEDGE"
 	},
 	{
 		id: "1x-short-privacy-index-token",
-		s: "privhedge"
+		s: "PRIVHEDGE"
 	},
 	{
 		id: "1x-short-shitcoin-index-token",
-		s: "hedgeshit"
+		s: "HEDGESHIT"
 	},
 	{
 		id: "1x-short-swipe-token",
-		s: "sxphedge"
+		s: "SXPHEDGE"
 	},
 	{
 		id: "1x-short-tezos-token",
-		s: "xtzhedge"
+		s: "XTZHEDGE"
 	},
 	{
 		id: "1x-short-theta-network-token",
-		s: "thetahedge"
+		s: "THETAHEDGE"
 	},
 	{
 		id: "1x-short-tomochain-token",
-		s: "tomohedge"
+		s: "TOMOHEDGE"
 	},
 	{
 		id: "1x-short-trx-token",
-		s: "trxhedge"
+		s: "TRXHEDGE"
 	},
 	{
 		id: "1x-short-vechain-token",
-		s: "vethedge"
+		s: "VETHEDGE"
 	},
 	{
 		id: "1x-short-xrp-token",
-		s: "xrphedge"
+		s: "XRPHEDGE"
 	},
 	{
 		id: "2-2-4-4-8",
@@ -23572,387 +23614,387 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "2acoin",
-		s: "arms"
+		s: "ARMS"
 	},
 	{
 		id: "2based-finance",
-		s: "2based"
+		s: "2BASED"
 	},
 	{
 		id: "2give",
-		s: "2give"
+		s: "2GIVE"
 	},
 	{
 		id: "2key",
-		s: "2key"
+		s: "2KEY"
 	},
 	{
 		id: "2x2",
-		s: "2x2"
+		s: "2X2"
 	},
 	{
 		id: "300fit",
-		s: "fit"
+		s: "FIT"
 	},
 	{
 		id: "360-tribe",
-		s: "tribe"
+		s: "TRIBE"
 	},
 	{
 		id: "3x-long-algorand-token",
-		s: "algobull"
+		s: "ALGOBULL"
 	},
 	{
 		id: "3x-long-altcoin-index-token",
-		s: "altbull"
+		s: "ALTBULL"
 	},
 	{
 		id: "3x-long-balancer-token",
-		s: "balbull"
+		s: "BALBULL"
 	},
 	{
 		id: "3x-long-bilira-token",
-		s: "trybbull"
+		s: "TRYBBULL"
 	},
 	{
 		id: "3x-long-bitcoin-cash-token",
-		s: "bchbull"
+		s: "BCHBULL"
 	},
 	{
 		id: "3x-long-bitcoin-sv-token",
-		s: "bsvbull"
+		s: "BSVBULL"
 	},
 	{
 		id: "3x-long-bitcoin-token",
-		s: "bull"
+		s: "BULL"
 	},
 	{
 		id: "3x-long-bitmax-token-token",
-		s: "btmxbull"
+		s: "BTMXBULL"
 	},
 	{
 		id: "3x-long-bnb-token",
-		s: "bnbbull"
+		s: "BNBBULL"
 	},
 	{
 		id: "3x-long-cardano-token",
-		s: "adabull"
+		s: "ADABULL"
 	},
 	{
 		id: "3x-long-chainlink-token",
-		s: "linkbull"
+		s: "LINKBULL"
 	},
 	{
 		id: "3x-long-compound-token-token",
-		s: "compbull"
+		s: "COMPBULL"
 	},
 	{
 		id: "3x-long-compound-usdt-token",
-		s: "cusdtbull"
+		s: "CUSDTBULL"
 	},
 	{
 		id: "3x-long-cosmos-token",
-		s: "atombull"
+		s: "ATOMBULL"
 	},
 	{
 		id: "3x-long-defi-index-token",
-		s: "defibull"
+		s: "DEFIBULL"
 	},
 	{
 		id: "3x-long-dmm-governance-token",
-		s: "dmgbull"
+		s: "DMGBULL"
 	},
 	{
 		id: "3x-long-dogecoin-token",
-		s: "dogebull"
+		s: "DOGEBULL"
 	},
 	{
 		id: "3x-long-dragon-index-token",
-		s: "drgnbull"
+		s: "DRGNBULL"
 	},
 	{
 		id: "3x-long-eos-token",
-		s: "eosbull"
+		s: "EOSBULL"
 	},
 	{
 		id: "3x-long-ethereum-classic-token",
-		s: "etcbull"
+		s: "ETCBULL"
 	},
 	{
 		id: "3x-long-ethereum-token",
-		s: "ethbull"
+		s: "ETHBULL"
 	},
 	{
 		id: "3x-long-exchange-token-index-token",
-		s: "exchbull"
+		s: "EXCHBULL"
 	},
 	{
 		id: "3x-long-huobi-token-token",
-		s: "htbull"
+		s: "HTBULL"
 	},
 	{
 		id: "3x-long-kyber-network-token",
-		s: "kncbull"
+		s: "KNCBULL"
 	},
 	{
 		id: "3x-long-leo-token",
-		s: "leobull"
+		s: "LEOBULL"
 	},
 	{
 		id: "3x-long-litecoin-token",
-		s: "ltcbull"
+		s: "LTCBULL"
 	},
 	{
 		id: "3x-long-maker-token",
-		s: "mkrbull"
+		s: "MKRBULL"
 	},
 	{
 		id: "3x-long-matic-token",
-		s: "maticbull"
+		s: "MATICBULL"
 	},
 	{
 		id: "3x-long-midcap-index-token",
-		s: "midbull"
+		s: "MIDBULL"
 	},
 	{
 		id: "3x-long-okb-token",
-		s: "okbbull"
+		s: "OKBBULL"
 	},
 	{
 		id: "3x-long-pax-gold-token",
-		s: "paxgbull"
+		s: "PAXGBULL"
 	},
 	{
 		id: "3x-long-privacy-index-token",
-		s: "privbull"
+		s: "PRIVBULL"
 	},
 	{
 		id: "3x-long-shitcoin-index-token",
-		s: "bullshit"
+		s: "BULLSHIT"
 	},
 	{
 		id: "3x-long-stellar-token",
-		s: "xlmbull"
+		s: "XLMBULL"
 	},
 	{
 		id: "3x-long-sushi-token",
-		s: "sushibull"
+		s: "SUSHIBULL"
 	},
 	{
 		id: "3x-long-swipe-token",
-		s: "sxpbull"
+		s: "SXPBULL"
 	},
 	{
 		id: "3x-long-tether-gold-token",
-		s: "xautbull"
+		s: "XAUTBULL"
 	},
 	{
 		id: "3x-long-tether-token",
-		s: "usdtbull"
+		s: "USDTBULL"
 	},
 	{
 		id: "3x-long-tezos-token",
-		s: "xtzbull"
+		s: "XTZBULL"
 	},
 	{
 		id: "3x-long-theta-network-token",
-		s: "thetabull"
+		s: "THETABULL"
 	},
 	{
 		id: "3x-long-tomochain-token",
-		s: "tomobull"
+		s: "TOMOBULL"
 	},
 	{
 		id: "3x-long-trx-token",
-		s: "trxbull"
+		s: "TRXBULL"
 	},
 	{
 		id: "3x-long-vechain-token",
-		s: "vetbull"
+		s: "VETBULL"
 	},
 	{
 		id: "3x-long-xrp-token",
-		s: "xrpbull"
+		s: "XRPBULL"
 	},
 	{
 		id: "3x-short-algorand-token",
-		s: "algobear"
+		s: "ALGOBEAR"
 	},
 	{
 		id: "3x-short-altcoin-index-token",
-		s: "altbear"
+		s: "ALTBEAR"
 	},
 	{
 		id: "3x-short-balancer-token",
-		s: "balbear"
+		s: "BALBEAR"
 	},
 	{
 		id: "3x-short-bilira-token",
-		s: "trybbear"
+		s: "TRYBBEAR"
 	},
 	{
 		id: "3x-short-bitcoin-cash-token",
-		s: "bchbear"
+		s: "BCHBEAR"
 	},
 	{
 		id: "3x-short-bitcoin-sv-token",
-		s: "bsvbear"
+		s: "BSVBEAR"
 	},
 	{
 		id: "3x-short-bitcoin-token",
-		s: "bear"
+		s: "BEAR"
 	},
 	{
 		id: "3x-short-bitmax-token-token",
-		s: "btmxbear"
+		s: "BTMXBEAR"
 	},
 	{
 		id: "3x-short-bnb-token",
-		s: "bnbbear"
+		s: "BNBBEAR"
 	},
 	{
 		id: "3x-short-cardano-token",
-		s: "adabear"
+		s: "ADABEAR"
 	},
 	{
 		id: "3x-short-chainlink-token",
-		s: "linkbear"
+		s: "LINKBEAR"
 	},
 	{
 		id: "3x-short-compound-token-token",
-		s: "compbear"
+		s: "COMPBEAR"
 	},
 	{
 		id: "3x-short-compound-usdt-token",
-		s: "cusdtbear"
+		s: "CUSDTBEAR"
 	},
 	{
 		id: "3x-short-cosmos-token",
-		s: "atombear"
+		s: "ATOMBEAR"
 	},
 	{
 		id: "3x-short-defi-index-token",
-		s: "defibear"
+		s: "DEFIBEAR"
 	},
 	{
 		id: "3x-short-dmm-governance-token",
-		s: "dmgbear"
+		s: "DMGBEAR"
 	},
 	{
 		id: "3x-short-dogecoin-token",
-		s: "dogebear"
+		s: "DOGEBEAR"
 	},
 	{
 		id: "3x-short-dragon-index-token",
-		s: "drgnbear"
+		s: "DRGNBEAR"
 	},
 	{
 		id: "3x-short-eos-token",
-		s: "eosbear"
+		s: "EOSBEAR"
 	},
 	{
 		id: "3x-short-ethereum-classic-token",
-		s: "etcbear"
+		s: "ETCBEAR"
 	},
 	{
 		id: "3x-short-ethereum-token",
-		s: "ethbear"
+		s: "ETHBEAR"
 	},
 	{
 		id: "3x-short-exchange-token-index-token",
-		s: "exchbear"
+		s: "EXCHBEAR"
 	},
 	{
 		id: "3x-short-huobi-token-token",
-		s: "htbear"
+		s: "HTBEAR"
 	},
 	{
 		id: "3x-short-kyber-network-token",
-		s: "kncbear"
+		s: "KNCBEAR"
 	},
 	{
 		id: "3x-short-leo-token",
-		s: "leobear"
+		s: "LEOBEAR"
 	},
 	{
 		id: "3x-short-litecoin-token",
-		s: "ltcbear"
+		s: "LTCBEAR"
 	},
 	{
 		id: "3x-short-maker-token",
-		s: "mkrbear"
+		s: "MKRBEAR"
 	},
 	{
 		id: "3x-short-matic-token",
-		s: "maticbear"
+		s: "MATICBEAR"
 	},
 	{
 		id: "3x-short-midcap-index-token",
-		s: "midbear"
+		s: "MIDBEAR"
 	},
 	{
 		id: "3x-short-okb-token",
-		s: "okbbear"
+		s: "OKBBEAR"
 	},
 	{
 		id: "3x-short-pax-gold-token",
-		s: "paxgbear"
+		s: "PAXGBEAR"
 	},
 	{
 		id: "3x-short-privacy-index-token",
-		s: "privbear"
+		s: "PRIVBEAR"
 	},
 	{
 		id: "3x-short-shitcoin-index-token",
-		s: "bearshit"
+		s: "BEARSHIT"
 	},
 	{
 		id: "3x-short-stellar-token",
-		s: "xlmbear"
+		s: "XLMBEAR"
 	},
 	{
 		id: "3x-short-sushi-token",
-		s: "sushibear"
+		s: "SUSHIBEAR"
 	},
 	{
 		id: "3x-short-swipe-token",
-		s: "sxpbear"
+		s: "SXPBEAR"
 	},
 	{
 		id: "3x-short-tether-gold-token",
-		s: "xautbear"
+		s: "XAUTBEAR"
 	},
 	{
 		id: "3x-short-tether-token",
-		s: "usdtbear"
+		s: "USDTBEAR"
 	},
 	{
 		id: "3x-short-tezos-token",
-		s: "xtzbear"
+		s: "XTZBEAR"
 	},
 	{
 		id: "3x-short-theta-network-token",
-		s: "thetabear"
+		s: "THETABEAR"
 	},
 	{
 		id: "3x-short-tomochain-token",
-		s: "tomobear"
+		s: "TOMOBEAR"
 	},
 	{
 		id: "3x-short-trx-token",
-		s: "trxbear"
+		s: "TRXBEAR"
 	},
 	{
 		id: "3x-short-vechain-token",
-		s: "vetbear"
+		s: "VETBEAR"
 	},
 	{
 		id: "3x-short-xrp-token",
-		s: "xrpbear"
+		s: "XRPBEAR"
 	},
 	{
 		id: "3xt",
-		s: "3xt"
+		s: "3XT"
 	},
 	{
 		id: "404",
@@ -23964,19 +24006,19 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "451pcbcom",
-		s: "pcb"
+		s: "PCB"
 	},
 	{
 		id: "4artechnologies",
-		s: "4art"
+		s: "4ART"
 	},
 	{
 		id: "4new",
-		s: "kwatt"
+		s: "KWATT"
 	},
 	{
 		id: "502-bad-gateway-token",
-		s: "z502"
+		s: "Z502"
 	},
 	{
 		id: "520",
@@ -23984,31 +24026,31 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "5g-cash",
-		s: "vgc"
+		s: "VGC"
 	},
 	{
 		id: "6ix9ine-chain",
-		s: "69c"
+		s: "69C"
 	},
 	{
 		id: "7chain",
-		s: "vii"
+		s: "VII"
 	},
 	{
 		id: "7eleven",
-		s: "7e"
+		s: "7E"
 	},
 	{
 		id: "7finance",
-		s: "svn"
+		s: "SVN"
 	},
 	{
 		id: "7up",
-		s: "7up"
+		s: "7UP"
 	},
 	{
 		id: "808ta-token",
-		s: "808ta"
+		s: "808TA"
 	},
 	{
 		id: "888tron",
@@ -24016,443 +24058,443 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "88mph",
-		s: "mph"
+		s: "MPH"
 	},
 	{
 		id: "8x8-protocol",
-		s: "exe"
+		s: "EXE"
 	},
 	{
 		id: "99masternodes",
-		s: "nmn"
+		s: "NMN"
 	},
 	{
 		id: "aaa-coin",
-		s: "aaa"
+		s: "AAA"
 	},
 	{
 		id: "aapl",
-		s: "$aapl"
+		s: "$AAPL"
 	},
 	{
 		id: "aave",
-		s: "aave"
+		s: "AAVE"
 	},
 	{
 		id: "aave-bat",
-		s: "abat"
+		s: "ABAT"
 	},
 	{
 		id: "aave-bat-v1",
-		s: "abat"
+		s: "ABAT"
 	},
 	{
 		id: "aave-busd",
-		s: "abusd"
+		s: "ABUSD"
 	},
 	{
 		id: "aave-busd-v1",
-		s: "abusd"
+		s: "ABUSD"
 	},
 	{
 		id: "aave-dai",
-		s: "adai"
+		s: "ADAI"
 	},
 	{
 		id: "aave-dai-v1",
-		s: "adai"
+		s: "ADAI"
 	},
 	{
 		id: "aave-enj",
-		s: "aenj"
+		s: "AENJ"
 	},
 	{
 		id: "aave-enj-v1",
-		s: "aenj"
+		s: "AENJ"
 	},
 	{
 		id: "aave-eth-v1",
-		s: "aeth"
+		s: "AETH"
 	},
 	{
 		id: "aavegotchi",
-		s: "ghst"
+		s: "GHST"
 	},
 	{
 		id: "aave-knc",
-		s: "aknc"
+		s: "AKNC"
 	},
 	{
 		id: "aave-knc-v1",
-		s: "aknc"
+		s: "AKNC"
 	},
 	{
 		id: "aave-link",
-		s: "alink"
+		s: "ALINK"
 	},
 	{
 		id: "aave-link-v1",
-		s: "alink"
+		s: "ALINK"
 	},
 	{
 		id: "aave-mana",
-		s: "amana"
+		s: "AMANA"
 	},
 	{
 		id: "aave-mana-v1",
-		s: "amana"
+		s: "AMANA"
 	},
 	{
 		id: "aave-mkr",
-		s: "amkr"
+		s: "AMKR"
 	},
 	{
 		id: "aave-mkr-v1",
-		s: "amkr"
+		s: "AMKR"
 	},
 	{
 		id: "aave-ren",
-		s: "aren"
+		s: "AREN"
 	},
 	{
 		id: "aave-ren-v1",
-		s: "aren"
+		s: "AREN"
 	},
 	{
 		id: "aave-snx",
-		s: "asnx"
+		s: "ASNX"
 	},
 	{
 		id: "aave-snx-v1",
-		s: "asnx"
+		s: "ASNX"
 	},
 	{
 		id: "aave-susd",
-		s: "asusd"
+		s: "ASUSD"
 	},
 	{
 		id: "aave-susd-v1",
-		s: "asusd"
+		s: "ASUSD"
 	},
 	{
 		id: "aave-tusd",
-		s: "atusd"
+		s: "ATUSD"
 	},
 	{
 		id: "aave-tusd-v1",
-		s: "atusd"
+		s: "ATUSD"
 	},
 	{
 		id: "aave-usdc",
-		s: "ausdc"
+		s: "AUSDC"
 	},
 	{
 		id: "aave-usdc-v1",
-		s: "ausdc"
+		s: "AUSDC"
 	},
 	{
 		id: "aave-usdt",
-		s: "ausdt"
+		s: "AUSDT"
 	},
 	{
 		id: "aave-usdt-v1",
-		s: "ausdt"
+		s: "AUSDT"
 	},
 	{
 		id: "aave-wbtc",
-		s: "awbtc"
+		s: "AWBTC"
 	},
 	{
 		id: "aave-wbtc-v1",
-		s: "awbtc"
+		s: "AWBTC"
 	},
 	{
 		id: "aave-zrx",
-		s: "azrx"
+		s: "AZRX"
 	},
 	{
 		id: "aave-zrx-v1",
-		s: "azrx"
+		s: "AZRX"
 	},
 	{
 		id: "aax-token",
-		s: "aab"
+		s: "AAB"
 	},
 	{
 		id: "abc-chain",
-		s: "abc"
+		s: "ABC"
 	},
 	{
 		id: "abcc-token",
-		s: "at"
+		s: "AT"
 	},
 	{
 		id: "abitshadow-token",
-		s: "abst"
+		s: "ABST"
 	},
 	{
 		id: "able",
-		s: "ablx"
+		s: "ABLX"
 	},
 	{
 		id: "abosom",
-		s: "xab"
+		s: "XAB"
 	},
 	{
 		id: "absolute",
-		s: "abs"
+		s: "ABS"
 	},
 	{
 		id: "absorber",
-		s: "abs"
+		s: "ABS"
 	},
 	{
 		id: "abulaba",
-		s: "aaa"
+		s: "AAA"
 	},
 	{
 		id: "acash-coin",
-		s: "aca"
+		s: "ACA"
 	},
 	{
 		id: "ace-casino",
-		s: "ace"
+		s: "ACE"
 	},
 	{
 		id: "aced",
-		s: "aced"
+		s: "ACED"
 	},
 	{
 		id: "ac-exchange-token",
-		s: "acxt"
+		s: "ACXT"
 	},
 	{
 		id: "achain",
-		s: "act"
+		s: "ACT"
 	},
 	{
 		id: "ac-milan-fan-token",
-		s: "acm"
+		s: "ACM"
 	},
 	{
 		id: "acoconut",
-		s: "ac"
+		s: "AC"
 	},
 	{
 		id: "acoin",
-		s: "acoin"
+		s: "ACOIN"
 	},
 	{
 		id: "acreage-coin",
-		s: "acr"
+		s: "ACR"
 	},
 	{
 		id: "acryl",
-		s: "acryl"
+		s: "ACRYL"
 	},
 	{
 		id: "acryptos",
-		s: "acs"
+		s: "ACS"
 	},
 	{
 		id: "acryptosi",
-		s: "acsi"
+		s: "ACSI"
 	},
 	{
 		id: "actinium",
-		s: "acm"
+		s: "ACM"
 	},
 	{
 		id: "action-coin",
-		s: "actn"
+		s: "ACTN"
 	},
 	{
 		id: "acuity-token",
-		s: "acu"
+		s: "ACU"
 	},
 	{
 		id: "acute-angle-cloud",
-		s: "aac"
+		s: "AAC"
 	},
 	{
 		id: "adamant-messenger",
-		s: "adm"
+		s: "ADM"
 	},
 	{
 		id: "adappter-token",
-		s: "adp"
+		s: "ADP"
 	},
 	{
 		id: "adbank",
-		s: "adb"
+		s: "ADB"
 	},
 	{
 		id: "address",
-		s: "addr"
+		s: "ADDR"
 	},
 	{
 		id: "add-xyz-new",
-		s: "add"
+		s: "ADD"
 	},
 	{
 		id: "adelphoi",
-		s: "adl"
+		s: "ADL"
 	},
 	{
 		id: "adex",
-		s: "adx"
+		s: "ADX"
 	},
 	{
 		id: "ad-flex-token",
-		s: "adf"
+		s: "ADF"
 	},
 	{
 		id: "adioman",
-		s: "admn"
+		s: "ADMN"
 	},
 	{
 		id: "aditus",
-		s: "adi"
+		s: "ADI"
 	},
 	{
 		id: "adshares",
-		s: "ads"
+		s: "ADS"
 	},
 	{
 		id: "adtoken",
-		s: "adt"
+		s: "ADT"
 	},
 	{
 		id: "advanced-internet-block",
-		s: "aib"
+		s: "AIB"
 	},
 	{
 		id: "adventure-token",
-		s: "twa"
+		s: "TWA"
 	},
 	{
 		id: "advertise-coin",
-		s: "adco"
+		s: "ADCO"
 	},
 	{
 		id: "advertisingcoin",
-		s: "advc"
+		s: "ADVC"
 	},
 	{
 		id: "adzcoin",
-		s: "adz"
+		s: "ADZ"
 	},
 	{
 		id: "aedart-network",
-		s: "aedart"
+		s: "AEDART"
 	},
 	{
 		id: "aegis",
-		s: "ags"
+		s: "AGS"
 	},
 	{
 		id: "aelf",
-		s: "elf"
+		s: "ELF"
 	},
 	{
 		id: "aelysir",
-		s: "ael"
+		s: "AEL"
 	},
 	{
 		id: "aeon",
-		s: "aeon"
+		s: "AEON"
 	},
 	{
 		id: "aergo",
-		s: "aergo"
+		s: "AERGO"
 	},
 	{
 		id: "aeron",
-		s: "arnx"
+		s: "ARNX"
 	},
 	{
 		id: "aerotoken",
-		s: "aet"
+		s: "AET"
 	},
 	{
 		id: "aeryus",
-		s: "aer"
+		s: "AER"
 	},
 	{
 		id: "aeternity",
-		s: "ae"
+		s: "AE"
 	},
 	{
 		id: "aeur",
-		s: "aeur"
+		s: "AEUR"
 	},
 	{
 		id: "aevo",
-		s: "aevo"
+		s: "AEVO"
 	},
 	{
 		id: "aezora",
-		s: "azr"
+		s: "AZR"
 	},
 	{
 		id: "afin-coin",
-		s: "afin"
+		s: "AFIN"
 	},
 	{
 		id: "africa-trading-chain",
-		s: "att"
+		s: "ATT"
 	},
 	{
 		id: "africunia-bank",
-		s: "afcash"
+		s: "AFCASH"
 	},
 	{
 		id: "afro",
-		s: "afro"
+		s: "AFRO"
 	},
 	{
 		id: "afrodex",
-		s: "afrox"
+		s: "AFROX"
 	},
 	{
 		id: "afrodex-labs-token",
-		s: "afdlt"
+		s: "AFDLT"
 	},
 	{
 		id: "aga-rewards",
-		s: "edc"
+		s: "EDC"
 	},
 	{
 		id: "aga-rewards-2",
-		s: "agar"
+		s: "AGAR"
 	},
 	{
 		id: "aga-token",
-		s: "aga"
+		s: "AGA"
 	},
 	{
 		id: "agavecoin",
-		s: "agvc"
+		s: "AGVC"
 	},
 	{
 		id: "agave-token",
-		s: "agve"
+		s: "AGVE"
 	},
 	{
 		id: "agetron",
-		s: "aget"
+		s: "AGET"
 	},
 	{
 		id: "agoras",
-		s: "agrs"
+		s: "AGRS"
 	},
 	{
 		id: "agouti",
-		s: "agu"
+		s: "AGU"
 	},
 	{
 		id: "agrello",
-		s: "dlt"
+		s: "DLT"
 	},
 	{
 		id: "agricoin",
@@ -24460,347 +24502,351 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "agricultural-trade-chain",
-		s: "aat"
+		s: "AAT"
 	},
 	{
 		id: "agrinovuscoin",
-		s: "agri"
+		s: "AGRI"
 	},
 	{
 		id: "agrolot",
-		s: "aglt"
+		s: "AGLT"
 	},
 	{
 		id: "ahatoken",
-		s: "aht"
+		s: "AHT"
 	},
 	{
 		id: "aiascoin",
-		s: "aias"
+		s: "AIAS"
 	},
 	{
 		id: "aichain",
-		s: "ait"
+		s: "AIT"
 	},
 	{
 		id: "aicon",
-		s: "aico"
+		s: "AICO"
 	},
 	{
 		id: "ai-crypto",
-		s: "aic"
+		s: "AIC"
 	},
 	{
 		id: "aidcoin",
-		s: "aid"
+		s: "AID"
 	},
 	{
 		id: "ai-doctor",
-		s: "aidoc"
+		s: "AIDOC"
 	},
 	{
 		id: "aidos-kuneen",
-		s: "adk"
+		s: "ADK"
 	},
 	{
 		id: "aidus",
-		s: "aidus"
+		s: "AIDUS"
 	},
 	{
 		id: "ailink-token",
-		s: "ali"
+		s: "ALI"
 	},
 	{
 		id: "ai-mining",
-		s: "aim"
+		s: "AIM"
 	},
 	{
 		id: "ai-network",
-		s: "ain"
+		s: "AIN"
 	},
 	{
 		id: "aion",
-		s: "aion"
+		s: "AION"
 	},
 	{
 		id: "ai-predicting-ecosystem",
-		s: "aipe"
+		s: "AIPE"
 	},
 	{
 		id: "airbloc-protocol",
-		s: "abl"
+		s: "ABL"
 	},
 	{
 		id: "aircoins",
-		s: "airx"
+		s: "AIRX"
 	},
 	{
 		id: "airswap",
-		s: "ast"
+		s: "AST"
 	},
 	{
 		id: "aisf",
-		s: "agt"
+		s: "AGT"
 	},
 	{
 		id: "aitheon",
-		s: "acu"
+		s: "ACU"
 	},
 	{
 		id: "aitra",
-		s: "aitra"
+		s: "AITRA"
 	},
 	{
 		id: "akash-network",
-		s: "akt"
+		s: "AKT"
 	},
 	{
 		id: "akikcoin",
-		s: "akc"
+		s: "AKC"
 	},
 	{
 		id: "akita-inu",
-		s: "akita"
+		s: "AKITA"
 	},
 	{
 		id: "akoin",
-		s: "akn"
+		s: "AKN"
 	},
 	{
 		id: "akroma",
-		s: "aka"
+		s: "AKA"
 	},
 	{
 		id: "akropolis",
-		s: "akro"
+		s: "AKRO"
 	},
 	{
 		id: "akropolis-delphi",
-		s: "adel"
+		s: "ADEL"
 	},
 	{
 		id: "aladdin-coins",
-		s: "acoin"
+		s: "ACOIN"
 	},
 	{
 		id: "aladdin-galaxy",
-		s: "abao"
+		s: "ABAO"
 	},
 	{
 		id: "aladiex",
-		s: "ala"
+		s: "ALA"
 	},
 	{
 		id: "alaya",
-		s: "atp"
+		s: "ATP"
 	},
 	{
 		id: "albos",
-		s: "alb"
+		s: "ALB"
 	},
 	{
 		id: "alchemint",
-		s: "sds"
+		s: "SDS"
 	},
 	{
 		id: "alchemix",
-		s: "alcx"
+		s: "ALCX"
 	},
 	{
 		id: "alchemix-usd",
-		s: "alusd"
+		s: "ALUSD"
 	},
 	{
 		id: "alchemy",
-		s: "acoin"
+		s: "ACOIN"
 	},
 	{
 		id: "alchemy-pay",
-		s: "ach"
+		s: "ACH"
 	},
 	{
 		id: "aleph",
-		s: "aleph"
+		s: "ALEPH"
 	},
 	{
 		id: "alex",
-		s: "alex"
+		s: "ALEX"
 	},
 	{
 		id: "algorand",
-		s: "algo"
+		s: "ALGO"
 	},
 	{
 		id: "algory",
-		s: "alg"
+		s: "ALG"
 	},
 	{
 		id: "algovest",
-		s: "avs"
+		s: "AVS"
 	},
 	{
 		id: "alibabacoin",
-		s: "abbc"
+		s: "ABBC"
 	},
 	{
 		id: "alis",
-		s: "alis"
+		s: "ALIS"
 	},
 	{
 		id: "all-best-ico",
-		s: "allbi"
+		s: "ALLBI"
 	},
 	{
 		id: "alldex-alliance",
-		s: "axa"
+		s: "AXA"
 	},
 	{
 		id: "all-for-one-business",
-		s: "afo"
+		s: "AFO"
 	},
 	{
 		id: "allianceblock",
-		s: "albt"
+		s: "ALBT"
 	},
 	{
 		id: "alliance-cargo-direct",
-		s: "acd"
+		s: "ACD"
 	},
 	{
 		id: "alliance-fan-token",
-		s: "all"
+		s: "ALL"
 	},
 	{
 		id: "alliance-x-trading",
-		s: "axt"
+		s: "AXT"
 	},
 	{
 		id: "alligator-fractal-set",
-		s: "gator"
+		s: "GATOR"
 	},
 	{
 		id: "allive",
-		s: "alv"
+		s: "ALV"
 	},
 	{
 		id: "all-me",
-		s: "me"
+		s: "ME"
+	},
+	{
+		id: "allohash",
+		s: "ALH"
 	},
 	{
 		id: "alloy-project",
-		s: "xao"
+		s: "XAO"
 	},
 	{
 		id: "allsafe",
-		s: "asafe"
+		s: "ASAFE"
 	},
 	{
 		id: "all-sports",
-		s: "soc"
+		s: "SOC"
 	},
 	{
 		id: "ally",
-		s: "aly"
+		s: "ALY"
 	},
 	{
 		id: "almace-shards",
-		s: "almx"
+		s: "ALMX"
 	},
 	{
 		id: "aloha",
-		s: "aloha"
+		s: "ALOHA"
 	},
 	{
 		id: "alpaca",
-		s: "alpa"
+		s: "ALPA"
 	},
 	{
 		id: "alpaca-finance",
-		s: "alpaca"
+		s: "ALPACA"
 	},
 	{
 		id: "alp-coin",
-		s: "alp"
+		s: "ALP"
 	},
 	{
 		id: "alpha5",
-		s: "a5t"
+		s: "A5T"
 	},
 	{
 		id: "alphacat",
-		s: "acat"
+		s: "ACAT"
 	},
 	{
 		id: "alpha-coin",
-		s: "apc"
+		s: "APC"
 	},
 	{
 		id: "alphadex",
-		s: "dex"
+		s: "DEX"
 	},
 	{
 		id: "alpha-finance",
-		s: "alpha"
+		s: "ALPHA"
 	},
 	{
 		id: "alphalink",
-		s: "ank"
+		s: "ANK"
 	},
 	{
 		id: "alpha-platform",
-		s: "a"
+		s: "A"
 	},
 	{
 		id: "alpha-quark-token",
-		s: "aqt"
+		s: "AQT"
 	},
 	{
 		id: "alqo",
-		s: "xlq"
+		s: "XLQ"
 	},
 	{
 		id: "alrightcoin",
-		s: "alc"
+		s: "ALC"
 	},
 	{
 		id: "altbet",
-		s: "abet"
+		s: "ABET"
 	},
 	{
 		id: "altcommunity-coin",
-		s: "altom"
+		s: "ALTOM"
 	},
 	{
 		id: "alt-estate",
-		s: "alt"
+		s: "ALT"
 	},
 	{
 		id: "altmarkets-coin",
-		s: "altm"
+		s: "ALTM"
 	},
 	{
 		id: "aludra-network",
-		s: "ald"
+		s: "ALD"
 	},
 	{
 		id: "aluna",
-		s: "aln"
+		s: "ALN"
 	},
 	{
 		id: "amaten",
-		s: "ama"
+		s: "AMA"
 	},
 	{
 		id: "amazonacoin",
-		s: "amz"
+		s: "AMZ"
 	},
 	{
 		id: "amber",
-		s: "amb"
+		s: "AMB"
 	},
 	{
 		id: "amepay",
-		s: "ame"
+		s: "AME"
 	},
 	{
 		id: "americanhorror-finance",
@@ -24808,211 +24854,215 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "amino-network",
-		s: "amio"
+		s: "AMIO"
 	},
 	{
 		id: "amis",
-		s: "amis"
+		s: "AMIS"
 	},
 	{
 		id: "amix",
-		s: "amix"
+		s: "AMIX"
 	},
 	{
 		id: "ammbr",
-		s: "amr"
+		s: "AMR"
 	},
 	{
 		id: "amo",
-		s: "amo"
+		s: "AMO"
 	},
 	{
 		id: "amodule-network",
-		s: "amo"
+		s: "AMO"
 	},
 	{
 		id: "amon",
-		s: "amn"
+		s: "AMN"
 	},
 	{
 		id: "amond",
-		s: "amon"
+		s: "AMON"
 	},
 	{
 		id: "amoveo",
-		s: "veo"
+		s: "VEO"
 	},
 	{
 		id: "ampleforth",
-		s: "ampl"
+		s: "AMPL"
 	},
 	{
 		id: "ampnet",
-		s: "aapx"
+		s: "AAPX"
 	},
 	{
 		id: "amp-token",
-		s: "amp"
+		s: "AMP"
 	},
 	{
 		id: "amsterdamcoin",
-		s: "ams"
+		s: "AMS"
 	},
 	{
 		id: "amz-coin",
-		s: "amz"
+		s: "AMZ"
 	},
 	{
 		id: "anchor",
-		s: "anct"
+		s: "ANCT"
 	},
 	{
 		id: "anchor-neural-world-token",
-		s: "anw"
+		s: "ANW"
+	},
+	{
+		id: "anchor-protocol",
+		s: "ANC"
 	},
 	{
 		id: "andes-coin",
-		s: "andes"
+		s: "ANDES"
 	},
 	{
 		id: "android-chain",
-		s: "adc"
+		s: "ADC"
 	},
 	{
 		id: "animal-friends-united",
-		s: "afu"
+		s: "AFU"
 	},
 	{
 		id: "animalitycoin",
-		s: "anty"
+		s: "ANTY"
 	},
 	{
 		id: "animecoin",
-		s: "ani"
+		s: "ANI"
 	},
 	{
 		id: "anime-token",
-		s: "ani"
+		s: "ANI"
 	},
 	{
 		id: "anj",
-		s: "anj"
+		s: "ANJ"
 	},
 	{
 		id: "ankr",
-		s: "ankr"
+		s: "ANKR"
 	},
 	{
 		id: "ankreth",
-		s: "aeth"
+		s: "AETH"
 	},
 	{
 		id: "anon",
-		s: "anon"
+		s: "ANON"
 	},
 	{
 		id: "anoncoin",
-		s: "anc"
+		s: "ANC"
 	},
 	{
 		id: "anonymous-coin",
-		s: "amc"
+		s: "AMC"
 	},
 	{
 		id: "anrkey-x",
-		s: "$anrx"
+		s: "$ANRX"
 	},
 	{
 		id: "answer-governance",
-		s: "agov"
+		s: "AGOV"
 	},
 	{
 		id: "antiample",
-		s: "xamp"
+		s: "XAMP"
 	},
 	{
 		id: "anti-fraud-chain",
-		s: "afc"
+		s: "AFC"
 	},
 	{
 		id: "antimatter",
-		s: "matter"
+		s: "MATTER"
 	},
 	{
 		id: "antique-zombie-shards",
-		s: "zomb"
+		s: "ZOMB"
 	},
 	{
 		id: "antra",
-		s: "antr"
+		s: "ANTR"
 	},
 	{
 		id: "anyone",
-		s: "any"
+		s: "ANY"
 	},
 	{
 		id: "anysale",
-		s: "sale"
+		s: "SALE"
 	},
 	{
 		id: "anyswap",
-		s: "any"
+		s: "ANY"
 	},
 	{
 		id: "aos",
-		s: "aos"
+		s: "AOS"
 	},
 	{
 		id: "apecoin",
-		s: "ape"
+		s: "APE"
 	},
 	{
 		id: "ape-tools",
-		s: "nana"
+		s: "NANA"
 	},
 	{
 		id: "apeusd-aave-synthetic-usd-dec-2021",
-		s: "apeUSD-AAVE-DEC21"
+		s: "APEUSD-AAVE-DEC21"
 	},
 	{
 		id: "apeusd-snx-synthetic-usd-dec-2021",
-		s: "apeUSD-SNX-DEC21"
+		s: "APEUSD-SNX-DEC21"
 	},
 	{
 		id: "apeusd-uma-synthetic-usd-dec-2021",
-		s: "apeUSD-UMA-DEC21"
+		s: "APEUSD-UMA-DEC21"
 	},
 	{
 		id: "apeusd-uni-synthetic-usd-dec-2021",
-		s: "apeUSD-UNI-DEC21"
+		s: "APEUSD-UNI-DEC21"
 	},
 	{
 		id: "apex",
-		s: "cpx"
+		s: "CPX"
 	},
 	{
 		id: "apexel-natural-nano",
-		s: "ann"
+		s: "ANN"
 	},
 	{
 		id: "apholding-coin",
-		s: "aph"
+		s: "APH"
 	},
 	{
 		id: "api3",
-		s: "api3"
+		s: "API3"
 	},
 	{
 		id: "apiary-fund-coin",
-		s: "afc"
+		s: "AFC"
 	},
 	{
 		id: "apis-coin",
-		s: "apis"
+		s: "APIS"
 	},
 	{
 		id: "apix",
-		s: "apix"
+		s: "APIX"
 	},
 	{
 		id: "apm-coin",
@@ -25020,11 +25070,11 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "apollo",
-		s: "apl"
+		s: "APL"
 	},
 	{
 		id: "apollon",
-		s: "xap"
+		s: "XAP"
 	},
 	{
 		id: "apollon-limassol",
@@ -25032,379 +25082,383 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "apoyield",
-		s: "soul"
+		s: "SOUL"
 	},
 	{
 		id: "app-alliance-association",
-		s: "aaa"
+		s: "AAA"
 	},
 	{
 		id: "appcoins",
-		s: "appc"
+		s: "APPC"
 	},
 	{
 		id: "appics",
-		s: "apx"
+		s: "APX"
 	},
 	{
 		id: "apple-finance",
-		s: "aplp"
+		s: "APLP"
 	},
 	{
 		id: "apple-network",
-		s: "ank"
+		s: "ANK"
 	},
 	{
 		id: "apple-protocol-token",
-		s: "aapl"
+		s: "AAPL"
 	},
 	{
 		id: "apr-coin",
-		s: "apr"
+		s: "APR"
 	},
 	{
 		id: "apy-finance",
-		s: "apy"
+		s: "APY"
 	},
 	{
 		id: "apyswap",
-		s: "apys"
+		s: "APYS"
 	},
 	{
 		id: "apy-vision",
-		s: "vision"
+		s: "VISION"
 	},
 	{
 		id: "aqt-token",
-		s: "aqt"
+		s: "AQT"
 	},
 	{
 		id: "aqua",
-		s: "aqua"
+		s: "AQUA"
+	},
+	{
+		id: "aquachain",
+		s: "AQUA"
 	},
 	{
 		id: "aquariuscoin",
-		s: "arco"
+		s: "ARCO"
 	},
 	{
 		id: "aquila-protocol",
-		s: "aux"
+		s: "AUX"
 	},
 	{
 		id: "aragon",
-		s: "ant"
+		s: "ANT"
 	},
 	{
 		id: "aragon-china-token",
-		s: "anc"
+		s: "ANC"
 	},
 	{
 		id: "ara-token",
-		s: "ara"
+		s: "ARA"
 	},
 	{
 		id: "araw-token",
-		s: "araw"
+		s: "ARAW"
 	},
 	{
 		id: "arbidex",
-		s: "abx"
+		s: "ABX"
 	},
 	{
 		id: "arbiswap",
-		s: "aswap"
+		s: "ASWAP"
 	},
 	{
 		id: "arbit",
-		s: "arb"
+		s: "ARB"
 	},
 	{
 		id: "arbitragect",
-		s: "arct"
+		s: "ARCT"
 	},
 	{
 		id: "arcane-bear",
-		s: "bear"
+		s: "BEAR"
 	},
 	{
 		id: "arcblock",
-		s: "abt"
+		s: "ABT"
 	},
 	{
 		id: "arcee-coin",
-		s: "arcee"
+		s: "ARCEE"
 	},
 	{
 		id: "archer-dao-governance-token",
-		s: "arch"
+		s: "ARCH"
 	},
 	{
 		id: "archetypal-network",
-		s: "actp"
+		s: "ACTP"
 	},
 	{
 		id: "arcona",
-		s: "arcona"
+		s: "ARCONA"
 	},
 	{
 		id: "arcs",
-		s: "arx"
+		s: "ARX"
 	},
 	{
 		id: "arcticcoin",
-		s: "arc"
+		s: "ARC"
 	},
 	{
 		id: "ardcoin",
-		s: "ardx"
+		s: "ARDX"
 	},
 	{
 		id: "ardor",
-		s: "ardr"
+		s: "ARDR"
 	},
 	{
 		id: "arepacoin",
-		s: "arepa"
+		s: "AREPA"
 	},
 	{
 		id: "argenpeso",
-		s: "argp"
+		s: "ARGP"
 	},
 	{
 		id: "argentum",
-		s: "arg"
+		s: "ARG"
 	},
 	{
 		id: "argon",
-		s: "argon"
+		s: "ARGON"
 	},
 	{
 		id: "arianee",
-		s: "aria20"
+		s: "ARIA20"
 	},
 	{
 		id: "aries-chain",
-		s: "aries"
+		s: "ARIES"
 	},
 	{
 		id: "aries-financial-token",
-		s: "afi"
+		s: "AFI"
 	},
 	{
 		id: "arion",
-		s: "arion"
+		s: "ARION"
 	},
 	{
 		id: "arionum",
-		s: "aro"
+		s: "ARO"
 	},
 	{
 		id: "arix",
-		s: "ar"
+		s: "AR"
 	},
 	{
 		id: "ark",
-		s: "ark"
+		s: "ARK"
 	},
 	{
 		id: "arke",
-		s: "arke"
+		s: "ARKE"
 	},
 	{
 		id: "armor",
-		s: "armor"
+		s: "ARMOR"
 	},
 	{
 		id: "armor-nxm",
-		s: "arnxm"
+		s: "ARNXM"
 	},
 	{
 		id: "armours",
-		s: "arm"
+		s: "ARM"
 	},
 	{
 		id: "armtoken",
-		s: "tarm"
+		s: "TARM"
 	},
 	{
 		id: "armx-unidos",
-		s: "armx"
+		s: "ARMX"
 	},
 	{
 		id: "arpa-chain",
-		s: "arpa"
+		s: "ARPA"
 	},
 	{
 		id: "arqma",
-		s: "arq"
+		s: "ARQ"
 	},
 	{
 		id: "artax",
-		s: "xax"
+		s: "XAX"
 	},
 	{
 		id: "artbyte",
-		s: "aby"
+		s: "ABY"
 	},
 	{
 		id: "artfinity-token",
-		s: "at"
+		s: "AT"
 	},
 	{
 		id: "arth",
-		s: "arth"
+		s: "ARTH"
 	},
 	{
 		id: "arthur-chain",
-		s: "arc"
+		s: "ARC"
 	},
 	{
 		id: "artista",
-		s: "arts"
+		s: "ARTS"
 	},
 	{
 		id: "arto",
-		s: "rto"
+		s: "RTO"
 	},
 	{
 		id: "artube",
-		s: "att"
+		s: "ATT"
 	},
 	{
 		id: "arweave",
-		s: "ar"
+		s: "AR"
 	},
 	{
 		id: "aryacoin",
-		s: "aya"
+		s: "AYA"
 	},
 	{
 		id: "asac-coin",
-		s: "asac"
+		s: "ASAC"
 	},
 	{
 		id: "ascension",
-		s: "asn"
+		s: "ASN"
 	},
 	{
 		id: "asch",
-		s: "xas"
+		s: "XAS"
 	},
 	{
 		id: "asgard-finance",
-		s: "thor"
+		s: "THOR"
 	},
 	{
 		id: "asian-african-capital-chain",
-		s: "acc"
+		s: "ACC"
 	},
 	{
 		id: "asian-dragon",
-		s: "ad"
+		s: "AD"
 	},
 	{
 		id: "asian-model-festival",
-		s: "amf"
+		s: "AMF"
 	},
 	{
 		id: "asia-reserve-currency-coin",
-		s: "arcc"
+		s: "ARCC"
 	},
 	{
 		id: "asimi",
-		s: "asimi"
+		s: "ASIMI"
 	},
 	{
 		id: "askobar-network",
-		s: "asko"
+		s: "ASKO"
 	},
 	{
 		id: "asla",
-		s: "asla"
+		s: "ASLA"
 	},
 	{
 		id: "asobi-coin",
-		s: "abx"
+		s: "ABX"
 	},
 	{
 		id: "aspire",
-		s: "asp"
+		s: "ASP"
 	},
 	{
 		id: "as-roma-fan-token",
-		s: "asr"
+		s: "ASR"
 	},
 	{
 		id: "assemble-protocol",
-		s: "asm"
+		s: "ASM"
 	},
 	{
 		id: "assy-index",
-		s: "assy"
+		s: "ASSY"
 	},
 	{
 		id: "asta",
-		s: "asta"
+		s: "ASTA"
 	},
 	{
 		id: "aston",
-		s: "atx"
+		s: "ATX"
 	},
 	{
 		id: "astosch",
-		s: "atc"
+		s: "ATC"
 	},
 	{
 		id: "astr-coin",
-		s: "astr"
+		s: "ASTR"
 	},
 	{
 		id: "astro",
-		s: "astro"
+		s: "ASTRO"
 	},
 	{
 		id: "astrotools",
-		s: "astro"
+		s: "ASTRO"
 	},
 	{
 		id: "asura",
-		s: "asa"
+		s: "ASA"
 	},
 	{
 		id: "asyagro",
-		s: "asy"
+		s: "ASY"
 	},
 	{
 		id: "atari",
-		s: "atri"
+		s: "ATRI"
 	},
 	{
 		id: "atbcoin",
-		s: "atb"
+		s: "ATB"
 	},
 	{
 		id: "atheios",
-		s: "ath"
+		s: "ATH"
 	},
 	{
 		id: "atheneum",
-		s: "aem"
+		s: "AEM"
 	},
 	{
 		id: "atlant",
-		s: "atl"
+		s: "ATL"
 	},
 	{
 		id: "atlantic-coin",
-		s: "atc"
+		s: "ATC"
 	},
 	{
 		id: "atlantis-token",
-		s: "atis"
+		s: "ATIS"
 	},
 	{
 		id: "atlas",
-		s: "atls"
+		s: "ATLS"
 	},
 	{
 		id: "atlas-protocol",
@@ -25412,127 +25466,123 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "atletico-madrid",
-		s: "atm"
-	},
-	{
-		id: "atmchain",
-		s: "atm"
+		s: "ATM"
 	},
 	{
 		id: "atmos",
-		s: "atmos"
+		s: "ATMOS"
 	},
 	{
 		id: "atn",
-		s: "atn"
+		s: "ATN"
 	},
 	{
 		id: "atomic-wallet-coin",
-		s: "awc"
+		s: "AWC"
 	},
 	{
 		id: "atromg8",
-		s: "ag8"
+		s: "AG8"
 	},
 	{
 		id: "attila",
-		s: "att"
+		s: "ATT"
 	},
 	{
 		id: "attn",
-		s: "attn"
+		s: "ATTN"
 	},
 	{
 		id: "auction",
-		s: "auction"
+		s: "AUCTION"
 	},
 	{
 		id: "auctus",
-		s: "auc"
+		s: "AUC"
 	},
 	{
 		id: "audax",
-		s: "audax"
+		s: "AUDAX"
 	},
 	{
 		id: "audiocoin",
-		s: "adc"
+		s: "ADC"
 	},
 	{
 		id: "audius",
-		s: "audio"
+		s: "AUDIO"
 	},
 	{
 		id: "augur",
-		s: "rep"
+		s: "REP"
 	},
 	{
 		id: "aunit",
-		s: "aunit"
+		s: "AUNIT"
 	},
 	{
 		id: "aura-protocol",
-		s: "aura"
+		s: "AURA"
 	},
 	{
 		id: "aurei",
-		s: "are"
+		s: "ARE"
 	},
 	{
 		id: "aureus-nummus-gold",
-		s: "ang"
+		s: "ANG"
 	},
 	{
 		id: "auric-network",
-		s: "auscm"
+		s: "AUSCM"
 	},
 	{
 		id: "aurix",
-		s: "aur"
+		s: "AUR"
 	},
 	{
 		id: "aurora",
-		s: "aoa"
+		s: "AOA"
 	},
 	{
 		id: "auroracoin",
-		s: "aur"
+		s: "AUR"
 	},
 	{
 		id: "aurora-dao",
-		s: "idex"
+		s: "IDEX"
 	},
 	{
 		id: "aurumcoin",
-		s: "au"
+		s: "AU"
 	},
 	{
 		id: "auruscoin",
-		s: "awx"
+		s: "AWX"
 	},
 	{
 		id: "aurusgold",
-		s: "awg"
+		s: "AWG"
 	},
 	{
 		id: "auscoin",
-		s: "ausc"
+		s: "AUSC"
 	},
 	{
 		id: "australia-cash",
-		s: "aus"
+		s: "AUS"
 	},
 	{
 		id: "auto",
-		s: "auto"
+		s: "AUTO"
 	},
 	{
 		id: "autonio",
-		s: "niox"
+		s: "NIOX"
 	},
 	{
 		id: "auxilium",
-		s: "aux"
+		s: "AUX"
 	},
 	{
 		id: "avalanche-2",
@@ -25540,795 +25590,787 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "avaluse",
-		s: "aval"
+		s: "AVAL"
 	},
 	{
 		id: "avantage",
-		s: "avn"
+		s: "AVN"
 	},
 	{
 		id: "aventus",
-		s: "avt"
+		s: "AVT"
 	},
 	{
 		id: "aware",
-		s: "at"
+		s: "AT"
 	},
 	{
 		id: "axe",
-		s: "axe"
+		s: "AXE"
 	},
 	{
 		id: "axel",
-		s: "axel"
+		s: "AXEL"
 	},
 	{
 		id: "axentro",
-		s: "axnt"
+		s: "AXNT"
 	},
 	{
 		id: "axia",
-		s: "axiav3"
+		s: "AXIAV3"
 	},
 	{
 		id: "axial",
-		s: "axl"
+		s: "AXL"
 	},
 	{
 		id: "axie-infinity",
-		s: "axs"
+		s: "AXS"
 	},
 	{
 		id: "axioms",
-		s: "axi"
+		s: "AXI"
 	},
 	{
 		id: "axion",
-		s: "axn"
+		s: "AXN"
 	},
 	{
 		id: "axis-defi",
-		s: "axis"
+		s: "AXIS"
 	},
 	{
 		id: "axpire",
-		s: "axpr"
+		s: "AXPR"
 	},
 	{
 		id: "ayfi",
-		s: "ayfi"
+		s: "AYFI"
 	},
 	{
 		id: "azbit",
-		s: "az"
+		s: "AZ"
 	},
 	{
 		id: "az-fundchain",
-		s: "azt"
+		s: "AZT"
 	},
 	{
 		id: "azuki",
-		s: "azuki"
+		s: "AZUKI"
 	},
 	{
 		id: "azuma-coin",
-		s: "azum"
+		s: "AZUM"
 	},
 	{
 		id: "azuras",
-		s: "uzz"
+		s: "UZZ"
 	},
 	{
 		id: "azzure",
-		s: "azzr"
+		s: "AZZR"
 	},
 	{
 		id: "b20",
-		s: "b20"
+		s: "B20"
 	},
 	{
 		id: "b21",
-		s: "b21"
+		s: "B21"
 	},
 	{
 		id: "b26",
-		s: "b26"
+		s: "B26"
 	},
 	{
 		id: "b2bcoin-2",
-		s: "b2b"
+		s: "B2B"
 	},
 	{
 		id: "b2u-coin",
-		s: "b2u"
+		s: "B2U"
 	},
 	{
 		id: "b360",
-		s: "b360"
+		s: "B360"
 	},
 	{
 		id: "b91",
-		s: "b91"
+		s: "B91"
 	},
 	{
 		id: "baasid",
-		s: "baas"
+		s: "BAAS"
 	},
 	{
 		id: "babb",
-		s: "bax"
-	},
-	{
-		id: "baby-power-index-pool-token",
-		s: "PIPT"
+		s: "BAX"
 	},
 	{
 		id: "baby-token",
-		s: "baby"
+		s: "BABY"
 	},
 	{
 		id: "backpacker-coin",
-		s: "bpc"
+		s: "BPC"
 	},
 	{
 		id: "baconcoin",
-		s: "bak"
+		s: "BAK"
 	},
 	{
 		id: "baconswap",
-		s: "bacon"
+		s: "BACON"
 	},
 	{
 		id: "badger-dao",
-		s: "badger"
+		s: "BADGER"
 	},
 	{
 		id: "baepay",
-		s: "baepay"
+		s: "BAEPAY"
 	},
 	{
 		id: "baer-chain",
-		s: "brc"
+		s: "BRC"
 	},
 	{
 		id: "bafi-finance-token",
-		s: "bafi"
+		s: "BAFI"
 	},
 	{
 		id: "baguette-token",
-		s: "bgtt"
+		s: "BGTT"
 	},
 	{
 		id: "bakerytoken",
-		s: "bake"
+		s: "BAKE"
 	},
 	{
 		id: "balancer",
-		s: "bal"
+		s: "BAL"
 	},
 	{
 		id: "balicoin",
-		s: "bali"
+		s: "BALI"
 	},
 	{
 		id: "balkan-coin",
-		s: "bkc"
+		s: "BKC"
 	},
 	{
 		id: "ball-coin",
-		s: "ball"
+		s: "BALL"
 	},
 	{
 		id: "balloon-coin",
-		s: "balo"
+		s: "BALO"
 	},
 	{
 		id: "ballotbox",
-		s: "bbx"
+		s: "BBX"
 	},
 	{
 		id: "ballswap",
-		s: "bsp"
+		s: "BSP"
 	},
 	{
 		id: "balpha",
-		s: "balpha"
+		s: "BALPHA"
 	},
 	{
 		id: "bamboo-defi",
-		s: "bamboo"
+		s: "BAMBOO"
 	},
 	{
 		id: "bamboo-token",
-		s: "boo"
+		s: "BOO"
 	},
 	{
 		id: "bananados",
-		s: "yban"
+		s: "YBAN"
 	},
 	{
 		id: "banana-finance",
-		s: "banana"
+		s: "BANANA"
 	},
 	{
 		id: "bananatok",
-		s: "bna"
+		s: "BNA"
 	},
 	{
 		id: "banana-token",
-		s: "bnana"
+		s: "BNANA"
 	},
 	{
 		id: "banano",
-		s: "ban"
+		s: "BAN"
 	},
 	{
 		id: "banca",
-		s: "banca"
+		s: "BANCA"
 	},
 	{
 		id: "bancor",
-		s: "bnt"
+		s: "BNT"
 	},
 	{
 		id: "bancor-governance-token",
-		s: "vbnt"
+		s: "VBNT"
 	},
 	{
 		id: "band-protocol",
-		s: "band"
+		s: "BAND"
 	},
 	{
 		id: "bankcoincash",
-		s: "bcash"
+		s: "BCASH"
 	},
 	{
 		id: "bankcoin-reserve",
-		s: "bcr"
+		s: "BCR"
 	},
 	{
 		id: "bankera",
-		s: "bnk"
+		s: "BNK"
 	},
 	{
 		id: "bankex",
-		s: "bkx"
+		s: "BKX"
 	},
 	{
 		id: "banklife",
-		s: "lib"
+		s: "LIB"
 	},
 	{
 		id: "bankroll-extended-token",
-		s: "bnkrx"
+		s: "BNKRX"
 	},
 	{
 		id: "bankroll-network",
-		s: "bnkr"
+		s: "BNKR"
 	},
 	{
 		id: "bankroll-vault",
-		s: "vlt"
+		s: "VLT"
 	},
 	{
 		id: "banque-universal",
-		s: "cbu"
+		s: "CBU"
 	},
 	{
 		id: "bao-finance",
-		s: "bao"
+		s: "BAO"
 	},
 	{
 		id: "baooka-token",
-		s: "bazt"
+		s: "BAZT"
 	},
 	{
 		id: "bar",
-		s: "bar"
+		s: "BAR"
 	},
 	{
 		id: "bare",
-		s: "bare"
+		s: "BARE"
 	},
 	{
 		id: "barkis",
-		s: "bks"
+		s: "BKS"
 	},
 	{
 		id: "barnbridge",
-		s: "bond"
+		s: "BOND"
 	},
 	{
 		id: "baroin",
-		s: "bri"
+		s: "BRI"
 	},
 	{
 		id: "barter",
-		s: "brtr"
+		s: "BRTR"
 	},
 	{
 		id: "bartertrade",
-		s: "bart"
+		s: "BART"
 	},
 	{
 		id: "based-money",
-		s: "$based"
+		s: "$BASED"
 	},
 	{
 		id: "base-protocol",
-		s: "base"
+		s: "BASE"
 	},
 	{
 		id: "basic",
-		s: "basic"
+		s: "BASIC"
 	},
 	{
 		id: "basic-attention-token",
-		s: "bat"
+		s: "BAT"
 	},
 	{
 		id: "basid-coin",
-		s: "basid"
+		s: "BASID"
 	},
 	{
 		id: "basis-bond",
-		s: "bab"
+		s: "BAB"
 	},
 	{
 		id: "basis-cash",
-		s: "bac"
+		s: "BAC"
 	},
 	{
 		id: "basis-coin-cash",
-		s: "bcc"
+		s: "BCC"
 	},
 	{
 		id: "basiscoin-share",
-		s: "bcs"
+		s: "BCS"
 	},
 	{
 		id: "basis-dollar",
-		s: "bsd"
+		s: "BSD"
 	},
 	{
 		id: "basis-dollar-share",
-		s: "bsds"
+		s: "BSDS"
 	},
 	{
 		id: "basis-gold",
-		s: "bsg"
+		s: "BSG"
 	},
 	{
 		id: "basis-gold-mdex",
-		s: "bag"
+		s: "BAG"
 	},
 	{
 		id: "basis-gold-share",
-		s: "bsgs"
+		s: "BSGS"
 	},
 	{
 		id: "basis-gold-share-heco",
-		s: "bags"
+		s: "BAGS"
 	},
 	{
 		id: "basis-share",
-		s: "bas"
+		s: "BAS"
 	},
 	{
 		id: "bast",
-		s: "bast"
+		s: "BAST"
 	},
 	{
 		id: "bastonet",
-		s: "bsn"
+		s: "BSN"
 	},
 	{
 		id: "bata",
-		s: "bta"
+		s: "BTA"
 	},
 	{
 		id: "battle-pets",
-		s: "pet"
+		s: "PET"
 	},
 	{
 		id: "bavala",
-		s: "bva"
+		s: "BVA"
 	},
 	{
 		id: "bbscoin",
-		s: "bbs"
+		s: "BBS"
 	},
 	{
 		id: "bcat",
-		s: "bcat"
+		s: "BCAT"
 	},
 	{
 		id: "bcb-blockchain",
-		s: "bcb"
+		s: "BCB"
 	},
 	{
 		id: "bcdiploma",
-		s: "bcdt"
+		s: "BCDT"
 	},
 	{
 		id: "bchnrbtc-synthetic",
-		s: "bchnrbtc-jan-2021"
+		s: "BCHNRBTC-JAN-2021"
 	},
 	{
 		id: "bcv",
-		s: "bcv"
+		s: "BCV"
 	},
 	{
 		id: "bdollar",
-		s: "bdo"
+		s: "BDO"
 	},
 	{
 		id: "bdollar-share",
-		s: "sbdo"
+		s: "SBDO"
 	},
 	{
 		id: "beacon",
-		s: "becn"
+		s: "BECN"
 	},
 	{
 		id: "beam",
-		s: "beam"
+		s: "BEAM"
 	},
 	{
 		id: "bean-cash",
-		s: "bitb"
+		s: "BITB"
 	},
 	{
 		id: "bearn-fi",
-		s: "bfi"
+		s: "BFI"
 	},
 	{
 		id: "beast-dao",
-		s: "beast"
+		s: "BEAST"
 	},
 	{
 		id: "beatzcoin",
-		s: "btzc"
+		s: "BTZC"
 	},
 	{
 		id: "beautyk",
-		s: "btkc"
+		s: "BTKC"
 	},
 	{
 		id: "beaxy-exchange",
-		s: "bxy"
+		s: "BXY"
 	},
 	{
 		id: "beechat",
-		s: "chat"
+		s: "CHAT"
 	},
 	{
 		id: "bee-coin",
-		s: "bee"
+		s: "BEE"
 	},
 	{
 		id: "beefy-finance",
-		s: "bifi"
+		s: "BIFI"
 	},
 	{
 		id: "beekan",
-		s: "bkbt"
+		s: "BKBT"
 	},
 	{
 		id: "beeng-token",
-		s: "beeng"
+		s: "BEENG"
 	},
 	{
 		id: "beenode",
-		s: "bnode"
+		s: "BNODE"
 	},
 	{
 		id: "beer-money",
-		s: "beer"
+		s: "BEER"
 	},
 	{
 		id: "beetle-coin",
-		s: "beet"
+		s: "BEET"
 	},
 	{
 		id: "beetr",
-		s: "btr"
+		s: "BTR"
 	},
 	{
 		id: "befasterholdertoken",
-		s: "bfht"
+		s: "BFHT"
 	},
 	{
 		id: "beflect-finance",
-		s: "bfi"
+		s: "BFI"
 	},
 	{
 		id: "be-gaming-coin",
-		s: "bgc"
+		s: "BGC"
 	},
 	{
 		id: "beholder",
-		s: "eye"
+		s: "EYE"
 	},
 	{
 		id: "belacoin",
-		s: "bela"
+		s: "BELA"
 	},
 	{
 		id: "beldex",
-		s: "bdx"
+		s: "BDX"
 	},
 	{
 		id: "believer",
-		s: "blvr"
+		s: "BLVR"
 	},
 	{
 		id: "belifex",
-		s: "befx"
+		s: "BEFX"
 	},
 	{
 		id: "bella-protocol",
-		s: "bel"
+		s: "BEL"
 	},
 	{
 		id: "bellcoin",
-		s: "bell"
+		s: "BELL"
 	},
 	{
 		id: "bellevue-network",
-		s: "blv"
+		s: "BLV"
 	},
 	{
 		id: "belt",
-		s: "belt"
+		s: "BELT"
 	},
 	{
 		id: "belugaswap",
-		s: "beluga"
+		s: "BELUGA"
 	},
 	{
 		id: "benative",
-		s: "bnv"
+		s: "BNV"
 	},
 	{
 		id: "benchmark-protocol",
-		s: "mark"
+		s: "MARK"
 	},
 	{
 		id: "benepit",
-		s: "bnp"
+		s: "BNP"
 	},
 	{
 		id: "benscoin",
-		s: "bsc"
+		s: "BSC"
 	},
 	{
 		id: "benz",
-		s: "benz"
+		s: "BENZ"
 	},
 	{
 		id: "beowulf",
-		s: "bwf"
+		s: "BWF"
 	},
 	{
 		id: "bergco-coin",
-		s: "berg"
+		s: "BERG"
 	},
 	{
 		id: "berncash",
-		s: "bern"
+		s: "BERN"
 	},
 	{
 		id: "berry-data",
-		s: "bry"
+		s: "BRY"
 	},
 	{
 		id: "berrypic",
-		s: "bpc"
+		s: "BPC"
 	},
 	{
 		id: "bestay",
-		s: "bsy"
+		s: "BSY"
 	},
 	{
 		id: "bet-chips",
-		s: "betc"
+		s: "BETC"
 	},
 	{
 		id: "betdice",
-		s: "dice"
+		s: "DICE"
 	},
 	{
 		id: "betherchip",
-		s: "bec"
+		s: "BEC"
 	},
 	{
 		id: "bethereum",
-		s: "bether"
+		s: "BETHER"
 	},
 	{
 		id: "betller-coin",
-		s: "btllr"
+		s: "BTLLR"
 	},
 	{
 		id: "betnomi-2",
-		s: "bni"
+		s: "BNI"
 	},
 	{
 		id: "bet-protocol",
-		s: "bepro"
+		s: "BEPRO"
 	},
 	{
 		id: "betrium",
-		s: "btrm"
+		s: "BTRM"
 	},
 	{
 		id: "betterbetting",
-		s: "betr"
+		s: "BETR"
 	},
 	{
 		id: "better-money",
-		s: "better"
+		s: "BETTER"
 	},
 	{
 		id: "betxoin",
-		s: "betxc"
+		s: "BETXC"
 	},
 	{
 		id: "beverage",
-		s: "beverage"
+		s: "BEVERAGE"
 	},
 	{
 		id: "beyondcoin",
-		s: "bynd"
+		s: "BYND"
 	},
 	{
 		id: "beyond-the-scene-coin",
-		s: "btsc"
+		s: "BTSC"
 	},
 	{
 		id: "bezant",
-		s: "bznt"
+		s: "BZNT"
 	},
 	{
 		id: "bezop",
-		s: "bez"
+		s: "BEZ"
 	},
 	{
 		id: "bfine",
-		s: "bri"
+		s: "BRI"
 	},
 	{
 		id: "bgogo",
-		s: "bgg"
+		s: "BGG"
 	},
 	{
 		id: "bgt",
-		s: "bgt"
+		s: "BGT"
 	},
 	{
 		id: "biblepay",
-		s: "bbp"
+		s: "BBP"
 	},
 	{
 		id: "bibox-token",
-		s: "bix"
+		s: "BIX"
 	},
 	{
 		id: "bidao",
-		s: "bid"
+		s: "BID"
 	},
 	{
 		id: "bidesk",
-		s: "bdk"
+		s: "BDK"
 	},
 	{
 		id: "bidipass",
-		s: "bdp"
+		s: "BDP"
 	},
 	{
 		id: "bifi",
-		s: "bifi"
+		s: "BIFI"
 	},
 	{
 		id: "bifrost",
-		s: "bfc"
+		s: "BFC"
 	},
 	{
 		id: "bigbang-core",
-		s: "bbc"
+		s: "BBC"
 	},
 	{
 		id: "bigbang-game",
-		s: "bbgc"
+		s: "BBGC"
 	},
 	{
 		id: "bigbom-eco",
-		s: "bbo"
+		s: "BBO"
 	},
 	{
 		id: "bigboys-industry",
-		s: "bbi"
+		s: "BBI"
 	},
 	{
 		id: "bigcash",
-		s: "bgc"
+		s: "BGC"
 	},
 	{
 		id: "big-coin",
-		s: "big"
+		s: "BIG"
 	},
 	{
 		id: "bigdata-cash",
-		s: "bdcash"
+		s: "BDCASH"
 	},
 	{
 		id: "big-data-protocol",
-		s: "bdp"
+		s: "BDP"
 	},
 	{
 		id: "bignite",
-		s: "bignite"
+		s: "BIGNITE"
 	},
 	{
 		id: "bigo-token",
-		s: "bigo"
+		s: "BIGO"
 	},
 	{
 		id: "biido",
-		s: "bion"
+		s: "BION"
 	},
 	{
 		id: "biki",
-		s: "biki"
+		s: "BIKI"
 	},
 	{
 		id: "bilaxy-token",
-		s: "bia"
+		s: "BIA"
 	},
 	{
 		id: "bilira",
-		s: "tryb"
+		s: "TRYB"
 	},
 	{
 		id: "billarycoin",
-		s: "blry"
+		s: "BLRY"
 	},
 	{
 		id: "billetcoin",
-		s: "blt"
-	},
-	{
-		id: "billionaire-token",
-		s: "xbl"
+		s: "BLT"
 	},
 	{
 		id: "billionhappiness",
-		s: "bhc"
+		s: "BHC"
 	},
 	{
 		id: "bimcoin",
-		s: "bim"
+		s: "BIM"
 	},
 	{
 		id: "binance-agile-set-dollar",
-		s: "basd"
+		s: "BASD"
 	},
 	{
 		id: "binance-bitcoin",
-		s: "btcb"
+		s: "BTCB"
 	},
 	{
 		id: "binancecoin",
-		s: "bnb"
+		s: "BNB"
 	},
 	{
 		id: "binance-eth",
-		s: "beth"
+		s: "BETH"
 	},
 	{
 		id: "binanceidr",
-		s: "bidr"
+		s: "BIDR"
 	},
 	{
 		id: "binance-krw",
@@ -26336,399 +26378,399 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "binance-usd",
-		s: "busd"
+		s: "BUSD"
 	},
 	{
 		id: "binance-vnd",
-		s: "bvnd"
+		s: "BVND"
 	},
 	{
 		id: "binarium",
-		s: "bin"
+		s: "BIN"
 	},
 	{
 		id: "bincentive",
-		s: "bcnt"
+		s: "BCNT"
 	},
 	{
 		id: "binjit-coin",
-		s: "bnj"
+		s: "BNJ"
 	},
 	{
 		id: "bintex-futures",
-		s: "bntx"
+		s: "BNTX"
 	},
 	{
 		id: "biocrypt",
-		s: "bio"
+		s: "BIO"
 	},
 	{
 		id: "biokkoin",
-		s: "bkkg"
+		s: "BKKG"
 	},
 	{
 		id: "biopassport",
-		s: "biot"
+		s: "BIOT"
 	},
 	{
 		id: "biotron",
-		s: "btrn"
+		s: "BTRN"
 	},
 	{
 		id: "bip",
-		s: "bip"
+		s: "BIP"
 	},
 	{
 		id: "birake",
-		s: "bir"
+		s: "BIR"
 	},
 	{
 		id: "birdchain",
-		s: "bird"
+		s: "BIRD"
 	},
 	{
 		id: "bird-money",
-		s: "bird"
+		s: "BIRD"
 	},
 	{
 		id: "birthday-cake",
-		s: "bday"
+		s: "BDAY"
 	},
 	{
 		id: "bismuth",
-		s: "bis"
+		s: "BIS"
 	},
 	{
 		id: "bispex",
-		s: "bpx"
+		s: "BPX"
 	},
 	{
 		id: "bitalgo",
-		s: "alg"
+		s: "ALG"
 	},
 	{
 		id: "bitball",
-		s: "btb"
+		s: "BTB"
 	},
 	{
 		id: "bitball-treasure",
-		s: "btrs"
+		s: "BTRS"
 	},
 	{
 		id: "bitbar",
-		s: "btb"
+		s: "BTB"
 	},
 	{
 		id: "bitbay",
-		s: "bay"
+		s: "BAY"
 	},
 	{
 		id: "bitberry-token",
-		s: "bbr"
+		s: "BBR"
 	},
 	{
 		id: "bitblocks-project",
-		s: "bbk"
+		s: "BBK"
 	},
 	{
 		id: "bitbook-gambling",
-		s: "bxk"
+		s: "BXK"
 	},
 	{
 		id: "bitboost",
-		s: "bbt"
+		s: "BBT"
 	},
 	{
 		id: "bitbot-protocol",
-		s: "bbp"
+		s: "BBP"
 	},
 	{
 		id: "bitcanna",
-		s: "bcna"
+		s: "BCNA"
 	},
 	{
 		id: "bitcash",
-		s: "bitc"
+		s: "BITC"
 	},
 	{
 		id: "bitcashpay",
-		s: "bcp"
+		s: "BCP"
 	},
 	{
 		id: "bitceo",
-		s: "bceo"
+		s: "BCEO"
 	},
 	{
 		id: "bitcherry",
-		s: "bchc"
+		s: "BCHC"
 	},
 	{
 		id: "bitcicoin",
-		s: "bitci"
+		s: "BITCI"
 	},
 	{
 		id: "bitclave",
-		s: "cat"
+		s: "CAT"
 	},
 	{
 		id: "bitcloud",
-		s: "btdx"
+		s: "BTDX"
 	},
 	{
 		id: "bitcloud-pro",
-		s: "bpro"
+		s: "BPRO"
 	},
 	{
 		id: "bitCNY",
-		s: "bitcny"
+		s: "BITCNY"
 	},
 	{
 		id: "bitcoen",
-		s: "ben"
+		s: "BEN"
 	},
 	{
 		id: "bitcoffeen",
-		s: "bff"
+		s: "BFF"
 	},
 	{
 		id: "bitcoiin",
-		s: "b2g"
+		s: "B2G"
 	},
 	{
 		id: "bitcoin",
-		s: "btc"
+		s: "BTC"
 	},
 	{
 		id: "bitcoin-2",
-		s: "btc2"
+		s: "BTC2"
 	},
 	{
 		id: "bitcoin-adult",
-		s: "btad"
+		s: "BTAD"
 	},
 	{
 		id: "bitcoin-anonymous",
-		s: "btca"
+		s: "BTCA"
 	},
 	{
 		id: "bitcoin-asia",
-		s: "btca"
+		s: "BTCA"
 	},
 	{
 		id: "bitcoin-atom",
-		s: "bca"
+		s: "BCA"
 	},
 	{
 		id: "bitcoin-bep2",
-		s: "btcb"
+		s: "BTCB"
 	},
 	{
 		id: "bitcoinboss",
-		s: "boss"
+		s: "BOSS"
 	},
 	{
 		id: "bitcoinbrand",
-		s: "btcb"
+		s: "BTCB"
 	},
 	{
 		id: "bitcoin-bull",
-		s: "bitb"
+		s: "BITB"
 	},
 	{
 		id: "bitcoin-candy",
-		s: "cdy"
+		s: "CDY"
 	},
 	{
 		id: "bitcoin-cash",
-		s: "bch"
+		s: "BCH"
 	},
 	{
 		id: "bitcoin-cash-abc-2",
-		s: "bcha"
+		s: "BCHA"
 	},
 	{
 		id: "bitcoin-cash-sv",
-		s: "bsv"
+		s: "BSV"
 	},
 	{
 		id: "bitcoin-classic",
-		s: "bxc"
+		s: "BXC"
 	},
 	{
 		id: "bitcoin-classic-token",
-		s: "bct"
+		s: "BCT"
 	},
 	{
 		id: "bitcoin-company-network",
-		s: "bitn"
+		s: "BITN"
 	},
 	{
 		id: "bitcoin-confidential",
-		s: "bc"
+		s: "BC"
 	},
 	{
 		id: "bitcoin-cure",
-		s: "byron"
+		s: "BYRON"
 	},
 	{
 		id: "bitcoin-cz",
-		s: "bcz"
+		s: "BCZ"
 	},
 	{
 		id: "bitcoin-diamond",
-		s: "bcd"
+		s: "BCD"
 	},
 	{
 		id: "bitcoin-fast",
-		s: "bcf"
+		s: "BCF"
 	},
 	{
 		id: "bitcoin-file",
-		s: "bifi"
+		s: "BIFI"
 	},
 	{
 		id: "bitcoin-final",
-		s: "btcf"
+		s: "BTCF"
 	},
 	{
 		id: "bitcoin-flash-cash",
-		s: "btfc"
+		s: "BTFC"
 	},
 	{
 		id: "bitcoin-free-cash",
-		s: "bfc"
+		s: "BFC"
 	},
 	{
 		id: "bitcoin-galaxy-warp",
-		s: "btcgw"
+		s: "BTCGW"
 	},
 	{
 		id: "bitcoingenx",
-		s: "bgx"
+		s: "BGX"
 	},
 	{
 		id: "bitcoin-god",
-		s: "god"
+		s: "GOD"
 	},
 	{
 		id: "bitcoin-gold",
-		s: "btg"
+		s: "BTG"
 	},
 	{
 		id: "bitcoin-green",
-		s: "bitg"
+		s: "BITG"
 	},
 	{
 		id: "bitcoin-hd",
-		s: "bhd"
+		s: "BHD"
 	},
 	{
 		id: "bitcoinhedge",
-		s: "btchg"
+		s: "BTCHG"
 	},
 	{
 		id: "bitcoin-high-yield-set",
-		s: "bhy"
+		s: "BHY"
 	},
 	{
 		id: "bitcoin-hot",
-		s: "bth"
+		s: "BTH"
 	},
 	{
 		id: "bitcoin-incognito",
-		s: "xbi"
+		s: "XBI"
 	},
 	{
 		id: "bitcoin-instant",
-		s: "bti"
+		s: "BTI"
 	},
 	{
 		id: "bitcoin-interest",
-		s: "bci"
+		s: "BCI"
 	},
 	{
 		id: "bitcoin-lightning",
-		s: "bltg"
+		s: "BLTG"
 	},
 	{
 		id: "bitcoinmoney",
-		s: "bcm"
+		s: "BCM"
 	},
 	{
 		id: "bitcoinmono",
-		s: "btcmz"
+		s: "BTCMZ"
 	},
 	{
 		id: "bitcoin-one",
-		s: "btcone"
+		s: "BTCONE"
 	},
 	{
 		id: "bitcoinote",
-		s: "btcn"
+		s: "BTCN"
 	},
 	{
 		id: "bitcoin-pay",
-		s: "btp"
+		s: "BTP"
 	},
 	{
 		id: "bitcoin-platinum",
-		s: "bcp"
+		s: "BCP"
 	},
 	{
 		id: "bitcoin-plus",
-		s: "xbc"
+		s: "XBC"
 	},
 	{
 		id: "bitcoin-private",
-		s: "btcp"
+		s: "BTCP"
 	},
 	{
 		id: "bitcoin-pro",
-		s: "btcp"
+		s: "BTCP"
 	},
 	{
 		id: "bitcoin-red",
-		s: "btcred"
+		s: "BTCRED"
 	},
 	{
 		id: "bitcoinregular",
-		s: "btrl"
+		s: "BTRL"
 	},
 	{
 		id: "bitcoin-rhodium",
-		s: "xrc"
+		s: "XRC"
 	},
 	{
 		id: "bitcoin-scrypt",
-		s: "btcs"
+		s: "BTCS"
 	},
 	{
 		id: "bitcoin-silver",
-		s: "btcs"
+		s: "BTCS"
 	},
 	{
 		id: "bitcoinsov",
-		s: "bsov"
+		s: "BSOV"
 	},
 	{
 		id: "bitcoinstaking",
-		s: "bsk"
+		s: "BSK"
 	},
 	{
 		id: "bitcoin-stash",
-		s: "bsh"
+		s: "BSH"
 	},
 	{
 		id: "bitcoin-subsidium",
-		s: "xbtx"
+		s: "XBTX"
 	},
 	{
 		id: "bitcoinsvgold",
-		s: "bsvg"
+		s: "BSVG"
 	},
 	{
 		id: "bitcoin-token",
-		s: "btct"
+		s: "BTCT"
 	},
 	{
 		id: "bitcoin-true",
@@ -26736,367 +26778,371 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "bitcoin-trust",
-		s: "bct"
+		s: "BCT"
 	},
 	{
 		id: "bitcoin-ultra",
-		s: "btcu"
+		s: "BTCU"
 	},
 	{
 		id: "bitcoin-unicorn",
-		s: "btcui"
+		s: "BTCUI"
 	},
 	{
 		id: "bitcoinus",
-		s: "bits"
+		s: "BITS"
 	},
 	{
 		id: "bitcoinv",
-		s: "btcv"
+		s: "BTCV"
 	},
 	{
 		id: "bitcoin-vault",
-		s: "btcv"
+		s: "BTCV"
 	},
 	{
 		id: "bitcoinvend",
-		s: "bcvt"
+		s: "BCVT"
 	},
 	{
 		id: "bitcoin-virtual-gold",
-		s: "bvg"
+		s: "BVG"
 	},
 	{
 		id: "bitcoin-wheelchair",
-		s: "btcwh"
+		s: "BTCWH"
 	},
 	{
 		id: "bitcoin-w-spectrum",
-		s: "spe"
+		s: "SPE"
 	},
 	{
 		id: "bitcoinx",
-		s: "bcx"
+		s: "BCX"
 	},
 	{
 		id: "bitcoinx-2",
-		s: "btcx"
+		s: "BTCX"
 	},
 	{
 		id: "bitcoinz",
-		s: "btcz"
+		s: "BTCZ"
 	},
 	{
 		id: "bitcoin-zero",
-		s: "bzx"
+		s: "BZX"
 	},
 	{
 		id: "bitcoiva",
-		s: "bca"
+		s: "BCA"
 	},
 	{
 		id: "bitcomo",
-		s: "bm"
+		s: "BM"
 	},
 	{
 		id: "bitconnect",
-		s: "bcc"
+		s: "BCC"
 	},
 	{
 		id: "bitconnectx-genesis",
-		s: "bccx"
+		s: "BCCX"
 	},
 	{
 		id: "bitcore",
-		s: "btx"
+		s: "BTX"
 	},
 	{
 		id: "bitcorn",
-		s: "corn"
+		s: "CORN"
 	},
 	{
 		id: "bitcratic",
-		s: "bct"
+		s: "BCT"
 	},
 	{
 		id: "bitcratic-revenue",
-		s: "bctr"
+		s: "BCTR"
+	},
+	{
+		id: "bitcrex-coin",
+		s: "BIC"
 	},
 	{
 		id: "bitcurate",
-		s: "btcr"
+		s: "BTCR"
 	},
 	{
 		id: "bitcurrency",
-		s: "bc"
+		s: "BC"
 	},
 	{
 		id: "bitdefi",
-		s: "bfi"
+		s: "BFI"
 	},
 	{
 		id: "bitdegree",
-		s: "bdg"
+		s: "BDG"
 	},
 	{
 		id: "bitdice",
-		s: "csno"
+		s: "CSNO"
 	},
 	{
 		id: "bitdns",
-		s: "dns"
+		s: "DNS"
 	},
 	{
 		id: "bit-ecological-digital",
-		s: "bed"
+		s: "BED"
 	},
 	{
 		id: "bitex-global",
-		s: "xbx"
+		s: "XBX"
 	},
 	{
 		id: "bitfarmings",
-		s: "bfi"
+		s: "BFI"
 	},
 	{
 		id: "bitfex",
-		s: "bfx"
+		s: "BFX"
 	},
 	{
 		id: "bit_financial",
-		s: "bfc"
+		s: "BFC"
 	},
 	{
 		id: "bitflate",
-		s: "bfl"
+		s: "BFL"
 	},
 	{
 		id: "bitforex",
-		s: "bf"
+		s: "BF"
 	},
 	{
 		id: "bitfxt-coin",
-		s: "bxt"
+		s: "BXT"
 	},
 	{
 		id: "bitgear",
-		s: "gear"
+		s: "GEAR"
 	},
 	{
 		id: "bitgem",
-		s: "xbtg"
+		s: "XBTG"
 	},
 	{
 		id: "bitgesell",
-		s: "bgl"
+		s: "BGL"
 	},
 	{
 		id: "bitget-defi-token",
-		s: "bft"
+		s: "BFT"
 	},
 	{
 		id: "bitgrin",
-		s: "xbg"
+		s: "XBG"
 	},
 	{
 		id: "bitguild",
-		s: "plat"
+		s: "PLAT"
 	},
 	{
 		id: "bithachi",
-		s: "bith"
+		s: "BITH"
 	},
 	{
 		id: "bithash-token",
-		s: "bt"
+		s: "BT"
 	},
 	{
 		id: "bithercash",
-		s: "bicas"
+		s: "BICAS"
 	},
 	{
 		id: "bithereum",
-		s: "bth"
+		s: "BTH"
 	},
 	{
 		id: "bithostcoin",
-		s: "bih"
+		s: "BIH"
 	},
 	{
 		id: "bitica-coin",
-		s: "bdcc"
+		s: "BDCC"
 	},
 	{
 		id: "bitifex",
-		s: "bitx"
+		s: "BITX"
 	},
 	{
 		id: "biting",
-		s: "btfm"
+		s: "BTFM"
 	},
 	{
 		id: "bitjob",
-		s: "stu"
+		s: "STU"
 	},
 	{
 		id: "bitkam",
-		s: "kam"
+		s: "KAM"
 	},
 	{
 		id: "bitmark",
-		s: "marks"
+		s: "MARKS"
 	},
 	{
 		id: "bitmart-token",
-		s: "bmx"
+		s: "BMX"
 	},
 	{
 		id: "bitmoney",
-		s: "bit"
+		s: "BIT"
 	},
 	{
 		id: "bitnautic",
-		s: "btnt"
+		s: "BTNT"
 	},
 	{
 		id: "bitnewchain",
-		s: "btn"
+		s: "BTN"
 	},
 	{
 		id: "bito-coin",
-		s: "bito"
+		s: "BITO"
 	},
 	{
 		id: "bitonyx-token",
-		s: "btnyx"
+		s: "BTNYX"
 	},
 	{
 		id: "bitor",
-		s: "btr"
+		s: "BTR"
 	},
 	{
 		id: "bitorcash-token",
-		s: "boc"
+		s: "BOC"
 	},
 	{
 		id: "bitpakcointoken",
-		s: "bpakc"
+		s: "BPAKC"
 	},
 	{
 		id: "bitpal",
-		s: "btp"
+		s: "BTP"
 	},
 	{
 		id: "bitpanda-ecosystem-token",
-		s: "best"
+		s: "BEST"
 	},
 	{
 		id: "bitplayer-token",
-		s: "bpt"
+		s: "BPT"
 	},
 	{
 		id: "bitpower",
-		s: "bpp"
+		s: "BPP"
 	},
 	{
 		id: "bit-public-talent-network",
-		s: "bptn"
+		s: "BPTN"
 	},
 	{
 		id: "bitpumps-token",
-		s: "bpt"
+		s: "BPT"
 	},
 	{
 		id: "bitradio",
-		s: "bro"
+		s: "BRO"
 	},
 	{
 		id: "bitrent",
-		s: "rntb"
+		s: "RNTB"
 	},
 	{
 		id: "bitrewards",
-		s: "xbrt"
+		s: "XBRT"
 	},
 	{
 		id: "bitrewards-token",
-		s: "bit"
+		s: "BIT"
 	},
 	{
 		id: "bitrue-token",
-		s: "btr"
+		s: "BTR"
 	},
 	{
 		id: "bitscoin",
-		s: "btcx"
+		s: "BTCX"
 	},
 	{
 		id: "bitscreener",
-		s: "bitx"
+		s: "BITX"
 	},
 	{
 		id: "bitsend",
-		s: "bsd"
+		s: "BSD"
 	},
 	{
 		id: "bitshares",
-		s: "bts"
+		s: "BTS"
 	},
 	{
 		id: "bitshark",
-		s: "btshk"
+		s: "BTSHK"
 	},
 	{
 		id: "bit-silver",
-		s: "btr"
+		s: "BTR"
 	},
 	{
 		id: "bitsong",
-		s: "btsg"
+		s: "BTSG"
 	},
 	{
 		id: "bitsonic-gas",
-		s: "bsg"
+		s: "BSG"
 	},
 	{
 		id: "bitsonic-token",
-		s: "bsc"
+		s: "BSC"
 	},
 	{
 		id: "bitsou",
-		s: "btu"
+		s: "BTU"
 	},
 	{
 		id: "bitstake",
-		s: "xbs"
+		s: "XBS"
 	},
 	{
 		id: "bitstar",
-		s: "bits"
+		s: "BITS"
 	},
 	{
 		id: "bitstash-marketplace",
-		s: "stash"
+		s: "STASH"
 	},
 	{
 		id: "bitsten-token",
-		s: "bst"
+		s: "BST"
 	},
 	{
 		id: "bit-storage-box-token",
-		s: "bsbt"
+		s: "BSBT"
 	},
 	{
 		id: "bitsum",
-		s: "mat"
+		s: "MAT"
 	},
 	{
 		id: "bitswift",
-		s: "bits"
+		s: "BITS"
 	},
 	{
 		id: "bittiger",
-		s: "bttr"
+		s: "BTTR"
 	},
 	{
 		id: "bitto-exchange",
@@ -27104,67 +27150,63 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "bittoken",
-		s: "bitt"
+		s: "BITT"
 	},
 	{
 		id: "bittokens",
-		s: "bxt"
+		s: "BXT"
 	},
 	{
 		id: "bittorrent-2",
-		s: "btt"
+		s: "BTT"
 	},
 	{
 		id: "bittorro",
-		s: "torro"
+		s: "TORRO"
 	},
 	{
 		id: "bittracksystems",
-		s: "bttr"
+		s: "BTTR"
 	},
 	{
 		id: "bit-trust-system",
-		s: "biut"
+		s: "BIUT"
 	},
 	{
 		id: "bittube",
-		s: "tube"
+		s: "TUBE"
 	},
 	{
 		id: "bittwatt",
-		s: "bwt"
+		s: "BWT"
 	},
 	{
 		id: "bitunits-europa",
-		s: "opa"
-	},
-	{
-		id: "bitunits-titan",
-		s: "titan"
+		s: "OPA"
 	},
 	{
 		id: "bitup-token",
-		s: "but"
+		s: "BUT"
 	},
 	{
 		id: "bitvote",
-		s: "btv"
+		s: "BTV"
 	},
 	{
 		id: "bitwhite",
-		s: "btw"
+		s: "BTW"
 	},
 	{
 		id: "bitz",
-		s: "bitz"
+		s: "BITZ"
 	},
 	{
 		id: "bitzeny",
-		s: "zny"
+		s: "ZNY"
 	},
 	{
 		id: "bit-z-token",
-		s: "bz"
+		s: "BZ"
 	},
 	{
 		id: "bitzyon",
@@ -27172,31 +27214,31 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "bixb-coin",
-		s: "bixb"
+		s: "BIXB"
 	},
 	{
 		id: "bixcpro",
-		s: "bixcpro"
+		s: "BIXCPRO"
 	},
 	{
 		id: "bizkey",
-		s: "bzky"
+		s: "BZKY"
 	},
 	{
 		id: "bizzcoin",
-		s: "bizz"
+		s: "BIZZ"
 	},
 	{
 		id: "bkex-token",
-		s: "bkk"
+		s: "BKK"
 	},
 	{
 		id: "blackcoin",
-		s: "blk"
+		s: "BLK"
 	},
 	{
 		id: "black-diamond-rating",
-		s: "hzt"
+		s: "HZT"
 	},
 	{
 		id: "blackdragon-token",
@@ -27204,39 +27246,39 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "blackfisk",
-		s: "blfi"
+		s: "BLFI"
 	},
 	{
 		id: "blackholeswap-compound-dai-usdc",
-		s: "bhsc"
+		s: "BHSC"
 	},
 	{
 		id: "blackmoon-crypto",
-		s: "bmc"
+		s: "BMC"
 	},
 	{
 		id: "blacknet",
-		s: "bln"
+		s: "BLN"
 	},
 	{
 		id: "blackpearl-chain",
-		s: "bplc"
+		s: "BPLC"
 	},
 	{
 		id: "blank",
-		s: "blank"
+		s: "BLANK"
 	},
 	{
 		id: "blast",
-		s: "blast"
+		s: "BLAST"
 	},
 	{
 		id: "blastx",
-		s: "bstx"
+		s: "BSTX"
 	},
 	{
 		id: "blaze-defi",
-		s: "bnfi"
+		s: "BNFI"
 	},
 	{
 		id: "blaze-network",
@@ -27244,235 +27286,239 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "blink",
-		s: "blink"
+		s: "BLINK"
 	},
 	{
 		id: "blipcoin",
-		s: "bpcn"
+		s: "BPCN"
 	},
 	{
 		id: "bliquid",
-		s: "bliq"
+		s: "BLIQ"
 	},
 	{
 		id: "bliss-2",
-		s: "bliss"
+		s: "BLISS"
 	},
 	{
 		id: "blitzpredict",
-		s: "xbp"
+		s: "XBP"
 	},
 	{
 		id: "blocery",
-		s: "bly"
+		s: "BLY"
 	},
 	{
 		id: "block-18",
-		s: "18c"
+		s: "18C"
 	},
 	{
 		id: "block-array",
-		s: "ary"
+		s: "ARY"
 	},
 	{
 		id: "blockbase",
-		s: "bbt"
+		s: "BBT"
 	},
 	{
 		id: "blockburn",
-		s: "burn"
+		s: "BURN"
 	},
 	{
 		id: "blockcdn",
-		s: "bcdn"
+		s: "BCDN"
 	},
 	{
 		id: "block-chain-com",
-		s: "bc"
+		s: "BC"
 	},
 	{
 		id: "blockchain-cuties-universe",
-		s: "cute"
+		s: "CUTE"
+	},
+	{
+		id: "blockchain-cuties-universe-governance",
+		s: "BCUG"
 	},
 	{
 		id: "blockchain-exchange-alliance",
-		s: "bxa"
+		s: "BXA"
 	},
 	{
 		id: "blockchain-knowledge-coin",
-		s: "bkc"
+		s: "BKC"
 	},
 	{
 		id: "blockchain-of-hash-power",
-		s: "bhp"
+		s: "BHP"
 	},
 	{
 		id: "blockchainpoland",
-		s: "bcp"
+		s: "BCP"
 	},
 	{
 		id: "blockchain-quotations-index-token",
-		s: "bqt"
+		s: "BQT"
 	},
 	{
 		id: "blockcloud",
-		s: "bloc"
+		s: "BLOC"
 	},
 	{
 		id: "blockclout",
-		s: "clout"
+		s: "CLOUT"
 	},
 	{
 		id: "block-collider",
-		s: "emb"
+		s: "EMB"
 	},
 	{
 		id: "block-duelers",
-		s: "bdt"
+		s: "BDT"
 	},
 	{
 		id: "blockgrain",
-		s: "agri"
+		s: "AGRI"
 	},
 	{
 		id: "blockidcoin",
-		s: "bid"
+		s: "BID"
 	},
 	{
 		id: "blocklancer",
-		s: "lnc"
+		s: "LNC"
 	},
 	{
 		id: "blockmason-credit-protocol",
-		s: "bcpt"
+		s: "BCPT"
 	},
 	{
 		id: "blockmason-link",
-		s: "blink"
+		s: "BLINK"
 	},
 	{
 		id: "blockmax",
-		s: "ocb"
+		s: "OCB"
 	},
 	{
 		id: "blockmesh-2",
-		s: "bmh"
+		s: "BMH"
 	},
 	{
 		id: "blocknet",
-		s: "block"
+		s: "BLOCK"
 	},
 	{
 		id: "blocknotex",
-		s: "bnox"
+		s: "BNOX"
 	},
 	{
 		id: "blockpass",
-		s: "pass"
+		s: "PASS"
 	},
 	{
 		id: "blockport",
-		s: "bux"
+		s: "BUX"
 	},
 	{
 		id: "blockstack",
-		s: "stx"
+		s: "STX"
 	},
 	{
 		id: "blockstamp",
-		s: "bst"
+		s: "BST"
 	},
 	{
 		id: "blocktix",
-		s: "tix"
+		s: "TIX"
 	},
 	{
 		id: "blockv",
-		s: "vee"
+		s: "VEE"
 	},
 	{
 		id: "bloc-money",
-		s: "bloc"
+		s: "BLOC"
 	},
 	{
 		id: "blood",
-		s: "blood"
+		s: "BLOOD"
 	},
 	{
 		id: "bloody-token",
-		s: "bloody"
+		s: "BLOODY"
 	},
 	{
 		id: "bloom",
-		s: "blt"
+		s: "BLT"
 	},
 	{
 		id: "bloomzed-token",
-		s: "blct"
+		s: "BLCT"
 	},
 	{
 		id: "blox",
-		s: "cdt"
+		s: "CDT"
 	},
 	{
 		id: "blucon",
-		s: "bep"
+		s: "BEP"
 	},
 	{
 		id: "blue",
-		s: "blue"
+		s: "BLUE"
 	},
 	{
 		id: "blue-baikal",
-		s: "bbc"
+		s: "BBC"
 	},
 	{
 		id: "bluechips-token",
-		s: "bchip"
+		s: "BCHIP"
 	},
 	{
 		id: "bluecoin",
-		s: "blu"
+		s: "BLU"
 	},
 	{
 		id: "bluekeymarket",
-		s: "bky"
+		s: "BKY"
 	},
 	{
 		id: "blueshare-token",
-		s: "bst1"
+		s: "BST1"
 	},
 	{
 		id: "blue-whale",
-		s: "bwx"
+		s: "BWX"
 	},
 	{
 		id: "blurt",
-		s: "blurt"
+		s: "BLURT"
 	},
 	{
 		id: "bluzelle",
-		s: "blz"
+		s: "BLZ"
 	},
 	{
 		id: "bmax",
-		s: "btmx"
+		s: "BTMX"
 	},
 	{
 		id: "bmchain-token",
-		s: "bmt"
+		s: "BMT"
 	},
 	{
 		id: "bmining-token",
-		s: "bmt"
+		s: "BMT"
 	},
 	{
 		id: "bmj-coin",
-		s: "bmj"
+		s: "BMJ"
 	},
 	{
 		id: "bmj-master-nodes",
-		s: "bmj"
+		s: "BMJ"
 	},
 	{
 		id: "bmtoken",
@@ -27480,107 +27526,107 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "bnb48-club-token",
-		s: "koge"
+		s: "KOGE"
 	},
 	{
 		id: "bnktothefuture",
-		s: "bft"
+		s: "BFT"
 	},
 	{
 		id: "bnoincoin",
-		s: "bnc"
+		s: "BNC"
 	},
 	{
 		id: "bnsd-finance",
-		s: "bnsd"
+		s: "BNSD"
 	},
 	{
 		id: "bns-governance",
-		s: "bnsg"
+		s: "BNSG"
 	},
 	{
 		id: "bns-token",
-		s: "bns"
+		s: "BNS"
 	},
 	{
 		id: "bnx",
-		s: "bnx"
+		s: "BNX"
 	},
 	{
 		id: "boa",
-		s: "boa"
+		s: "BOA"
 	},
 	{
 		id: "boat",
-		s: "boat"
+		s: "BOAT"
 	},
 	{
 		id: "boatpilot",
-		s: "navy"
+		s: "NAVY"
 	},
 	{
 		id: "boboo-token",
-		s: "bobt"
+		s: "BOBT"
 	},
 	{
 		id: "bobs_repair",
-		s: "bob"
+		s: "BOB"
 	},
 	{
 		id: "bodhi-network",
-		s: "nbot"
+		s: "NBOT"
 	},
 	{
 		id: "bogged-finance",
-		s: "bog"
+		s: "BOG"
 	},
 	{
 		id: "boid",
-		s: "boid"
+		s: "BOID"
 	},
 	{
 		id: "boldman-capital",
-		s: "bold"
+		s: "BOLD"
 	},
 	{
 		id: "boliecoin",
-		s: "bolc"
+		s: "BOLC"
 	},
 	{
 		id: "bolivarcoin",
-		s: "boli"
+		s: "BOLI"
 	},
 	{
 		id: "bollo-token",
-		s: "bolo"
+		s: "BOLO"
 	},
 	{
 		id: "bolt",
-		s: "bolt"
+		s: "BOLT"
 	},
 	{
 		id: "boltt-coin",
-		s: "boltt"
+		s: "BOLTT"
 	},
 	{
 		id: "bolt-true-dollar",
-		s: "btd"
+		s: "BTD"
 	},
 	{
 		id: "bolt-true-share",
-		s: "bts"
+		s: "BTS"
 	},
 	{
 		id: "bomb",
-		s: "bomb"
+		s: "BOMB"
 	},
 	{
 		id: "bonded-finance",
-		s: "bond"
+		s: "BOND"
 	},
 	{
 		id: "bondly",
-		s: "bondly"
+		s: "BONDLY"
 	},
 	{
 		id: "bone",
@@ -27588,1119 +27634,1123 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "b-one-payment",
-		s: "b1p"
+		s: "B1P"
 	},
 	{
 		id: "bonezyard",
-		s: "bnz"
+		s: "BNZ"
 	},
 	{
 		id: "bonfi",
-		s: "bnf"
+		s: "BNF"
 	},
 	{
 		id: "bonfida",
-		s: "fida"
+		s: "FIDA"
 	},
 	{
 		id: "bonk-token",
-		s: "bonk"
+		s: "BONK"
 	},
 	{
 		id: "bonorum-coin",
-		s: "bono"
+		s: "BONO"
 	},
 	{
 		id: "bonpay",
-		s: "bon"
+		s: "BON"
 	},
 	{
 		id: "bonuscloud",
-		s: "bxc"
+		s: "BXC"
 	},
 	{
 		id: "boobank",
-		s: "boob"
+		s: "BOOB"
 	},
 	{
 		id: "boobanker-research-association",
-		s: "bbra"
+		s: "BBRA"
 	},
 	{
 		id: "boogle",
-		s: "boo"
+		s: "BOO"
 	},
 	{
 		id: "boolberry",
-		s: "bbr"
+		s: "BBR"
 	},
 	{
 		id: "boolean",
-		s: "bool"
+		s: "BOOL"
 	},
 	{
 		id: "boom-token",
-		s: "boom"
+		s: "BOOM"
 	},
 	{
 		id: "boostcoin",
-		s: "bost"
+		s: "BOST"
 	},
 	{
 		id: "boosted-finance",
-		s: "boost"
+		s: "BOOST"
 	},
 	{
 		id: "boosto",
-		s: "bst"
+		s: "BST"
+	},
+	{
+		id: "bootleg-nft",
+		s: "BOOT"
 	},
 	{
 		id: "bora",
-		s: "bora"
+		s: "BORA"
 	},
 	{
 		id: "borderless",
-		s: "bds"
+		s: "BDS"
 	},
 	{
 		id: "boringdao",
-		s: "bor"
+		s: "BOR"
 	},
 	{
 		id: "boringdao-btc",
-		s: "obtc"
+		s: "OBTC"
 	},
 	{
 		id: "bosagora",
-		s: "boa"
+		s: "BOA"
 	},
 	{
 		id: "boscoin-2",
-		s: "bos"
+		s: "BOS"
 	},
 	{
 		id: "boscore",
-		s: "bos"
+		s: "BOS"
 	},
 	{
 		id: "bot-ocean",
-		s: "bots"
+		s: "BOTS"
 	},
 	{
 		id: "bottos",
-		s: "bto"
+		s: "BTO"
 	},
 	{
 		id: "botxcoin",
-		s: "botx"
+		s: "BOTX"
 	},
 	{
 		id: "bounce-token",
-		s: "bot"
+		s: "BOT"
 	},
 	{
 		id: "bounty0x",
-		s: "bnty"
+		s: "BNTY"
 	},
 	{
 		id: "bountymarketcap",
-		s: "bmc"
+		s: "BMC"
 	},
 	{
 		id: "boutspro",
-		s: "bouts"
+		s: "BOUTS"
 	},
 	{
 		id: "bowl-a-coin",
-		s: "bac"
+		s: "BAC"
 	},
 	{
 		id: "bowscoin",
-		s: "bsc"
+		s: "BSC"
 	},
 	{
 		id: "boxaxis",
-		s: "baxs"
+		s: "BAXS"
 	},
 	{
 		id: "box-token",
-		s: "box"
+		s: "BOX"
 	},
 	{
 		id: "boxx",
-		s: "boxx"
+		s: "BOXX"
 	},
 	{
 		id: "bpop",
-		s: "bpop"
+		s: "BPOP"
 	},
 	{
 		id: "bqt",
-		s: "bqtx"
+		s: "BQTX"
 	},
 	{
 		id: "br34p",
-		s: "br34p"
+		s: "BR34P"
 	},
 	{
 		id: "brapper-token",
-		s: "brap"
+		s: "BRAP"
 	},
 	{
 		id: "bravo-coin",
-		s: "bravo"
+		s: "BRAVO"
 	},
 	{
 		id: "braziliexs-token",
-		s: "brzx"
+		s: "BRZX"
 	},
 	{
 		id: "brazio",
-		s: "braz"
+		s: "BRAZ"
 	},
 	{
 		id: "brcp-token",
-		s: "brcp"
+		s: "BRCP"
 	},
 	{
 		id: "bread",
-		s: "brd"
+		s: "BRD"
 	},
 	{
 		id: "breezecoin",
-		s: "brze"
+		s: "BRZE"
 	},
 	{
 		id: "brick",
-		s: "brick"
+		s: "BRICK"
 	},
 	{
 		id: "brickblock",
-		s: "bbk"
+		s: "BBK"
 	},
 	{
 		id: "bridge-finance",
-		s: "bfr"
+		s: "BFR"
 	},
 	{
 		id: "bridge-mutual",
-		s: "bmi"
+		s: "BMI"
 	},
 	{
 		id: "bridge-oracle",
-		s: "brg"
+		s: "BRG"
 	},
 	{
 		id: "bridge-protocol",
-		s: "brdg"
+		s: "BRDG"
 	},
 	{
 		id: "bring",
-		s: "nor"
+		s: "NOR"
 	},
 	{
 		id: "brixcoin",
-		s: "brix"
+		s: "BRIX"
 	},
 	{
 		id: "brmv-token",
-		s: "brmv"
+		s: "BRMV"
 	},
 	{
 		id: "brother",
-		s: "brat"
+		s: "BRAT"
 	},
 	{
 		id: "brother-music-platform",
-		s: "bmp"
+		s: "BMP"
 	},
 	{
 		id: "bryllite",
-		s: "brc"
+		s: "BRC"
 	},
 	{
 		id: "brz",
-		s: "brz"
+		s: "BRZ"
 	},
 	{
 		id: "bscex",
-		s: "bscx"
+		s: "BSCX"
 	},
 	{
 		id: "bsc-farm",
-		s: "bsc"
+		s: "BSC"
 	},
 	{
 		id: "bscpad",
-		s: "bscpad"
+		s: "BSCPAD"
 	},
 	{
 		id: "bscstarter",
-		s: "start"
+		s: "START"
 	},
 	{
 		id: "bscswap",
-		s: "bswap"
+		s: "BSWAP"
 	},
 	{
 		id: "bscview",
-		s: "bscv"
+		s: "BSCV"
 	},
 	{
 		id: "bsha3",
-		s: "bsha3"
+		s: "BSHA3"
 	},
 	{
 		id: "bsys",
-		s: "bsys"
+		s: "BSYS"
 	},
 	{
 		id: "btc-alpha-token",
-		s: "bac"
+		s: "BAC"
 	},
 	{
 		id: "btc-eth-75-25-weight-set",
-		s: "btceth7525"
+		s: "BTCETH7525"
 	},
 	{
 		id: "btc-eth-equal-weight-set",
-		s: "btceth5050"
+		s: "BTCETH5050"
 	},
 	{
 		id: "btc-fund-active-trading-set",
-		s: "btcfund"
+		s: "BTCFUND"
 	},
 	{
 		id: "btc-lite",
-		s: "btcl"
+		s: "BTCL"
 	},
 	{
 		id: "btc-long-only-alpha-portfolio",
-		s: "bloap"
+		s: "BLOAP"
 	},
 	{
 		id: "btcmoon",
-		s: "btcm"
+		s: "BTCM"
 	},
 	{
 		id: "btc-network-demand-set-ii",
-		s: "byte"
+		s: "BYTE"
 	},
 	{
 		id: "btc-on-chain-beta-portfolio-set",
-		s: "bocbp"
+		s: "BOCBP"
 	},
 	{
 		id: "btc-range-bound-min-volatility-set",
-		s: "btcminvol"
+		s: "BTCMINVOL"
 	},
 	{
 		id: "btc-rsi-crossover-yield-set",
-		s: "btcrsiapy"
+		s: "BTCRSIAPY"
 	},
 	{
 		id: "btc-standard-hashrate-token",
-		s: "btcst"
+		s: "BTCST"
 	},
 	{
 		id: "btecoin",
-		s: "bte"
+		s: "BTE"
 	},
 	{
 		id: "btf",
-		s: "btf"
+		s: "BTF"
 	},
 	{
 		id: "bt-finance",
-		s: "bt"
+		s: "BT"
 	},
 	{
 		id: "btour-chain",
-		s: "btour"
+		s: "BTOUR"
 	},
 	{
 		id: "btse-token",
-		s: "btse"
+		s: "BTSE"
 	},
 	{
 		id: "btsunicorn",
-		s: "btsucn"
+		s: "BTSUCN"
 	},
 	{
 		id: "btu-protocol",
-		s: "btu"
+		s: "BTU"
 	},
 	{
 		id: "bubble-network",
-		s: "bbl"
+		s: "BBL"
 	},
 	{
 		id: "buck",
-		s: "buck"
+		s: "BUCK"
 	},
 	{
 		id: "buckhath-coin",
-		s: "bhig"
+		s: "BHIG"
 	},
 	{
 		id: "budbo",
-		s: "bubo"
+		s: "BUBO"
 	},
 	{
 		id: "buddy",
-		s: "bud"
+		s: "BUD"
 	},
 	{
 		id: "build-finance",
-		s: "build"
+		s: "BUILD"
 	},
 	{
 		id: "buildup",
-		s: "bup"
+		s: "BUP"
 	},
 	{
 		id: "bullbearbitcoin-set-ii",
-		s: "bbb"
+		s: "BBB"
 	},
 	{
 		id: "bullbearethereum-set-ii",
-		s: "bbe"
+		s: "BBE"
 	},
 	{
 		id: "bulleon",
-		s: "bul"
+		s: "BUL"
 	},
 	{
 		id: "bullers-coin",
-		s: "blcc"
+		s: "BLCC"
 	},
 	{
 		id: "bullion",
-		s: "cbx"
+		s: "CBX"
 	},
 	{
 		id: "bullionschain",
-		s: "blc"
+		s: "BLC"
 	},
 	{
 		id: "bulls",
-		s: "bulls"
+		s: "BULLS"
 	},
 	{
 		id: "bullswap-protocol",
-		s: "bvl"
+		s: "BVL"
 	},
 	{
 		id: "bumo",
-		s: "bu"
+		s: "BU"
 	},
 	{
 		id: "bundles",
-		s: "bund"
+		s: "BUND"
 	},
 	{
 		id: "bunnycoin",
-		s: "bun"
+		s: "BUN"
 	},
 	{
 		id: "bunnytoken",
-		s: "bunny"
+		s: "BUNNY"
 	},
 	{
 		id: "burency",
-		s: "buy"
+		s: "BUY"
 	},
 	{
 		id: "burger-swap",
-		s: "burger"
+		s: "BURGER"
 	},
 	{
 		id: "burndrop",
-		s: "bd"
+		s: "BD"
 	},
 	{
 		id: "burn-yield-burn",
-		s: "xyx"
+		s: "XYX"
 	},
 	{
 		id: "burst",
-		s: "burst"
+		s: "BURST"
 	},
 	{
 		id: "business-credit-alliance-chain",
-		s: "bcac"
+		s: "BCAC"
 	},
 	{
 		id: "business-credit-substitute",
-		s: "bcs"
+		s: "BCS"
 	},
 	{
 		id: "business-market-world",
-		s: "bmw"
+		s: "BMW"
 	},
 	{
 		id: "butterfly-protocol-2",
-		s: "bfly"
+		s: "BFLY"
 	},
 	{
 		id: "buxcoin",
-		s: "bux"
+		s: "BUX"
 	},
 	{
 		id: "buy-coin-pos",
-		s: "bcp"
+		s: "BCP"
 	},
 	{
 		id: "buypay",
-		s: "wbpc"
+		s: "WBPC"
 	},
 	{
 		id: "buysell",
-		s: "bull"
+		s: "BULL"
 	},
 	{
 		id: "buy-sell",
-		s: "bse"
+		s: "BSE"
 	},
 	{
 		id: "buyucoin-token",
-		s: "buc"
+		s: "BUC"
 	},
 	{
 		id: "buzcoin",
-		s: "buz"
+		s: "BUZ"
 	},
 	{
 		id: "buzzcoin",
-		s: "buzz"
+		s: "BUZZ"
 	},
 	{
 		id: "buzzshow",
-		s: "gldy"
+		s: "GLDY"
 	},
 	{
 		id: "bw-token",
-		s: "bwb"
+		s: "BWB"
 	},
 	{
 		id: "bxiot",
-		s: "bxiot"
+		s: "BXIOT"
 	},
 	{
 		id: "byteball",
-		s: "gbyte"
+		s: "GBYTE"
 	},
 	{
 		id: "bytecoin",
-		s: "bcn"
+		s: "BCN"
 	},
 	{
 		id: "bytom",
-		s: "btm"
+		s: "BTM"
 	},
 	{
 		id: "bytus",
-		s: "byts"
+		s: "BYTS"
 	},
 	{
 		id: "byzbit",
-		s: "byt"
+		s: "BYT"
 	},
 	{
 		id: "bzedge",
-		s: "bze"
+		s: "BZE"
 	},
 	{
 		id: "bzh-token",
-		s: "bzh"
+		s: "BZH"
 	},
 	{
 		id: "bzx-protocol",
-		s: "bzrx"
+		s: "BZRX"
 	},
 	{
 		id: "cachecoin",
-		s: "cach"
+		s: "CACH"
 	},
 	{
 		id: "cache-gold",
-		s: "cgt"
+		s: "CGT"
 	},
 	{
 		id: "cactus-finance",
-		s: "cas"
+		s: "CAS"
 	},
 	{
 		id: "cad-coin",
-		s: "cadc"
+		s: "CADC"
 	},
 	{
 		id: "cafeswap-token",
-		s: "brew"
+		s: "BREW"
 	},
 	{
 		id: "caica-coin",
-		s: "cicc"
+		s: "CICC"
 	},
 	{
 		id: "caixa-pay",
-		s: "cxp"
+		s: "CXP"
 	},
 	{
 		id: "cajutel",
-		s: "caj"
+		s: "CAJ"
 	},
 	{
 		id: "californium",
-		s: "cf"
+		s: "CF"
 	},
 	{
 		id: "callisto",
-		s: "clo"
+		s: "CLO"
 	},
 	{
 		id: "caluracoin",
-		s: "clc"
+		s: "CLC"
 	},
 	{
 		id: "camp",
-		s: "camp"
+		s: "CAMP"
 	},
 	{
 		id: "candela-coin",
-		s: "cla"
+		s: "CLA"
 	},
 	{
 		id: "candy-box",
-		s: "candybox"
+		s: "CANDYBOX"
 	},
 	{
 		id: "candy-protocol",
-		s: "cad"
+		s: "CAD"
 	},
 	{
 		id: "cannabiscoin",
-		s: "cann"
+		s: "CANN"
 	},
 	{
 		id: "cannabis-seed-token",
-		s: "cana"
+		s: "CANA"
 	},
 	{
 		id: "canyacoin",
-		s: "can"
+		s: "CAN"
 	},
 	{
 		id: "cap",
-		s: "cap"
+		s: "CAP"
 	},
 	{
 		id: "capital-finance",
-		s: "cap"
+		s: "CAP"
 	},
 	{
 		id: "capitalsharetoken",
-		s: "csto"
+		s: "CSTO"
 	},
 	{
 		id: "capital-x-cell",
-		s: "cxc"
+		s: "CXC"
 	},
 	{
 		id: "cappasity",
-		s: "capp"
+		s: "CAPP"
 	},
 	{
 		id: "capricoin",
-		s: "cps"
+		s: "CPS"
 	},
 	{
 		id: "carat",
-		s: "carat"
+		s: "CARAT"
 	},
 	{
 		id: "carbon",
-		s: "crbn"
+		s: "CRBN"
 	},
 	{
 		id: "carboncoin",
-		s: "carbon"
+		s: "CARBON"
 	},
 	{
 		id: "carboneum",
-		s: "c8"
+		s: "C8"
 	},
 	{
 		id: "cardano",
-		s: "ada"
+		s: "ADA"
 	},
 	{
 		id: "cardstack",
-		s: "card"
+		s: "CARD"
 	},
 	{
 		id: "carebit",
-		s: "care"
+		s: "CARE"
 	},
 	{
 		id: "cargo-gems",
-		s: "gem"
+		s: "GEM"
 	},
 	{
 		id: "cargox",
-		s: "cxo"
+		s: "CXO"
 	},
 	{
 		id: "carlive-chain",
-		s: "iov"
+		s: "IOV"
 	},
 	{
 		id: "carnomaly",
-		s: "carr"
+		s: "CARR"
 	},
 	{
 		id: "carr-finance",
-		s: "crt"
+		s: "CRT"
 	},
 	{
 		id: "carry",
-		s: "cre"
+		s: "CRE"
 	},
 	{
 		id: "cartesi",
-		s: "ctsi"
+		s: "CTSI"
 	},
 	{
 		id: "carvertical",
-		s: "cv"
+		s: "CV"
 	},
 	{
 		id: "cash2",
-		s: "cash2"
+		s: "CASH2"
 	},
 	{
 		id: "cashaa",
-		s: "cas"
+		s: "CAS"
 	},
 	{
 		id: "cashbackpro",
-		s: "cbp"
+		s: "CBP"
 	},
 	{
 		id: "cashbery-coin",
-		s: "cbc"
+		s: "CBC"
 	},
 	{
 		id: "cashbet-coin",
-		s: "cbc"
+		s: "CBC"
 	},
 	{
 		id: "cash-global-coin",
-		s: "cgc"
+		s: "CGC"
 	},
 	{
 		id: "cashhand",
-		s: "chnd"
+		s: "CHND"
 	},
 	{
 		id: "cashpay",
-		s: "cpz"
+		s: "CPZ"
 	},
 	{
 		id: "casinocoin",
-		s: "csc"
+		s: "CSC"
 	},
 	{
 		id: "caspian",
-		s: "csp"
+		s: "CSP"
 	},
 	{
 		id: "castweet",
-		s: "ctt"
+		s: "CTT"
 	},
 	{
 		id: "catex-token",
-		s: "catt"
+		s: "CATT"
 	},
 	{
 		id: "catocoin",
-		s: "cato"
+		s: "CATO"
 	},
 	{
 		id: "catscoin",
-		s: "cats"
+		s: "CATS"
 	},
 	{
 		id: "cat-token",
-		s: "cat"
+		s: "CAT"
 	},
 	{
 		id: "cat-trade-protocol",
-		s: "catx"
+		s: "CATX"
 	},
 	{
 		id: "cbccoin",
-		s: "cbc"
+		s: "CBC"
 	},
 	{
 		id: "cbdao",
-		s: "bree"
+		s: "BREE"
 	},
 	{
 		id: "cbe",
-		s: "cbe"
+		s: "CBE"
 	},
 	{
 		id: "cbi-index-7",
-		s: "cbix7"
+		s: "CBIX7"
 	},
 	{
 		id: "cb-token",
-		s: "cb"
+		s: "CB"
 	},
 	{
 		id: "cc",
-		s: "cc"
+		s: "CC"
 	},
 	{
 		id: "ccomp",
-		s: "ccomp"
+		s: "CCOMP"
 	},
 	{
 		id: "ccore",
-		s: "cco"
+		s: "CCO"
 	},
 	{
 		id: "cctcoin",
-		s: "cctc"
+		s: "CCTC"
 	},
 	{
 		id: "ccuniverse",
-		s: "uvu"
+		s: "UVU"
 	},
 	{
 		id: "cdai",
-		s: "cdai"
+		s: "CDAI"
 	},
 	{
 		id: "cdc-foundation",
-		s: "cdc"
+		s: "CDC"
 	},
 	{
 		id: "cedars",
-		s: "ceds"
+		s: "CEDS"
 	},
 	{
 		id: "ceek",
-		s: "ceek"
+		s: "CEEK"
 	},
 	{
 		id: "celcoin",
-		s: "celc"
+		s: "CELC"
 	},
 	{
 		id: "celer-network",
-		s: "celr"
+		s: "CELR"
 	},
 	{
 		id: "celeum",
-		s: "clx"
+		s: "CLX"
 	},
 	{
 		id: "celo",
-		s: "celo"
+		s: "CELO"
 	},
 	{
 		id: "celo-dollar",
-		s: "cusd"
+		s: "CUSD"
 	},
 	{
 		id: "celsius-degree-token",
-		s: "cel"
+		s: "CEL"
 	},
 	{
 		id: "cenfura-token",
-		s: "xcf"
+		s: "XCF"
 	},
 	{
 		id: "centaur",
-		s: "cntr"
+		s: "CNTR"
 	},
 	{
 		id: "centercoin",
-		s: "cent"
+		s: "CENT"
 	},
 	{
 		id: "centex",
-		s: "cntx"
+		s: "CNTX"
 	},
 	{
 		id: "centrality",
-		s: "cennz"
+		s: "CENNZ"
 	},
 	{
 		id: "centric-cash",
-		s: "cns"
+		s: "CNS"
 	},
 	{
 		id: "centurion",
-		s: "cnt"
+		s: "CNT"
 	},
 	{
 		id: "cerium",
-		s: "xce"
+		s: "XCE"
 	},
 	{
 		id: "certik",
-		s: "ctk"
+		s: "CTK"
 	},
 	{
 		id: "certurium",
-		s: "crt"
+		s: "CRT"
 	},
 	{
 		id: "cexlt",
-		s: "clt"
+		s: "CLT"
 	},
 	{
 		id: "cezo",
-		s: "cez"
+		s: "CEZ"
 	},
 	{
 		id: "chad-link-set",
-		s: "chadlink"
+		s: "CHADLINK"
 	},
 	{
 		id: "chads-vc",
-		s: "chads"
+		s: "CHADS"
 	},
 	{
 		id: "chai",
-		s: "chai"
+		s: "CHAI"
 	},
 	{
 		id: "chaincoin",
-		s: "chc"
+		s: "CHC"
 	},
 	{
 		id: "chain-games",
-		s: "chain"
+		s: "CHAIN"
 	},
 	{
 		id: "chain-guardians",
-		s: "cgg"
+		s: "CGG"
 	},
 	{
 		id: "chainium",
-		s: "chx"
+		s: "CHX"
 	},
 	{
 		id: "chainlink",
-		s: "link"
+		s: "LINK"
 	},
 	{
 		id: "chainlink-trading-set",
-		s: "cts"
+		s: "CTS"
 	},
 	{
 		id: "chainpay",
-		s: "cpay"
+		s: "CPAY"
 	},
 	{
 		id: "chainx",
-		s: "pcx"
+		s: "PCX"
 	},
 	{
 		id: "chalice-finance",
-		s: "chal"
+		s: "CHAL"
 	},
 	{
 		id: "challengedac",
-		s: "chl"
+		s: "CHL"
 	},
 	{
 		id: "chancoin",
-		s: "chan"
+		s: "CHAN"
 	},
 	{
 		id: "change",
-		s: "cag"
+		s: "CAG"
 	},
 	{
 		id: "changenow-token",
-		s: "now"
+		s: "NOW"
 	},
 	{
 		id: "channels",
-		s: "can"
+		s: "CAN"
 	},
 	{
 		id: "charg-coin",
-		s: "chg"
+		s: "CHG"
 	},
 	{
 		id: "charity",
-		s: "chrt"
+		s: "CHRT"
 	},
 	{
 		id: "charity-alfa",
-		s: "mich"
+		s: "MICH"
 	},
 	{
 		id: "chartex",
-		s: "chart"
+		s: "CHART"
 	},
 	{
 		id: "chaucha",
-		s: "cha"
+		s: "CHA"
 	},
 	{
 		id: "chbt",
-		s: "chbt"
+		s: "CHBT"
 	},
 	{
 		id: "cheese",
-		s: "cheese"
+		s: "CHEESE"
 	},
 	{
 		id: "cheeseswap",
-		s: "chs"
+		s: "CHS"
 	},
 	{
 		id: "cherry",
-		s: "cherry"
+		s: "CHERRY"
 	},
 	{
 		id: "cherry-token",
-		s: "yt"
+		s: "YT"
 	},
 	{
 		id: "chesscoin",
-		s: "chess"
+		s: "CHESS"
 	},
 	{
 		id: "chess-coin",
-		s: "chess"
+		s: "CHESS"
 	},
 	{
 		id: "chesscoin-0-32",
-		s: "chess"
+		s: "CHESS"
 	},
 	{
 		id: "chex-token",
-		s: "chex"
+		s: "CHEX"
 	},
 	{
 		id: "chicken",
-		s: "kfc"
+		s: "KFC"
 	},
 	{
 		id: "chi-gastoken",
-		s: "chi"
+		s: "CHI"
 	},
 	{
 		id: "chiliz",
-		s: "chz"
+		s: "CHZ"
 	},
 	{
 		id: "chimaera",
-		s: "chi"
+		s: "CHI"
 	},
 	{
 		id: "chinese-shopping-platform",
-		s: "cspc"
+		s: "CSPC"
 	},
 	{
 		id: "chonk",
-		s: "chonk"
+		s: "CHONK"
 	},
 	{
 		id: "chow-chow-finance",
-		s: "chow"
+		s: "CHOW"
 	},
 	{
 		id: "chromaway",
-		s: "chr"
+		s: "CHR"
 	},
 	{
 		id: "chronobank",
-		s: "time"
+		s: "TIME"
 	},
 	{
 		id: "chronocoin",
-		s: "crn"
+		s: "CRN"
 	},
 	{
 		id: "chronologic",
-		s: "day"
+		s: "DAY"
 	},
 	{
 		id: "chunghoptoken",
-		s: "chc"
+		s: "CHC"
 	},
 	{
 		id: "cifculation",
-		s: "clc"
+		s: "CLC"
 	},
 	{
 		id: "cindicator",
-		s: "cnd"
+		s: "CND"
 	},
 	{
 		id: "cine-media-celebrity-coin",
-		s: "cmccoin"
+		s: "CMCCOIN"
 	},
 	{
 		id: "cipher",
-		s: "cpr"
+		s: "CPR"
 	},
 	{
 		id: "cipher-core-token",
-		s: "ciphc"
+		s: "CIPHC"
 	},
 	{
 		id: "circleex",
-		s: "cx"
+		s: "CX"
 	},
 	{
 		id: "circleswap",
-		s: "cir"
+		s: "CIR"
 	},
 	{
 		id: "circuit",
-		s: "crct"
+		s: "CRCT"
 	},
 	{
 		id: "circuits-of-value",
-		s: "coval"
+		s: "COVAL"
 	},
 	{
 		id: "ciredo",
-		s: "cir"
+		s: "CIR"
 	},
 	{
 		id: "cirquity",
-		s: "cirq"
+		s: "CIRQ"
 	},
 	{
 		id: "citadel",
-		s: "ctl"
+		s: "CTL"
 	},
 	{
 		id: "citios",
-		s: "r2r"
+		s: "R2R"
 	},
 	{
 		id: "city-coin",
-		s: "city"
+		s: "CITY"
 	},
 	{
 		id: "ciupek-capital-coin",
-		s: "ccc"
+		s: "CCC"
 	},
 	{
 		id: "civic",
-		s: "cvc"
+		s: "CVC"
 	},
 	{
 		id: "civil",
@@ -28708,159 +28758,159 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "civitas",
-		s: "civ"
+		s: "CIV"
 	},
 	{
 		id: "civitas-protocol",
-		s: "cvt"
+		s: "CVT"
 	},
 	{
 		id: "clams",
-		s: "clam"
+		s: "CLAM"
 	},
 	{
 		id: "clap-clap-token",
-		s: "cct"
+		s: "CCT"
 	},
 	{
 		id: "clash-token",
-		s: "sct"
+		s: "SCT"
 	},
 	{
 		id: "classicbitcoin",
-		s: "cbtc"
+		s: "CBTC"
 	},
 	{
 		id: "clbcoin",
-		s: "clb"
+		s: "CLB"
 	},
 	{
 		id: "clear-coin",
-		s: "clr"
+		s: "CLR"
 	},
 	{
 		id: "clearpoll",
-		s: "poll"
+		s: "POLL"
 	},
 	{
 		id: "clintex-cti",
-		s: "cti"
+		s: "CTI"
 	},
 	{
 		id: "cloakcoin",
-		s: "cloak"
+		s: "CLOAK"
 	},
 	{
 		id: "cloudbric",
-		s: "clbk"
+		s: "CLBK"
 	},
 	{
 		id: "cloud-moolah",
-		s: "xmoo"
+		s: "XMOO"
 	},
 	{
 		id: "clover",
-		s: "clv"
+		s: "CLV"
 	},
 	{
 		id: "club-atletico-independiente",
-		s: "cai"
+		s: "CAI"
 	},
 	{
 		id: "clubcoin",
-		s: "club"
+		s: "CLUB"
 	},
 	{
 		id: "cmdx",
-		s: "cmdx"
+		s: "CMDX"
 	},
 	{
 		id: "cmgcoin",
-		s: "cmg"
+		s: "CMG"
 	},
 	{
 		id: "cmitcoin",
-		s: "cmit"
+		s: "CMIT"
 	},
 	{
 		id: "cng-casino",
-		s: "cng"
+		s: "CNG"
 	},
 	{
 		id: "cnn",
-		s: "cnn"
+		s: "CNN"
 	},
 	{
 		id: "cnns",
-		s: "cnns"
+		s: "CNNS"
 	},
 	{
 		id: "cnyq-stablecoin-by-q-dao-v1",
-		s: "cnyq"
+		s: "CNYQ"
 	},
 	{
 		id: "cny-tether",
-		s: "cnyt"
+		s: "CNYT"
 	},
 	{
 		id: "coalculus",
-		s: "coal"
+		s: "COAL"
 	},
 	{
 		id: "cobak-token",
-		s: "cbk"
+		s: "CBK"
 	},
 	{
 		id: "cobinhood",
-		s: "cob"
+		s: "COB"
 	},
 	{
 		id: "cocaine-cowboy-shards",
-		s: "coke"
+		s: "COKE"
 	},
 	{
 		id: "cocktailbar",
-		s: "coc"
+		s: "COC"
 	},
 	{
 		id: "cocos-bcx",
-		s: "cocos"
+		s: "COCOS"
 	},
 	{
 		id: "codemy",
-		s: "cod"
+		s: "COD"
 	},
 	{
 		id: "codeo-token",
-		s: "codeo"
+		s: "CODEO"
 	},
 	{
 		id: "codex",
-		s: "cdex"
+		s: "CDEX"
 	},
 	{
 		id: "coffeecoin",
-		s: "cof"
+		s: "COF"
 	},
 	{
 		id: "cofinex",
-		s: "cnx"
+		s: "CNX"
 	},
 	{
 		id: "cofix",
-		s: "cofi"
+		s: "COFI"
 	},
 	{
 		id: "coic",
-		s: "coic"
+		s: "COIC"
 	},
 	{
 		id: "coil-crypto",
-		s: "coil"
+		s: "COIL"
 	},
 	{
 		id: "coin4trade",
-		s: "c4t"
+		s: "C4T"
 	},
 	{
 		id: "coinall-token",
@@ -28868,483 +28918,479 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "coin-artist",
-		s: "coin"
+		s: "COIN"
 	},
 	{
 		id: "coinbene-future-token",
-		s: "cft"
+		s: "CFT"
 	},
 	{
 		id: "coinbene-token",
-		s: "coni"
+		s: "CONI"
 	},
 	{
 		id: "coinclaim",
-		s: "clm"
+		s: "CLM"
 	},
 	{
 		id: "coincome",
-		s: "cim"
+		s: "CIM"
 	},
 	{
 		id: "coindeal-token",
-		s: "cdl"
+		s: "CDL"
 	},
 	{
 		id: "coindicatorbtc-set",
-		s: "coinbtc"
+		s: "COINBTC"
 	},
 	{
 		id: "coindom",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "coinex-token",
-		s: "cet"
+		s: "CET"
 	},
 	{
 		id: "coinfi",
-		s: "cofi"
+		s: "COFI"
 	},
 	{
 		id: "coinfirm-amlt",
-		s: "amlt"
+		s: "AMLT"
 	},
 	{
 		id: "coinhe-token",
-		s: "cht"
+		s: "CHT"
 	},
 	{
 		id: "coinjanitor",
-		s: "jan"
+		s: "JAN"
 	},
 	{
 		id: "coinlancer",
-		s: "cl"
+		s: "CL"
 	},
 	{
 		id: "coinlion",
-		s: "lion"
+		s: "LION"
 	},
 	{
 		id: "coinloan",
-		s: "clt"
+		s: "CLT"
 	},
 	{
 		id: "coinmeet",
-		s: "meet"
+		s: "MEET"
 	},
 	{
 		id: "coinmetro",
-		s: "xcm"
+		s: "XCM"
 	},
 	{
 		id: "coinnec",
-		s: "coi"
+		s: "COI"
 	},
 	{
 		id: "coinpoker",
-		s: "chp"
+		s: "CHP"
 	},
 	{
 		id: "coinsbit-token",
-		s: "cnb"
+		s: "CNB"
 	},
 	{
 		id: "coinshares-gold-and-cryptoassets-index-lite",
-		s: "cgi"
+		s: "CGI"
 	},
 	{
 		id: "coinstarter",
-		s: "stc"
+		s: "STC"
 	},
 	{
 		id: "coinstox",
-		s: "csx"
+		s: "CSX"
 	},
 	{
 		id: "coinsuper-ecosystem-network",
-		s: "cen"
+		s: "CEN"
 	},
 	{
 		id: "cointorox",
-		s: "orox"
+		s: "OROX"
 	},
 	{
 		id: "coinus",
-		s: "cnus"
+		s: "CNUS"
 	},
 	{
 		id: "coinvest",
-		s: "coin"
+		s: "COIN"
 	},
 	{
 		id: "coinwaycoin",
-		s: "can"
+		s: "CAN"
 	},
 	{
 		id: "coinxclub",
-		s: "cpx"
+		s: "CPX"
 	},
 	{
 		id: "coinzo-token",
-		s: "cnz"
+		s: "CNZ"
 	},
 	{
 		id: "collegicoin",
-		s: "clg"
+		s: "CLG"
 	},
 	{
 		id: "color",
-		s: "clr"
+		s: "CLR"
 	},
 	{
 		id: "colossuscoin-v2",
-		s: "cv2"
+		s: "CV2"
 	},
 	{
 		id: "colossuscoinxt",
-		s: "colx"
+		s: "COLX"
 	},
 	{
 		id: "combine-finance",
-		s: "comb"
+		s: "COMB"
 	},
 	{
 		id: "combo-2",
-		s: "comb"
+		s: "COMB"
 	},
 	{
 		id: "commercium",
-		s: "cmm"
+		s: "CMM"
 	},
 	{
 		id: "commons-earth",
-		s: "com"
+		s: "COM"
 	},
 	{
 		id: "communication-development-resources-token",
-		s: "cdr"
+		s: "CDR"
 	},
 	{
 		id: "community-chain",
-		s: "comc"
+		s: "COMC"
 	},
 	{
 		id: "community-generation",
-		s: "cgen"
+		s: "CGEN"
 	},
 	{
 		id: "communitytoken",
-		s: "ct"
+		s: "CT"
 	},
 	{
 		id: "community-token",
-		s: "com"
+		s: "COM"
 	},
 	{
 		id: "compound-0x",
-		s: "czrx"
+		s: "CZRX"
 	},
 	{
 		id: "compound-augur",
-		s: "crep"
+		s: "CREP"
 	},
 	{
 		id: "compound-basic-attention-token",
-		s: "cbat"
+		s: "CBAT"
 	},
 	{
 		id: "compound-coin",
-		s: "comp"
+		s: "COMP"
 	},
 	{
 		id: "compounder",
-		s: "cp3r"
+		s: "CP3R"
 	},
 	{
 		id: "compound-ether",
-		s: "ceth"
+		s: "CETH"
 	},
 	{
 		id: "compound-governance-token",
-		s: "comp"
+		s: "COMP"
 	},
 	{
 		id: "compound-sai",
-		s: "csai"
+		s: "CSAI"
 	},
 	{
 		id: "compound-uniswap",
-		s: "cuni"
+		s: "CUNI"
 	},
 	{
 		id: "compound-usd-coin",
-		s: "cusdc"
+		s: "CUSDC"
 	},
 	{
 		id: "compound-usdt",
-		s: "cusdt"
+		s: "CUSDT"
 	},
 	{
 		id: "compound-wrapped-btc",
-		s: "cwbtc"
+		s: "CWBTC"
 	},
 	{
 		id: "comsa",
-		s: "cms"
+		s: "CMS"
 	},
 	{
 		id: "conceal",
-		s: "ccx"
+		s: "CCX"
 	},
 	{
 		id: "concentrated-voting-power",
-		s: "cvp"
+		s: "CVP"
 	},
 	{
 		id: "concertvr",
-		s: "cvt"
+		s: "CVT"
 	},
 	{
 		id: "concierge-io",
-		s: "ava"
+		s: "AVA"
 	},
 	{
 		id: "condensate",
-		s: "rain"
+		s: "RAIN"
 	},
 	{
 		id: "condominium",
-		s: "cdm"
+		s: "CDM"
 	},
 	{
 		id: "conflux-token",
-		s: "cfx"
+		s: "CFX"
 	},
 	{
 		id: "connect",
-		s: "cnct"
+		s: "CNCT"
 	},
 	{
 		id: "connect-business-network",
-		s: "cbn"
+		s: "CBN"
 	},
 	{
 		id: "connect-coin",
-		s: "xcon"
+		s: "XCON"
 	},
 	{
 		id: "connect-financial",
-		s: "cnfi"
+		s: "CNFI"
 	},
 	{
 		id: "connectjob",
-		s: "cjt"
+		s: "CJT"
 	},
 	{
 		id: "connect-mining-coin",
-		s: "xcmg"
+		s: "XCMG"
 	},
 	{
 		id: "connectome",
-		s: "cntm"
+		s: "CNTM"
 	},
 	{
 		id: "consensus-cell-network",
-		s: "ecell"
+		s: "ECELL"
 	},
 	{
 		id: "consentium",
-		s: "csm"
+		s: "CSM"
 	},
 	{
 		id: "constellation-labs",
-		s: "dag"
+		s: "DAG"
 	},
 	{
 		id: "contentbox",
-		s: "box"
+		s: "BOX"
 	},
 	{
 		id: "contentos",
-		s: "cos"
+		s: "COS"
 	},
 	{
 		id: "content-value-network",
-		s: "cvnt"
+		s: "CVNT"
 	},
 	{
 		id: "contracoin",
-		s: "ctcn"
+		s: "CTCN"
 	},
 	{
 		id: "contribute",
-		s: "trib"
+		s: "TRIB"
 	},
 	{
 		id: "conun",
-		s: "con"
+		s: "CON"
 	},
 	{
 		id: "coomcoin",
-		s: "coom"
+		s: "COOM"
 	},
 	{
 		id: "coral-farm",
-		s: "crl"
+		s: "CRL"
 	},
 	{
 		id: "coral-swap",
-		s: "coral"
+		s: "CORAL"
 	},
 	{
 		id: "cord-defi-eth",
-		s: "cord"
+		s: "CORD"
 	},
 	{
 		id: "cord-finance",
-		s: "cord"
+		s: "CORD"
 	},
 	{
 		id: "core-chip",
-		s: "crc"
+		s: "CRC"
 	},
 	{
 		id: "coreto",
-		s: "cor"
+		s: "COR"
 	},
 	{
 		id: "corionx",
-		s: "corx"
+		s: "CORX"
 	},
 	{
 		id: "corn",
-		s: "corn"
+		s: "CORN"
 	},
 	{
 		id: "cornichon",
-		s: "corn"
+		s: "CORN"
 	},
 	{
 		id: "coronacoin",
-		s: "ncov"
+		s: "NCOV"
 	},
 	{
 		id: "cortex",
-		s: "ctxc"
+		s: "CTXC"
 	},
 	{
 		id: "cosmo-coin",
-		s: "cosm"
+		s: "COSM"
 	},
 	{
 		id: "cosmos",
-		s: "atom"
+		s: "ATOM"
 	},
 	{
 		id: "cosplay-token",
-		s: "cot"
+		s: "COT"
 	},
 	{
 		id: "cost-coin",
-		s: "akm"
+		s: "AKM"
 	},
 	{
 		id: "coti",
-		s: "coti"
+		s: "COTI"
 	},
 	{
 		id: "cotrader",
-		s: "cot"
+		s: "COT"
 	},
 	{
 		id: "couchain",
-		s: "cou"
+		s: "COU"
 	},
 	{
 		id: "counos-coin",
-		s: "cca"
+		s: "CCA"
 	},
 	{
 		id: "counosx",
-		s: "ccxx"
+		s: "CCXX"
 	},
 	{
 		id: "counterparty",
-		s: "xcp"
+		s: "XCP"
 	},
 	{
 		id: "coupit",
-		s: "coup"
+		s: "COUP"
 	},
 	{
 		id: "covalent",
-		s: "cqt"
+		s: "CQT"
 	},
 	{
 		id: "covalent-cova",
-		s: "cova"
+		s: "COVA"
 	},
 	{
 		id: "cover-protocol",
-		s: "cover"
+		s: "COVER"
 	},
 	{
 		id: "covesting",
-		s: "cov"
-	},
-	{
-		id: "covid19",
-		s: "cvd"
+		s: "COV"
 	},
 	{
 		id: "covir",
-		s: "cvr"
+		s: "CVR"
 	},
 	{
 		id: "cowboy-finance",
-		s: "cow"
+		s: "COW"
 	},
 	{
 		id: "coweye",
-		s: "cow"
+		s: "COW"
 	},
 	{
 		id: "cowry",
-		s: "cow"
+		s: "COW"
 	},
 	{
 		id: "cpchain",
-		s: "cpc"
+		s: "CPC"
 	},
 	{
 		id: "cprop",
-		s: "cprop"
+		s: "CPROP"
 	},
 	{
 		id: "cps-coin",
-		s: "cps"
+		s: "CPS"
 	},
 	{
 		id: "cpt",
-		s: "cpt"
+		s: "CPT"
 	},
 	{
 		id: "cpuchain",
-		s: "cpu"
+		s: "CPU"
 	},
 	{
 		id: "cpucoin",
-		s: "cpu"
+		s: "CPU"
 	},
 	{
 		id: "crave",
-		s: "crave"
+		s: "CRAVE"
 	},
 	{
 		id: "cr-coin",
-		s: "crc"
+		s: "CRC"
 	},
 	{
 		id: "crdt",
@@ -29352,27 +29398,27 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "cream",
-		s: "crm"
+		s: "CRM"
 	},
 	{
 		id: "cream-2",
-		s: "cream"
+		s: "CREAM"
 	},
 	{
 		id: "cream-eth2",
-		s: "creth2"
+		s: "CRETH2"
 	},
 	{
 		id: "creativecoin",
-		s: "crea"
+		s: "CREA"
 	},
 	{
 		id: "creative-media-initiative",
-		s: "cmid"
+		s: "CMID"
 	},
 	{
 		id: "credit",
-		s: "credit"
+		s: "CREDIT"
 	},
 	{
 		id: "credit-2",
@@ -29380,167 +29426,167 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "creditcoin-2",
-		s: "ctc"
+		s: "CTC"
 	},
 	{
 		id: "credits",
-		s: "cs"
+		s: "CS"
 	},
 	{
 		id: "creed-finance",
-		s: "creed"
+		s: "CREED"
 	},
 	{
 		id: "crespo",
-		s: "cso"
+		s: "CSO"
 	},
 	{
 		id: "crevacoin",
-		s: "creva"
+		s: "CREVA"
 	},
 	{
 		id: "crex-token",
-		s: "crex"
+		s: "CREX"
 	},
 	{
 		id: "croat",
-		s: "croat"
+		s: "CROAT"
 	},
 	{
 		id: "cross-finance",
-		s: "crp"
+		s: "CRP"
 	},
 	{
 		id: "crowdclassic",
-		s: "crcl"
+		s: "CRCL"
 	},
 	{
 		id: "crowd-machine",
-		s: "cmct"
+		s: "CMCT"
 	},
 	{
 		id: "crowd-one",
-		s: "crd"
+		s: "CRD"
 	},
 	{
 		id: "crowdwiz",
-		s: "wiz"
+		s: "WIZ"
 	},
 	{
 		id: "crown",
-		s: "crw"
+		s: "CRW"
 	},
 	{
 		id: "crown-finance",
-		s: "crwn"
+		s: "CRWN"
 	},
 	{
 		id: "crowns",
-		s: "cws"
+		s: "CWS"
 	},
 	{
 		id: "crow-token",
-		s: "crow"
+		s: "CROW"
 	},
 	{
 		id: "crudeoil-finance",
-		s: "oil"
+		s: "OIL"
 	},
 	{
 		id: "crust-network",
-		s: "cru"
+		s: "CRU"
 	},
 	{
 		id: "cruzbit",
-		s: "cruz"
+		s: "CRUZ"
 	},
 	{
 		id: "crybet",
-		s: "cbt"
+		s: "CBT"
 	},
 	{
 		id: "crycash",
-		s: "crc"
+		s: "CRC"
 	},
 	{
 		id: "cryply",
-		s: "crp"
+		s: "CRP"
 	},
 	{
 		id: "cryptaldash",
-		s: "crd"
+		s: "CRD"
 	},
 	{
 		id: "cryptassist",
-		s: "ctat"
+		s: "CTAT"
 	},
 	{
 		id: "cryptaur",
-		s: "cpt"
+		s: "CPT"
 	},
 	{
 		id: "cryptcoin",
-		s: "crypt"
+		s: "CRYPT"
 	},
 	{
 		id: "crypterium",
-		s: "crpt"
+		s: "CRPT"
 	},
 	{
 		id: "cryptex",
-		s: "crx"
+		s: "CRX"
 	},
 	{
 		id: "cryptic-coin",
-		s: "cryp"
+		s: "CRYP"
 	},
 	{
 		id: "cryptid",
-		s: "cid"
+		s: "CID"
 	},
 	{
 		id: "cryptlo",
-		s: "clo"
+		s: "CLO"
 	},
 	{
 		id: "crypto20",
-		s: "c20"
+		s: "C20"
 	},
 	{
 		id: "crypto-accept",
-		s: "acpt"
+		s: "ACPT"
 	},
 	{
 		id: "cryptoads-marketplace",
-		s: "crad"
+		s: "CRAD"
 	},
 	{
 		id: "crypto-application-token",
-		s: "capp"
+		s: "CAPP"
 	},
 	{
 		id: "crypto-bank",
-		s: "cbank"
+		s: "CBANK"
 	},
 	{
 		id: "cryptobet",
-		s: "cbet"
+		s: "CBET"
 	},
 	{
 		id: "cryptobexchange",
-		s: "cbex"
+		s: "CBEX"
 	},
 	{
 		id: "cryptobonusmiles",
-		s: "cbm"
+		s: "CBM"
 	},
 	{
 		id: "cryptobosscoin",
-		s: "cbc"
+		s: "CBC"
 	},
 	{
 		id: "cryptobrl",
-		s: "cbrl"
+		s: "CBRL"
 	},
 	{
 		id: "cryptobucks",
@@ -29548,339 +29594,339 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "cryptobuyer-token",
-		s: "xpt"
+		s: "XPT"
 	},
 	{
 		id: "crypto-candy",
-		s: "candy"
+		s: "CANDY"
 	},
 	{
 		id: "cryptocarbon",
-		s: "ccrb"
+		s: "CCRB"
 	},
 	{
 		id: "cryptocean",
-		s: "cron"
+		s: "CRON"
 	},
 	{
 		id: "cryptochrome",
-		s: "chm"
+		s: "CHM"
 	},
 	{
 		id: "crypto-com-chain",
-		s: "cro"
+		s: "CRO"
 	},
 	{
 		id: "crypto-coupons-market",
-		s: "ccm"
+		s: "CCM"
 	},
 	{
 		id: "cryptocricketclub",
-		s: "3cs"
+		s: "3CS"
 	},
 	{
 		id: "cryptocurrency",
-		s: "ccy"
+		s: "CCY"
 	},
 	{
 		id: "cryptocurrency-business-token",
-		s: "cbt"
+		s: "CBT"
 	},
 	{
 		id: "cryptocurrency-top-10-tokens-index",
-		s: "cc10"
+		s: "CC10"
 	},
 	{
 		id: "crypto-dash",
-		s: "cdash"
+		s: "CDASH"
 	},
 	{
 		id: "cryptodezirecash",
-		s: "cdzc"
+		s: "CDZC"
 	},
 	{
 		id: "cryptoenergy",
-		s: "cnrg"
+		s: "CNRG"
 	},
 	{
 		id: "cryptoflow",
-		s: "cfl"
+		s: "CFL"
 	},
 	{
 		id: "cryptofranc",
-		s: "xchf"
+		s: "XCHF"
 	},
 	{
 		id: "cryptogalaxy",
-		s: "gold"
+		s: "GOLD"
 	},
 	{
 		id: "cryptogcoin",
-		s: "crg"
+		s: "CRG"
 	},
 	{
 		id: "crypto-global-bank",
-		s: "cgb"
+		s: "CGB"
 	},
 	{
 		id: "cryptohashtank-coin",
-		s: "chtc"
+		s: "CHTC"
 	},
 	{
 		id: "crypto-heroes-token",
-		s: "cht"
+		s: "CHT"
 	},
 	{
 		id: "crypto-holding-frank-token",
-		s: "chft"
+		s: "CHFT"
 	},
 	{
 		id: "cryptoindex-io",
-		s: "cix100"
+		s: "CIX100"
 	},
 	{
 		id: "cryptokek",
-		s: "kek"
+		s: "KEK"
 	},
 	{
 		id: "cryptokenz",
-		s: "cyt"
+		s: "CYT"
 	},
 	{
 		id: "cryptolandy",
-		s: "crypl"
+		s: "CRYPL"
 	},
 	{
 		id: "cryptonewsnet",
-		s: "news"
+		s: "NEWS"
 	},
 	{
 		id: "cryptonex",
-		s: "cnx"
+		s: "CNX"
 	},
 	{
 		id: "cryptonia-poker",
-		s: "cnp"
+		s: "CNP"
 	},
 	{
 		id: "cryptonits",
-		s: "crt"
+		s: "CRT"
 	},
 	{
 		id: "cryptonodes",
-		s: "cnmc"
+		s: "CNMC"
 	},
 	{
 		id: "cryptopay",
-		s: "cpay"
+		s: "CPAY"
 	},
 	{
 		id: "cryptoping",
-		s: "ping"
+		s: "PING"
 	},
 	{
 		id: "crypto-price-index",
-		s: "cpi"
+		s: "CPI"
 	},
 	{
 		id: "cryptoprofile",
-		s: "cp"
+		s: "CP"
 	},
 	{
 		id: "cryptopunk-3831-shards",
-		s: "cozom"
+		s: "COZOM"
 	},
 	{
 		id: "crypto-revolution",
-		s: "crvt"
+		s: "CRVT"
 	},
 	{
 		id: "cryptorewards",
-		s: "crs"
+		s: "CRS"
 	},
 	{
 		id: "cryptorg-token",
-		s: "ctg"
+		s: "CTG"
 	},
 	{
 		id: "cryptosolartech",
-		s: "cst"
+		s: "CST"
 	},
 	{
 		id: "cryptosoul",
-		s: "soul"
+		s: "SOUL"
 	},
 	{
 		id: "crypto-sports",
-		s: "cspn"
+		s: "CSPN"
 	},
 	{
 		id: "cryptospot-token",
-		s: "spot"
+		s: "SPOT"
 	},
 	{
 		id: "cryptotask-2",
-		s: "ctask"
+		s: "CTASK"
 	},
 	{
 		id: "cryptotipsfr",
-		s: "crts"
+		s: "CRTS"
 	},
 	{
 		id: "crypto-user-base",
-		s: "cub"
+		s: "CUB"
 	},
 	{
 		id: "cryptoverificationcoin",
-		s: "cvcc"
+		s: "CVCC"
 	},
 	{
 		id: "crypto-village-accelerator",
-		s: "cva"
+		s: "CVA"
 	},
 	{
 		id: "cryptowater",
-		s: "c2o"
+		s: "C2O"
 	},
 	{
 		id: "cryptoworld-vip",
-		s: "cwv"
+		s: "CWV"
 	},
 	{
 		id: "cryptrust",
-		s: "ctrt"
+		s: "CTRT"
 	},
 	{
 		id: "crypxie",
-		s: "cpx"
+		s: "CPX"
 	},
 	{
 		id: "crystal-clear",
-		s: "cct"
+		s: "CCT"
 	},
 	{
 		id: "crystaleum",
-		s: "crfi"
+		s: "CRFI"
 	},
 	{
 		id: "crystal-token",
-		s: "cyl"
+		s: "CYL"
 	},
 	{
 		id: "csc-jackpot",
-		s: "cscj"
+		s: "CSCJ"
 	},
 	{
 		id: "cspc",
-		s: "cspc"
+		s: "CSPC"
 	},
 	{
 		id: "csp-dao-network",
-		s: "nebo"
+		s: "NEBO"
 	},
 	{
 		id: "cstl",
-		s: "cstl"
+		s: "CSTL"
 	},
 	{
 		id: "ctc",
-		s: "c2c"
+		s: "C2C"
 	},
 	{
 		id: "cts-coin",
-		s: "ctsc"
+		s: "CTSC"
 	},
 	{
 		id: "cube",
-		s: "auto"
+		s: "AUTO"
 	},
 	{
 		id: "cubiex",
-		s: "cbix"
+		s: "CBIX"
 	},
 	{
 		id: "cuda",
-		s: "ca"
+		s: "CA"
 	},
 	{
 		id: "cudos",
-		s: "cudos"
+		s: "CUDOS"
 	},
 	{
 		id: "culture-ticket-chain",
-		s: "ctc"
+		s: "CTC"
 	},
 	{
 		id: "curadai",
-		s: "cura"
+		s: "CURA"
 	},
 	{
 		id: "curate",
-		s: "xcur"
+		s: "XCUR"
 	},
 	{
 		id: "curecoin",
-		s: "cure"
+		s: "CURE"
 	},
 	{
 		id: "curio",
-		s: "cur"
+		s: "CUR"
 	},
 	{
 		id: "curio-governance",
-		s: "cgt"
+		s: "CGT"
 	},
 	{
 		id: "curium",
-		s: "cru"
+		s: "CRU"
 	},
 	{
 		id: "currency-network",
-		s: "cnet"
+		s: "CNET"
 	},
 	{
 		id: "currentcoin",
-		s: "cur"
+		s: "CUR"
 	},
 	{
 		id: "curryswap",
-		s: "curry"
+		s: "CURRY"
 	},
 	{
 		id: "curve-dao-token",
-		s: "crv"
+		s: "CRV"
 	},
 	{
 		id: "curve-fi-ydai-yusdc-yusdt-ytusd",
-		s: "yCurve"
+		s: "YCURVE"
 	},
 	{
 		id: "curvehash",
-		s: "curve"
+		s: "CURVE"
 	},
 	{
 		id: "custody-token",
-		s: "cust"
+		s: "CUST"
 	},
 	{
 		id: "custom-contract-network",
-		s: "ccn"
+		s: "CCN"
 	},
 	{
 		id: "cutcoin",
-		s: "cut"
+		s: "CUT"
 	},
 	{
 		id: "cvault-finance",
-		s: "core"
+		s: "CORE"
 	},
 	{
 		id: "cvcoin",
-		s: "cvn"
+		s: "CVN"
 	},
 	{
 		id: "cvp-token",
-		s: "cvp"
+		s: "CVP"
 	},
 	{
 		id: "cxn-network",
@@ -29892,291 +29938,295 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "cybereits",
-		s: "cre"
+		s: "CRE"
 	},
 	{
 		id: "cyberfi",
-		s: "cfi"
+		s: "CFI"
 	},
 	{
 		id: "cyberfm",
-		s: "cyfm"
+		s: "CYFM"
 	},
 	{
 		id: "cybermiles",
-		s: "cmt"
+		s: "CMT"
 	},
 	{
 		id: "cyber-movie-chain",
-		s: "cmct"
+		s: "CMCT"
 	},
 	{
 		id: "cybermusic",
-		s: "cymt"
+		s: "CYMT"
 	},
 	{
 		id: "cybertime-finance",
-		s: "ctf"
+		s: "CTF"
 	},
 	{
 		id: "cybertronchain",
-		s: "ctc"
+		s: "CTC"
 	},
 	{
 		id: "cybervein",
-		s: "cvt"
+		s: "CVT"
 	},
 	{
 		id: "cybex",
-		s: "cyb"
+		s: "CYB"
 	},
 	{
 		id: "cyclone-protocol",
-		s: "cyc"
+		s: "CYC"
 	},
 	{
 		id: "cyclops-treasure",
-		s: "cytr"
+		s: "CYTR"
 	},
 	{
 		id: "cy-finance",
-		s: "cyf"
+		s: "CYF"
 	},
 	{
 		id: "dacc",
-		s: "dacc"
+		s: "DACC"
 	},
 	{
 		id: "dacsee",
-		s: "dacs"
+		s: "DACS"
 	},
 	{
 		id: "daex",
-		s: "dax"
+		s: "DAX"
+	},
+	{
+		id: "dafi-protocol",
+		s: "DAFI"
 	},
 	{
 		id: "dagger",
-		s: "xdag"
+		s: "XDAG"
 	},
 	{
 		id: "dai",
-		s: "dai"
+		s: "DAI"
 	},
 	{
 		id: "dai-if-trump-loses-the-2020-election",
-		s: "notrump"
+		s: "NOTRUMP"
 	},
 	{
 		id: "dai-if-trump-wins-the-2020-election",
-		s: "yestrump"
+		s: "YESTRUMP"
 	},
 	{
 		id: "daikicoin",
-		s: "dic"
+		s: "DIC"
 	},
 	{
 		id: "daily-funds",
-		s: "df"
+		s: "DF"
 	},
 	{
 		id: "dain",
-		s: "dnc"
+		s: "DNC"
 	},
 	{
 		id: "daiquilibrium",
-		s: "daiq"
+		s: "DAIQ"
 	},
 	{
 		id: "dalecoin",
-		s: "dalc"
+		s: "DALC"
 	},
 	{
 		id: "danat-coin",
-		s: "dnc"
+		s: "DNC"
 	},
 	{
 		id: "dandy",
-		s: "dandy"
+		s: "DANDY"
 	},
 	{
 		id: "dango",
-		s: "dango"
+		s: "DANGO"
 	},
 	{
 		id: "dao-casino",
-		s: "bet"
+		s: "BET"
 	},
 	{
 		id: "daofi",
-		s: "daofi"
+		s: "DAOFI"
 	},
 	{
 		id: "dao-maker",
-		s: "dao"
+		s: "DAO"
 	},
 	{
 		id: "daostack",
-		s: "gen"
+		s: "GEN"
 	},
 	{
 		id: "daoventures",
-		s: "dvg"
+		s: "DVG"
 	},
 	{
 		id: "dapp",
-		s: "dapp"
+		s: "DAPP"
 	},
 	{
 		id: "dappcents",
-		s: "dpc"
+		s: "DPC"
 	},
 	{
 		id: "dapp-com",
-		s: "dappt"
+		s: "DAPPT"
 	},
 	{
 		id: "dappercoin",
-		s: "dapp"
+		s: "DAPP"
 	},
 	{
 		id: "dapp-evolution",
-		s: "evo"
+		s: "EVO"
 	},
 	{
 		id: "dapplinks",
-		s: "dlx"
+		s: "DLX"
 	},
 	{
 		id: "daps-token",
-		s: "daps"
+		s: "DAPS"
 	},
 	{
 		id: "darkbuild",
-		s: "dark"
+		s: "DARK"
 	},
 	{
 		id: "darkbuild-v2",
-		s: "db"
+		s: "DB"
 	},
 	{
 		id: "darkbundles",
-		s: "dbund"
+		s: "DBUND"
 	},
 	{
 		id: "dark-energy-crystals",
-		s: "dec"
+		s: "DEC"
 	},
 	{
 		id: "darklisk",
-		s: "disk"
+		s: "DISK"
 	},
 	{
 		id: "dark-matter",
-		s: "dmt"
+		s: "DMT"
 	},
 	{
 		id: "darkpaycoin",
-		s: "d4rk"
+		s: "D4RK"
 	},
 	{
 		id: "darma-cash",
-		s: "dmch"
+		s: "DMCH"
 	},
 	{
 		id: "darwinia-commitment-token",
-		s: "kton"
+		s: "KTON"
 	},
 	{
 		id: "darwinia-crab-network",
-		s: "cring"
+		s: "CRING"
 	},
 	{
 		id: "darwinia-network-native-token",
-		s: "ring"
+		s: "RING"
 	},
 	{
 		id: "dascoin",
-		s: "grn"
+		s: "GRN"
 	},
 	{
 		id: "dash",
-		s: "dash"
+		s: "DASH"
 	},
 	{
 		id: "dash-cash",
-		s: "dsc"
+		s: "DSC"
 	},
 	{
 		id: "dash-diamond",
-		s: "dashd"
+		s: "DASHD"
 	},
 	{
 		id: "dash-green",
-		s: "dashg"
+		s: "DASHG"
 	},
 	{
 		id: "dash-platinum",
-		s: "plat"
+		s: "PLAT"
 	},
 	{
 		id: "data",
-		s: "dta"
+		s: "DTA"
 	},
 	{
 		id: "databroker-dao",
-		s: "dtx"
+		s: "DTX"
 	},
 	{
 		id: "datacoin",
-		s: "dtc"
+		s: "DTC"
 	},
 	{
 		id: "data-delivery-network",
-		s: "ddn"
+		s: "DDN"
 	},
 	{
 		id: "datakyc",
-		s: "dkyc"
+		s: "DKYC"
 	},
 	{
 		id: "datamine",
-		s: "dam"
+		s: "DAM"
 	},
 	{
 		id: "datarius-cryptobank",
-		s: "dtrc"
+		s: "DTRC"
 	},
 	{
 		id: "data-saver-coin",
-		s: "dsc"
+		s: "DSC"
 	},
 	{
 		id: "data-trade-on-demand-platform",
-		s: "dtop"
+		s: "DTOP"
 	},
 	{
 		id: "data-transaction",
-		s: "dtc"
+		s: "DTC"
 	},
 	{
 		id: "datawallet",
-		s: "dxt"
+		s: "DXT"
 	},
 	{
 		id: "datbit",
-		s: "dbt"
+		s: "DBT"
 	},
 	{
 		id: "datum",
-		s: "dat"
+		s: "DAT"
 	},
 	{
 		id: "datx",
-		s: "datx"
+		s: "DATX"
 	},
 	{
 		id: "dav",
-		s: "dav"
+		s: "DAV"
 	},
 	{
 		id: "davecoin",
@@ -30184,255 +30234,255 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "davies",
-		s: "dvs"
+		s: "DVS"
 	},
 	{
 		id: "davinci-coin",
-		s: "dac"
+		s: "DAC"
 	},
 	{
 		id: "davion",
-		s: "davp"
+		s: "DAVP"
 	},
 	{
 		id: "dawn-protocol",
-		s: "dawn"
+		s: "DAWN"
 	},
 	{
 		id: "day",
-		s: "day"
+		s: "DAY"
 	},
 	{
 		id: "dcoin-token",
-		s: "dt"
+		s: "DT"
 	},
 	{
 		id: "d-community",
-		s: "dili"
+		s: "DILI"
 	},
 	{
 		id: "ddmcoin",
-		s: "ddm"
+		s: "DDM"
 	},
 	{
 		id: "dds-store",
-		s: "dds"
+		s: "DDS"
 	},
 	{
 		id: "dea",
-		s: "dea"
+		s: "DEA"
 	},
 	{
 		id: "deapcoin",
-		s: "dep"
+		s: "DEP"
 	},
 	{
 		id: "debase",
-		s: "debase"
+		s: "DEBASE"
 	},
 	{
 		id: "debitcoin",
-		s: "dbtc"
+		s: "DBTC"
 	},
 	{
 		id: "debitum-network",
-		s: "deb"
+		s: "DEB"
 	},
 	{
 		id: "debunk",
-		s: "dbnk"
+		s: "DBNK"
 	},
 	{
 		id: "decash",
-		s: "desh"
+		s: "DESH"
 	},
 	{
 		id: "decent",
-		s: "dct"
+		s: "DCT"
 	},
 	{
 		id: "decentbet",
-		s: "dbet"
+		s: "DBET"
 	},
 	{
 		id: "decentr",
-		s: "dec"
+		s: "DEC"
 	},
 	{
 		id: "decentrahub-coin",
-		s: "dcntr"
+		s: "DCNTR"
 	},
 	{
 		id: "decentraland",
-		s: "mana"
+		s: "MANA"
 	},
 	{
 		id: "decentral-games",
-		s: "dg"
+		s: "DG"
 	},
 	{
 		id: "decentralized-advertising",
-		s: "dad"
+		s: "DAD"
 	},
 	{
 		id: "decentralized-asset-trading-platform",
-		s: "datp"
+		s: "DATP"
 	},
 	{
 		id: "decentralized-bitcoin",
-		s: "dbtc"
+		s: "DBTC"
 	},
 	{
 		id: "decentralized-crypto-token",
-		s: "dcto"
+		s: "DCTO"
 	},
 	{
 		id: "decentralized-currency-assets",
-		s: "dca"
+		s: "DCA"
 	},
 	{
 		id: "decentralized-data-assets-management",
-		s: "ddam"
+		s: "DDAM"
 	},
 	{
 		id: "decentralized-machine-learning",
-		s: "dml"
+		s: "DML"
 	},
 	{
 		id: "decentralized-mining-exchange",
-		s: "dmc"
+		s: "DMC"
 	},
 	{
 		id: "decentralized-oracle",
-		s: "deor"
+		s: "DEOR"
 	},
 	{
 		id: "decentralized-vulnerability-platform",
-		s: "dvp"
+		s: "DVP"
 	},
 	{
 		id: "decentralway",
-		s: "dcw"
+		s: "DCW"
 	},
 	{
 		id: "decenturion",
-		s: "dcnt"
+		s: "DCNT"
 	},
 	{
 		id: "decoin",
-		s: "dtep"
+		s: "DTEP"
 	},
 	{
 		id: "decore",
-		s: "dcore"
+		s: "DCORE"
 	},
 	{
 		id: "decraft-finance",
-		s: "craft"
+		s: "CRAFT"
 	},
 	{
 		id: "decred",
-		s: "dcr"
+		s: "DCR"
 	},
 	{
 		id: "decurian",
-		s: "ecu"
+		s: "ECU"
 	},
 	{
 		id: "deepbrain-chain",
-		s: "dbc"
+		s: "DBC"
 	},
 	{
 		id: "deepcloud-ai",
-		s: "deep"
+		s: "DEEP"
 	},
 	{
 		id: "deeponion",
-		s: "onion"
+		s: "ONION"
 	},
 	{
 		id: "deex",
-		s: "deex"
+		s: "DEEX"
 	},
 	{
 		id: "defhold",
-		s: "defo"
+		s: "DEFO"
 	},
 	{
 		id: "defi-100",
-		s: "d100"
+		s: "D100"
 	},
 	{
 		id: "defiat",
-		s: "dft"
+		s: "DFT"
 	},
 	{
 		id: "defiato",
-		s: "dfo"
+		s: "DFO"
 	},
 	{
 		id: "defi-bids",
-		s: "bid"
+		s: "BID"
 	},
 	{
 		id: "defibox",
-		s: "box"
+		s: "BOX"
 	},
 	{
 		id: "defichain",
-		s: "dfi"
+		s: "DFI"
 	},
 	{
 		id: "deficliq",
-		s: "cliq"
+		s: "CLIQ"
 	},
 	{
 		id: "defidollar",
-		s: "dusd"
+		s: "DUSD"
 	},
 	{
 		id: "defidollar-dao",
-		s: "dfd"
+		s: "DFD"
 	},
 	{
 		id: "defi-firefly",
-		s: "dff"
+		s: "DFF"
 	},
 	{
 		id: "defi-gold",
-		s: "dfgl"
+		s: "DFGL"
 	},
 	{
 		id: "defiking",
-		s: "dfk"
+		s: "DFK"
 	},
 	{
 		id: "defi-nation-signals-dao",
-		s: "dsd"
+		s: "DSD"
 	},
 	{
 		id: "definer",
-		s: "fin"
+		s: "FIN"
 	},
 	{
 		id: "definex",
-		s: "dswap"
+		s: "DSWAP"
 	},
 	{
 		id: "definitex",
-		s: "dfx"
+		s: "DFX"
 	},
 	{
 		id: "definition-network",
-		s: "dzi"
+		s: "DZI"
 	},
 	{
 		id: "defi-omega",
-		s: "dfio"
+		s: "DFIO"
 	},
 	{
 		id: "defi-on-mcw",
-		s: "dfm"
+		s: "DFM"
 	},
 	{
 		id: "defipie",
@@ -30440,111 +30490,115 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "defipulse-index",
-		s: "dpi"
+		s: "DPI"
 	},
 	{
 		id: "defis",
-		s: "xgm"
+		s: "XGM"
 	},
 	{
 		id: "defi-shopping-stake",
-		s: "dss"
+		s: "DSS"
 	},
 	{
 		id: "defis-network",
-		s: "dfs"
+		s: "DFS"
 	},
 	{
 		id: "defisocial",
-		s: "dfsocial"
+		s: "DFSOCIAL"
 	},
 	{
 		id: "defi-top-5-tokens-index",
-		s: "defi5"
+		s: "DEFI5"
 	},
 	{
 		id: "defi-wizard",
-		s: "dwz"
+		s: "DWZ"
 	},
 	{
 		id: "defi-yield-protocol",
-		s: "dyp"
+		s: "DYP"
 	},
 	{
 		id: "defla",
-		s: "defla"
+		s: "DEFLA"
 	},
 	{
 		id: "deflacash",
-		s: "dfc"
+		s: "DFC"
 	},
 	{
 		id: "deflect",
-		s: "deflct"
+		s: "DEFLCT"
+	},
+	{
+		id: "degate",
+		s: "DG"
 	},
 	{
 		id: "degenerate-platform",
-		s: "sbx"
+		s: "SBX"
 	},
 	{
 		id: "degenerator",
-		s: "meme"
+		s: "MEME"
 	},
 	{
 		id: "degen-index",
-		s: "degen"
+		s: "DEGEN"
 	},
 	{
 		id: "degen-protocol",
-		s: "dgn"
+		s: "DGN"
 	},
 	{
 		id: "degenvc",
-		s: "dgvc"
+		s: "DGVC"
 	},
 	{
 		id: "dego-finance",
-		s: "dego"
+		s: "DEGO"
 	},
 	{
 		id: "degov",
-		s: "degov"
+		s: "DEGOV"
 	},
 	{
 		id: "deipool",
-		s: "dip"
+		s: "DIP"
 	},
 	{
 		id: "dejave",
-		s: "djv"
+		s: "DJV"
 	},
 	{
 		id: "deligence",
-		s: "ira"
+		s: "IRA"
 	},
 	{
 		id: "deli-of-thrones",
-		s: "dotx"
+		s: "DOTX"
 	},
 	{
 		id: "delion",
-		s: "dln"
+		s: "DLN"
 	},
 	{
 		id: "delphi-chain-link",
-		s: "dcl"
+		s: "DCL"
 	},
 	{
 		id: "delphy",
-		s: "dpy"
+		s: "DPY"
 	},
 	{
 		id: "deltachain",
-		s: "delta"
+		s: "DELTA"
 	},
 	{
 		id: "deltaexcoin",
-		s: "dltx"
+		s: "DLTX"
 	},
 	{
 		id: "deltahub-community",
@@ -30552,63 +30606,63 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "demos",
-		s: "dos"
+		s: "DOS"
 	},
 	{
 		id: "denarius",
-		s: "d"
+		s: "D"
 	},
 	{
 		id: "dent",
-		s: "dent"
+		s: "DENT"
 	},
 	{
 		id: "dentacoin",
-		s: "dcn"
+		s: "DCN"
 	},
 	{
 		id: "deonex-token",
-		s: "don"
+		s: "DON"
 	},
 	{
 		id: "depay",
-		s: "depay"
+		s: "DEPAY"
 	},
 	{
 		id: "dequant",
-		s: "deq"
+		s: "DEQ"
 	},
 	{
 		id: "deri-protocol",
-		s: "deri"
+		s: "DERI"
 	},
 	{
 		id: "derivadao",
-		s: "ddx"
+		s: "DDX"
 	},
 	{
 		id: "derivex",
-		s: "dvx"
+		s: "DVX"
 	},
 	{
 		id: "dero",
-		s: "dero"
+		s: "DERO"
 	},
 	{
 		id: "derogold",
-		s: "dego"
+		s: "DEGO"
 	},
 	{
 		id: "design",
-		s: "dsgn"
+		s: "DSGN"
 	},
 	{
 		id: "desire",
-		s: "dsr"
+		s: "DSR"
 	},
 	{
 		id: "destiny-success",
-		s: "dxts"
+		s: "DXTS"
 	},
 	{
 		id: "dether",
@@ -30616,127 +30670,127 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "deus-finance",
-		s: "deus"
+		s: "DEUS"
 	},
 	{
 		id: "deus-synthetic-coinbase-iou",
-		s: "wcoinbase-iou"
+		s: "WCOINBASE-IOU"
 	},
 	{
 		id: "deutsche-emark",
-		s: "dem"
+		s: "DEM"
 	},
 	{
 		id: "deva-token",
-		s: "deva"
+		s: "DEVA"
 	},
 	{
 		id: "devault",
-		s: "dvt"
+		s: "DVT"
 	},
 	{
 		id: "devcoin",
-		s: "dvc"
+		s: "DVC"
 	},
 	{
 		id: "devery",
-		s: "eve"
+		s: "EVE"
 	},
 	{
 		id: "deviantcoin",
-		s: "dev"
+		s: "DEV"
 	},
 	{
 		id: "dev-protocol",
-		s: "dev"
+		s: "DEV"
 	},
 	{
 		id: "dex",
-		s: "dex"
+		s: "DEX"
 	},
 	{
 		id: "dexa-coin",
-		s: "dexa"
+		s: "DEXA"
 	},
 	{
 		id: "dexchain",
-		s: "dxc"
+		s: "DXC"
 	},
 	{
 		id: "dexe",
-		s: "dexe"
+		s: "DEXE"
 	},
 	{
 		id: "dexfin",
-		s: "dxf"
+		s: "DXF"
 	},
 	{
 		id: "dexkit",
-		s: "kit"
+		s: "KIT"
 	},
 	{
 		id: "dexmex",
-		s: "dexm"
+		s: "DEXM"
 	},
 	{
 		id: "dexter",
-		s: "dxr"
+		s: "DXR"
 	},
 	{
 		id: "dextf",
-		s: "dextf"
+		s: "DEXTF"
 	},
 	{
 		id: "dextoken-governance",
-		s: "dexg"
+		s: "DEXG"
 	},
 	{
 		id: "dextro",
-		s: "dxo"
+		s: "DXO"
 	},
 	{
 		id: "dextrust",
-		s: "dets"
+		s: "DETS"
 	},
 	{
 		id: "dfe-finance",
-		s: "dfe"
+		s: "DFE"
 	},
 	{
 		id: "dfinance",
-		s: "xfi"
+		s: "XFI"
 	},
 	{
 		id: "dfinity-iou",
-		s: "icp"
+		s: "ICP"
 	},
 	{
 		id: "dfohub",
-		s: "buidl"
+		s: "BUIDL"
 	},
 	{
 		id: "dforce-token",
-		s: "df"
+		s: "DF"
 	},
 	{
 		id: "dfuture",
-		s: "dft"
+		s: "DFT"
 	},
 	{
 		id: "dfx-finance",
-		s: "dfx"
+		s: "DFX"
 	},
 	{
 		id: "dgl-coin",
-		s: "dgl"
+		s: "DGL"
 	},
 	{
 		id: "dgpayment",
-		s: "dgp"
+		s: "DGP"
 	},
 	{
 		id: "dhedge-dao",
-		s: "dht"
+		s: "DHT"
 	},
 	{
 		id: "dia-data",
@@ -30744,583 +30798,583 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "diagon",
-		s: "dgn"
+		s: "DGN"
 	},
 	{
 		id: "diamond",
-		s: "dmd"
+		s: "DMD"
 	},
 	{
 		id: "diamond-platform-token",
-		s: "dpt"
+		s: "DPT"
 	},
 	{
 		id: "dice-finance",
-		s: "dice"
+		s: "DICE"
 	},
 	{
 		id: "die",
-		s: "die"
+		s: "DIE"
 	},
 	{
 		id: "dify-finance",
-		s: "yfiii"
+		s: "YFIII"
 	},
 	{
 		id: "digex",
-		s: "digex"
+		s: "DIGEX"
 	},
 	{
 		id: "digg",
-		s: "digg"
+		s: "DIGG"
 	},
 	{
 		id: "digibyte",
-		s: "dgb"
+		s: "DGB"
 	},
 	{
 		id: "digicol-token",
-		s: "dgcl"
+		s: "DGCL"
 	},
 	{
 		id: "digi-dinar",
-		s: "ddr"
+		s: "DDR"
 	},
 	{
 		id: "digidinar-stabletoken",
-		s: "ddrst"
+		s: "DDRST"
 	},
 	{
 		id: "digidinar-token",
-		s: "ddrt"
+		s: "DDRT"
 	},
 	{
 		id: "digifinextoken",
-		s: "dft"
+		s: "DFT"
 	},
 	{
 		id: "digimax",
-		s: "dgmt"
+		s: "DGMT"
 	},
 	{
 		id: "digimoney",
-		s: "dgm"
+		s: "DGM"
 	},
 	{
 		id: "digipharm",
-		s: "dph"
+		s: "DPH"
 	},
 	{
 		id: "digital-antares-dollar",
-		s: "dant"
+		s: "DANT"
 	},
 	{
 		id: "digitalbits",
-		s: "xdb"
+		s: "XDB"
 	},
 	{
 		id: "digitalcoin",
-		s: "dgc"
+		s: "DGC"
 	},
 	{
 		id: "digital-coin",
-		s: "dcb"
+		s: "DCB"
 	},
 	{
 		id: "digital-currency-daily",
-		s: "dcd"
+		s: "DCD"
 	},
 	{
 		id: "digital-euro",
-		s: "deuro"
+		s: "DEURO"
 	},
 	{
 		id: "digital-fantasy-sports",
-		s: "dfs"
+		s: "DFS"
 	},
 	{
 		id: "digital-gold-token",
-		s: "gold"
+		s: "GOLD"
 	},
 	{
 		id: "digital-money-bits",
-		s: "dmb"
+		s: "DMB"
 	},
 	{
 		id: "digitalnote",
-		s: "xdn"
+		s: "XDN"
 	},
 	{
 		id: "digitalprice",
-		s: "dp"
+		s: "DP"
 	},
 	{
 		id: "digital-rand",
-		s: "dzar"
+		s: "DZAR"
 	},
 	{
 		id: "digital-reserve-currency",
-		s: "drc"
+		s: "DRC"
 	},
 	{
 		id: "digital-ticks",
-		s: "dtx"
+		s: "DTX"
 	},
 	{
 		id: "digital-wallet",
-		s: "dwc"
+		s: "DWC"
 	},
 	{
 		id: "digitex-futures-exchange",
-		s: "dgtx"
+		s: "DGTX"
 	},
 	{
 		id: "digiwill",
-		s: "dgw"
+		s: "DGW"
 	},
 	{
 		id: "digixdao",
-		s: "dgd"
+		s: "DGD"
 	},
 	{
 		id: "digix-gold",
-		s: "dgx"
+		s: "DGX"
 	},
 	{
 		id: "dimcoin",
-		s: "dim"
+		s: "DIM"
 	},
 	{
 		id: "dimecoin",
-		s: "dime"
+		s: "DIME"
 	},
 	{
 		id: "dimension",
-		s: "eon"
+		s: "EON"
 	},
 	{
 		id: "diminutive-coin",
-		s: "dimi"
+		s: "DIMI"
 	},
 	{
 		id: "dinastycoin",
-		s: "dcy"
+		s: "DCY"
 	},
 	{
 		id: "dinero",
-		s: "din"
+		s: "DIN"
 	},
 	{
 		id: "dionpay",
-		s: "dion"
+		s: "DION"
 	},
 	{
 		id: "dipper",
-		s: "dip"
+		s: "DIP"
 	},
 	{
 		id: "dipper-network",
-		s: "dip"
+		s: "DIP"
 	},
 	{
 		id: "distributed-energy-coin",
-		s: "dec"
+		s: "DEC"
 	},
 	{
 		id: "district0x",
-		s: "dnt"
+		s: "DNT"
 	},
 	{
 		id: "distx",
-		s: "distx"
+		s: "DISTX"
 	},
 	{
 		id: "ditto",
-		s: "ditto"
+		s: "DITTO"
 	},
 	{
 		id: "divert-finance",
-		s: "deve"
+		s: "DEVE"
 	},
 	{
 		id: "divi",
-		s: "divi"
+		s: "DIVI"
 	},
 	{
 		id: "divo-token",
-		s: "divo"
+		s: "DIVO"
 	},
 	{
 		id: "dixt-finance",
-		s: "dixt"
+		s: "DIXT"
 	},
 	{
 		id: "diychain",
-		s: "diy"
+		s: "DIY"
 	},
 	{
 		id: "dkargo",
-		s: "dka"
+		s: "DKA"
 	},
 	{
 		id: "dkk-token",
-		s: "dkkt"
+		s: "DKKT"
 	},
 	{
 		id: "dlike",
-		s: "dlike"
+		s: "DLIKE"
 	},
 	{
 		id: "dlp-duck-token",
-		s: "duck"
+		s: "DUCK"
 	},
 	{
 		id: "dmarket",
-		s: "dmt"
+		s: "DMT"
 	},
 	{
 		id: "dmd",
-		s: "dmd"
+		s: "DMD"
 	},
 	{
 		id: "dmme-app",
-		s: "dmme"
+		s: "DMME"
 	},
 	{
 		id: "dmm-governance",
-		s: "dmg"
+		s: "DMG"
 	},
 	{
 		id: "dmst",
-		s: "dmst"
+		s: "DMST"
 	},
 	{
 		id: "dmtc-token",
-		s: "dmtc"
+		s: "DMTC"
 	},
 	{
 		id: "dnotes",
-		s: "note"
+		s: "NOTE"
 	},
 	{
 		id: "dobuy",
-		s: "dby"
+		s: "DBY"
 	},
 	{
 		id: "doch-coin",
-		s: "dch"
+		s: "DCH"
 	},
 	{
 		id: "dock",
-		s: "dock"
+		s: "DOCK"
 	},
 	{
 		id: "documentchain",
-		s: "dms"
+		s: "DMS"
 	},
 	{
 		id: "dodo",
-		s: "dodo"
+		s: "DODO"
 	},
 	{
 		id: "dodreamchain",
-		s: "drm"
+		s: "DRM"
 	},
 	{
 		id: "dogdeficoin",
-		s: "dogdefi"
+		s: "DOGDEFI"
 	},
 	{
 		id: "dogecash",
-		s: "dogec"
+		s: "DOGEC"
 	},
 	{
 		id: "dogecoin",
-		s: "doge"
+		s: "DOGE"
 	},
 	{
 		id: "dogefi",
-		s: "dogefi"
+		s: "DOGEFI"
 	},
 	{
 		id: "dogeswap",
-		s: "doges"
+		s: "DOGES"
 	},
 	{
 		id: "dogeyield",
-		s: "dogy"
+		s: "DOGY"
 	},
 	{
 		id: "dogz",
-		s: "dogz"
+		s: "DOGZ"
 	},
 	{
 		id: "doki-doki-finance",
-		s: "doki"
+		s: "DOKI"
 	},
 	{
 		id: "dola-usd",
-		s: "dola"
+		s: "DOLA"
 	},
 	{
 		id: "dollar-online",
-		s: "dollar"
+		s: "DOLLAR"
 	},
 	{
 		id: "dollars",
-		s: "usdx"
+		s: "USDX"
 	},
 	{
 		id: "domraider",
-		s: "drt"
+		s: "DRT"
+	},
+	{
+		id: "donnie-finance",
+		s: "DON"
 	},
 	{
 		id: "donu",
-		s: "donu"
+		s: "DONU"
 	},
 	{
 		id: "donut",
-		s: "donut"
+		s: "DONUT"
 	},
 	{
 		id: "doos-token",
-		s: "doos"
+		s: "DOOS"
 	},
 	{
 		id: "dopecoin",
-		s: "dope"
+		s: "DOPE"
 	},
 	{
 		id: "dos-network",
-		s: "dos"
+		s: "DOS"
 	},
 	{
 		id: "double-ace",
-		s: "daa"
+		s: "DAA"
 	},
 	{
 		id: "dovu",
-		s: "dov"
+		s: "DOV"
 	},
 	{
 		id: "dowcoin",
-		s: "dow"
+		s: "DOW"
 	},
 	{
 		id: "dprating",
-		s: "rating"
+		s: "RATING"
 	},
 	{
 		id: "dracula-token",
-		s: "drc"
+		s: "DRC"
 	},
 	{
 		id: "draftcoin",
-		s: "dft"
+		s: "DFT"
 	},
 	{
 		id: "dragon-ball",
-		s: "dragon"
+		s: "DRAGON"
 	},
 	{
 		id: "dragonbit",
-		s: "drgb"
+		s: "DRGB"
 	},
 	{
 		id: "dragonchain",
-		s: "drgn"
+		s: "DRGN"
 	},
 	{
 		id: "dragon-coin",
-		s: "drg"
+		s: "DRG"
 	},
 	{
 		id: "dragonereum-gold",
-		s: "gold"
+		s: "GOLD"
 	},
 	{
 		id: "dragon-finance",
-		s: "dragon"
+		s: "DRAGON"
 	},
 	{
 		id: "dragonfly-protocol",
-		s: "dfly"
+		s: "DFLY"
 	},
 	{
 		id: "dragon-network",
-		s: "dgnn"
+		s: "DGNN"
 	},
 	{
 		id: "dragon-option",
-		s: "dragon"
+		s: "DRAGON"
 	},
 	{
 		id: "dragonvein",
-		s: "dvc"
+		s: "DVC"
 	},
 	{
 		id: "drakoin",
-		s: "drk"
+		s: "DRK"
 	},
 	{
 		id: "dray",
-		s: "dray"
+		s: "DRAY"
 	},
 	{
 		id: "drc-mobility",
-		s: "drc"
+		s: "DRC"
 	},
 	{
 		id: "dream21",
-		s: "dmc"
+		s: "DMC"
 	},
 	{
 		id: "dreamcoin",
-		s: "drm"
-	},
-	{
-		id: "dreamscape",
-		s: "dsc"
+		s: "DRM"
 	},
 	{
 		id: "dreamscoin",
-		s: "dream"
+		s: "DREAM"
 	},
 	{
 		id: "dream-swap",
-		s: "dream"
+		s: "DREAM"
 	},
 	{
 		id: "dreamteam",
-		s: "dream"
+		s: "DREAM"
 	},
 	{
 		id: "dreamteam3",
-		s: "dt3"
+		s: "DT3"
 	},
 	{
 		id: "drep",
-		s: "drep"
+		s: "DREP"
 	},
 	{
 		id: "dripper-finance",
-		s: "drip"
+		s: "DRIP"
 	},
 	{
 		id: "dsys",
-		s: "dsys"
+		s: "DSYS"
 	},
 	{
 		id: "dtmi",
-		s: "dtmi"
+		s: "DTMI"
 	},
 	{
 		id: "dtube-coin",
-		s: "dtube"
+		s: "DTUBE"
 	},
 	{
 		id: "dubaicoin-dbix",
-		s: "dbix"
+		s: "DBIX"
 	},
 	{
 		id: "ducato-protocol-token",
-		s: "ducato"
+		s: "DUCATO"
 	},
 	{
 		id: "duckdaodime",
-		s: "ddim"
+		s: "DDIM"
 	},
 	{
 		id: "dudgx",
-		s: "dudgx"
+		s: "DUDGX"
 	},
 	{
 		id: "dukascoin",
-		s: "duk+"
+		s: "DUK+"
 	},
 	{
 		id: "dune",
-		s: "dun"
+		s: "DUN"
 	},
 	{
 		id: "duo",
-		s: "duo"
+		s: "DUO"
 	},
 	{
 		id: "durain-finance",
-		s: "dun"
+		s: "DUN"
 	},
 	{
 		id: "dusk-network",
-		s: "dusk"
+		s: "DUSK"
 	},
 	{
 		id: "dust-token",
-		s: "dust"
+		s: "DUST"
 	},
 	{
 		id: "dvision-network",
-		s: "dvi"
+		s: "DVI"
 	},
 	{
 		id: "dws",
-		s: "dws"
+		s: "DWS"
 	},
 	{
 		id: "dxchain",
-		s: "dx"
+		s: "DX"
 	},
 	{
 		id: "dxdao",
-		s: "dxd"
+		s: "DXD"
 	},
 	{
 		id: "dxiot",
-		s: "dxiot"
+		s: "DXIOT"
 	},
 	{
 		id: "dxsale-network",
-		s: "sale"
+		s: "SALE"
 	},
 	{
 		id: "dxy-finance",
-		s: "dxy"
+		s: "DXY"
 	},
 	{
 		id: "dymmax",
-		s: "dmx"
+		s: "DMX"
 	},
 	{
 		id: "dynamic",
-		s: "dyn"
+		s: "DYN"
 	},
 	{
 		id: "dynamic-set-dollar",
-		s: "dsd"
+		s: "DSD"
 	},
 	{
 		id: "dynamic-supply",
-		s: "morc"
+		s: "MORC"
 	},
 	{
 		id: "dynamic-supply-tracker",
-		s: "mort"
+		s: "MORT"
 	},
 	{
 		id: "dynamic-trading-rights",
-		s: "dtr"
+		s: "DTR"
 	},
 	{
 		id: "dynamite",
-		s: "dyt"
+		s: "DYT"
 	},
 	{
 		id: "dynamite-token",
-		s: "dynmt"
+		s: "DYNMT"
 	},
 	{
 		id: "dyngecoin",
-		s: "dynge"
+		s: "DYNGE"
 	},
 	{
 		id: "e1337",
@@ -31328,15 +31382,15 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "ea-coin",
-		s: "eag"
+		s: "EAG"
 	},
 	{
 		id: "eaglex",
-		s: "egx"
+		s: "EGX"
 	},
 	{
 		id: "eanto",
-		s: "ean"
+		s: "EAN"
 	},
 	{
 		id: "earnbase",
@@ -31344,367 +31398,371 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "earnzcoin",
-		s: "erz"
+		s: "ERZ"
 	},
 	{
 		id: "earthcoin",
-		s: "eac"
+		s: "EAC"
 	},
 	{
 		id: "earth-token",
-		s: "earth"
+		s: "EARTH"
 	},
 	{
 		id: "easticoin",
-		s: "esti"
+		s: "ESTI"
 	},
 	{
 		id: "easyfi",
-		s: "easy"
+		s: "EASY"
 	},
 	{
 		id: "easymine",
-		s: "emt"
+		s: "EMT"
 	},
 	{
 		id: "easyswap",
-		s: "eswa"
+		s: "ESWA"
 	},
 	{
 		id: "ea-token",
-		s: "ea"
+		s: "EA"
 	},
 	{
 		id: "eauric",
-		s: "eauric"
+		s: "EAURIC"
 	},
 	{
 		id: "eautocoin",
-		s: "ato"
+		s: "ATO"
 	},
 	{
 		id: "eazy",
-		s: "ezy"
+		s: "EZY"
 	},
 	{
 		id: "eazypayza",
-		s: "ezpay"
+		s: "EZPAY"
 	},
 	{
 		id: "ebakus",
-		s: "ebk"
+		s: "EBK"
 	},
 	{
 		id: "ebitcoin",
-		s: "ebtc"
+		s: "EBTC"
 	},
 	{
 		id: "ebomb",
-		s: "pow"
+		s: "POW"
 	},
 	{
 		id: "eboost",
-		s: "ebst"
+		s: "EBST"
 	},
 	{
 		id: "ebsp-token",
-		s: "ebsp"
+		s: "EBSP"
 	},
 	{
 		id: "ecc",
-		s: "ecc"
+		s: "ECC"
 	},
 	{
 		id: "e-chat",
-		s: "echt"
+		s: "ECHT"
 	},
 	{
 		id: "echoin",
-		s: "ec"
+		s: "EC"
 	},
 	{
 		id: "echolink",
-		s: "eko"
+		s: "EKO"
 	},
 	{
 		id: "echosoracoin",
-		s: "esrc"
+		s: "ESRC"
 	},
 	{
 		id: "eclipseum",
-		s: "ecl"
+		s: "ECL"
 	},
 	{
 		id: "ecoball",
-		s: "aba"
+		s: "ABA"
 	},
 	{
 		id: "ecobit",
-		s: "ecob"
+		s: "ECOB"
 	},
 	{
 		id: "ecoc-financial-growth",
-		s: "efg"
+		s: "EFG"
 	},
 	{
 		id: "ecochain",
-		s: "ecoc"
+		s: "ECOC"
 	},
 	{
 		id: "ecodollar",
-		s: "ecos"
+		s: "ECOS"
 	},
 	{
 		id: "ecog9coin",
-		s: "egc"
+		s: "EGC"
 	},
 	{
 		id: "ecoin-2",
-		s: "ecoin"
+		s: "ECOIN"
 	},
 	{
 		id: "ecomi",
-		s: "omi"
+		s: "OMI"
 	},
 	{
 		id: "ecoreal-estate",
-		s: "ecoreal"
+		s: "ECOREAL"
 	},
 	{
 		id: "ecoscu",
-		s: "ecu"
+		s: "ECU"
 	},
 	{
 		id: "eco-value-coin",
-		s: "evc"
+		s: "EVC"
 	},
 	{
 		id: "ecpntoken",
-		s: "ecpn"
+		s: "ECPN"
 	},
 	{
 		id: "ecp-technology",
-		s: "ecp"
+		s: "ECP"
 	},
 	{
 		id: "ecredit",
-		s: "ecr"
+		s: "ECR"
 	},
 	{
 		id: "ectoplasma",
-		s: "ecto"
+		s: "ECTO"
 	},
 	{
 		id: "edc-blockchain",
-		s: "edc"
+		s: "EDC"
 	},
 	{
 		id: "eddaswap",
-		s: "edda"
+		s: "EDDA"
 	},
 	{
 		id: "edenchain",
-		s: "edn"
+		s: "EDN"
+	},
+	{
+		id: "edgecoin-2",
+		s: "EDGT"
 	},
 	{
 		id: "edgeless",
-		s: "edg"
+		s: "EDG"
 	},
 	{
 		id: "edgeware",
-		s: "edg"
+		s: "EDG"
 	},
 	{
 		id: "edrcoin",
-		s: "edrc"
+		s: "EDRC"
 	},
 	{
 		id: "educare",
-		s: "ekt"
+		s: "EKT"
 	},
 	{
 		id: "education-ecosystem",
-		s: "ledu"
+		s: "LEDU"
 	},
 	{
 		id: "educoin",
-		s: "edu"
+		s: "EDU"
 	},
 	{
 		id: "edumetrix-coin",
-		s: "emc"
+		s: "EMC"
 	},
 	{
 		id: "effect-ai",
-		s: "efx"
+		s: "EFX"
 	},
 	{
 		id: "efficient-transaction-token",
-		s: "ett"
+		s: "ETT"
 	},
 	{
 		id: "efin",
-		s: "efin"
+		s: "EFIN"
 	},
 	{
 		id: "egold",
-		s: "egold"
+		s: "EGOLD"
 	},
 	{
 		id: "egretia",
-		s: "egt"
+		s: "EGT"
 	},
 	{
 		id: "ehash",
-		s: "ehash"
+		s: "EHASH"
 	},
 	{
 		id: "eidoo",
-		s: "edo"
+		s: "EDO"
 	},
 	{
 		id: "eidos",
-		s: "eidos"
+		s: "EIDOS"
 	},
 	{
 		id: "eight-hours",
-		s: "ehrt"
+		s: "EHRT"
 	},
 	{
 		id: "einsteinium",
-		s: "emc2"
+		s: "EMC2"
 	},
 	{
 		id: "elamachain",
-		s: "elama"
+		s: "ELAMA"
 	},
 	{
 		id: "elastic-bitcoin",
-		s: "xbt"
+		s: "XBT"
 	},
 	{
 		id: "elastos",
-		s: "ela"
+		s: "ELA"
 	},
 	{
 		id: "eldorado-token",
-		s: "erd"
+		s: "ERD"
 	},
 	{
 		id: "electra",
-		s: "eca"
+		s: "ECA"
 	},
 	{
 		id: "electra-protocol",
-		s: "xep"
+		s: "XEP"
 	},
 	{
 		id: "electric-cash",
-		s: "elcash"
+		s: "ELCASH"
 	},
 	{
 		id: "electric-token",
-		s: "etr"
+		s: "ETR"
 	},
 	{
 		id: "electric-vehicle-zone",
-		s: "evz"
+		s: "EVZ"
 	},
 	{
 		id: "electrify-asia",
-		s: "elec"
+		s: "ELEC"
 	},
 	{
 		id: "electronero",
-		s: "etnx"
+		s: "ETNX"
 	},
 	{
 		id: "electronero-pulse",
-		s: "etnxp"
+		s: "ETNXP"
 	},
 	{
 		id: "electroneum",
-		s: "etn"
+		s: "ETN"
 	},
 	{
 		id: "electronic-energy-coin",
-		s: "e2c"
+		s: "E2C"
 	},
 	{
 		id: "electronicgulden",
-		s: "efl"
+		s: "EFL"
 	},
 	{
 		id: "electronic-move-pay",
-		s: "emp"
+		s: "EMP"
 	},
 	{
 		id: "electronic-pk-chain",
-		s: "epc"
+		s: "EPC"
 	},
 	{
 		id: "electrum-dark",
-		s: "eld"
+		s: "ELD"
 	},
 	{
 		id: "elementrem",
-		s: "ele"
+		s: "ELE"
 	},
 	{
 		id: "elevate",
-		s: "ele"
+		s: "ELE"
 	},
 	{
 		id: "elevation-token",
-		s: "evt"
+		s: "EVT"
 	},
 	{
 		id: "eligma",
-		s: "goc"
+		s: "GOC"
 	},
 	{
 		id: "elis",
-		s: "xls"
+		s: "XLS"
 	},
 	{
 		id: "elite-swap",
-		s: "elt"
+		s: "ELT"
 	},
 	{
 		id: "elitium",
-		s: "eum"
+		s: "EUM"
 	},
 	{
 		id: "ellaism",
-		s: "ella"
+		s: "ELLA"
 	},
 	{
 		id: "elrond-erd-2",
-		s: "egld"
+		s: "EGLD"
 	},
 	{
 		id: "eltcoin",
-		s: "eltcoin"
+		s: "ELTCOIN"
 	},
 	{
 		id: "elxis",
-		s: "lex"
+		s: "LEX"
 	},
 	{
 		id: "elya",
-		s: "elya"
+		s: "ELYA"
 	},
 	{
 		id: "elynet-token",
-		s: "elyx"
+		s: "ELYX"
 	},
 	{
 		id: "elysia",
-		s: "el"
+		s: "EL"
 	},
 	{
 		id: "elysian",
-		s: "ely"
+		s: "ELY"
 	},
 	{
 		id: "emanate",
@@ -31712,443 +31770,439 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "emerald-coin",
-		s: "emdc"
+		s: "EMDC"
 	},
 	{
 		id: "emerald-crypto",
-		s: "emd"
+		s: "EMD"
 	},
 	{
 		id: "emercoin",
-		s: "emc"
+		s: "EMC"
 	},
 	{
 		id: "emergency-coin",
-		s: "eny"
+		s: "ENY"
 	},
 	{
 		id: "eminer",
-		s: "em"
+		s: "EM"
 	},
 	{
 		id: "emirex-token",
-		s: "emrx"
+		s: "EMRX"
 	},
 	{
 		id: "emogi-network",
-		s: "lol"
+		s: "LOL"
 	},
 	{
 		id: "emoji",
-		s: "emoj"
+		s: "EMOJ"
 	},
 	{
 		id: "emojis-farm",
-		s: "emoji"
+		s: "EMOJI"
 	},
 	{
 		id: "e-money",
-		s: "ngm"
+		s: "NGM"
 	},
 	{
 		id: "employment-coin",
-		s: "ec2"
+		s: "EC2"
 	},
 	{
 		id: "empow",
-		s: "em"
+		s: "EM"
 	},
 	{
 		id: "empower-network",
-		s: "mpwr"
+		s: "MPWR"
 	},
 	{
 		id: "empty-set-dollar",
-		s: "esd"
+		s: "ESD"
 	},
 	{
 		id: "empty-set-gold",
-		s: "esg"
+		s: "ESG"
 	},
 	{
 		id: "emrals",
-		s: "emrals"
+		s: "EMRALS"
 	},
 	{
 		id: "enceladus-network",
-		s: "encx"
+		s: "ENCX"
 	},
 	{
 		id: "encocoin",
-		s: "xnk"
+		s: "XNK"
 	},
 	{
 		id: "encocoinplus",
-		s: "epg"
+		s: "EPG"
 	},
 	{
 		id: "encore",
-		s: "encore"
+		s: "ENCORE"
 	},
 	{
 		id: "encrypgen",
-		s: "dna"
+		s: "DNA"
 	},
 	{
 		id: "encryptotel-eth",
-		s: "ett"
+		s: "ETT"
 	},
 	{
 		id: "endor",
-		s: "edr"
+		s: "EDR"
 	},
 	{
 		id: "endorsit",
-		s: "eds"
+		s: "EDS"
 	},
 	{
 		id: "energi",
-		s: "nrg"
+		s: "NRG"
 	},
 	{
 		id: "energo",
-		s: "tsl"
+		s: "TSL"
 	},
 	{
 		id: "energoncoin",
-		s: "tfg1"
+		s: "TFG1"
 	},
 	{
 		id: "energycoin",
-		s: "enrg"
+		s: "ENRG"
 	},
 	{
 		id: "energy-ledger",
-		s: "elx"
+		s: "ELX"
 	},
 	{
 		id: "energy-web-token",
-		s: "ewt"
+		s: "EWT"
 	},
 	{
 		id: "engine",
-		s: "egcc"
+		s: "EGCC"
 	},
 	{
 		id: "enigma",
-		s: "eng"
+		s: "ENG"
 	},
 	{
 		id: "enjincoin",
-		s: "enj"
+		s: "ENJ"
 	},
 	{
 		id: "enkronos",
-		s: "enk"
+		s: "ENK"
 	},
 	{
 		id: "enq-enecuum",
-		s: "enq"
+		s: "ENQ"
 	},
 	{
 		id: "en-tan-mo",
-		s: "etm"
+		s: "ETM"
 	},
 	{
 		id: "entercoin",
-		s: "entrc"
+		s: "ENTRC"
 	},
 	{
 		id: "entherfound",
-		s: "etf"
+		s: "ETF"
 	},
 	{
 		id: "entone",
-		s: "entone"
+		s: "ENTONE"
 	},
 	{
 		id: "enumivo",
-		s: "enu"
+		s: "ENU"
 	},
 	{
 		id: "envion",
-		s: "evn"
+		s: "EVN"
 	},
 	{
 		id: "eos",
-		s: "eos"
+		s: "EOS"
 	},
 	{
 		id: "eosbet",
-		s: "bet"
+		s: "BET"
 	},
 	{
 		id: "eosblack",
-		s: "black"
+		s: "BLACK"
 	},
 	{
 		id: "eos-btc",
-		s: "ebtc"
+		s: "EBTC"
 	},
 	{
 		id: "eosdac",
-		s: "eosdac"
+		s: "EOSDAC"
 	},
 	{
 		id: "eos-eth",
-		s: "eeth"
+		s: "EETH"
 	},
 	{
 		id: "eosforce",
-		s: "eosc"
-	},
-	{
-		id: "eoshash",
-		s: "hash"
+		s: "EOSC"
 	},
 	{
 		id: "eos-pow-coin",
-		s: "pow"
+		s: "POW"
 	},
 	{
 		id: "eos-trust",
-		s: "eost"
+		s: "EOST"
 	},
 	{
 		id: "eox",
-		s: "eox"
+		s: "EOX"
 	},
 	{
 		id: "epacoin",
-		s: "epc"
+		s: "EPC"
 	},
 	{
 		id: "epanus",
-		s: "eps"
+		s: "EPS"
 	},
 	{
 		id: "epcoin",
-		s: "epc"
+		s: "EPC"
 	},
 	{
 		id: "epic",
-		s: "epic"
+		s: "EPIC"
 	},
 	{
 		id: "epic-cash",
-		s: "epic"
+		s: "EPIC"
 	},
 	{
 		id: "epluscoin",
-		s: "eplus"
+		s: "EPLUS"
 	},
 	{
 		id: "equal",
-		s: "eql"
+		s: "EQL"
 	},
 	{
 		id: "equilibrium-eosdt",
-		s: "eosdt"
+		s: "EOSDT"
 	},
 	{
 		id: "equitrader",
-		s: "eqt"
+		s: "EQT"
 	},
 	{
 		id: "equus-mining-token",
-		s: "eqmt"
+		s: "EQMT"
 	},
 	{
 		id: "e-radix",
-		s: "exrd"
+		s: "EXRD"
 	},
 	{
 		id: "era-swap-token",
-		s: "es"
+		s: "ES"
 	},
 	{
 		id: "erc20",
-		s: "erc20"
+		s: "ERC20"
 	},
 	{
 		id: "erc223",
-		s: "erc223"
+		s: "ERC223"
 	},
 	{
 		id: "ercaux",
-		s: "raux"
+		s: "RAUX"
 	},
 	{
 		id: "ergo",
-		s: "erg"
+		s: "ERG"
 	},
 	{
 		id: "eristica",
-		s: "ert"
+		s: "ERT"
 	},
 	{
 		id: "eros",
-		s: "ers"
+		s: "ERS"
 	},
 	{
 		id: "eroscoin",
-		s: "ero"
+		s: "ERO"
 	},
 	{
 		id: "escobar",
-		s: "qusd"
+		s: "QUSD"
 	},
 	{
 		id: "escoin-token",
-		s: "elg"
+		s: "ELG"
 	},
 	{
 		id: "escroco",
-		s: "esce"
+		s: "ESCE"
 	},
 	{
 		id: "escudonavacense",
-		s: "esn"
+		s: "ESN"
 	},
 	{
 		id: "escx-token",
-		s: "escx"
+		s: "ESCX"
 	},
 	{
 		id: "eska",
-		s: "esk"
+		s: "ESK"
 	},
 	{
 		id: "espers",
-		s: "esp"
+		s: "ESP"
 	},
 	{
 		id: "e-sport-betting-coin",
-		s: "esbc"
+		s: "ESBC"
 	},
 	{
 		id: "esports",
-		s: "ert"
+		s: "ERT"
 	},
 	{
 		id: "esportspro",
-		s: "espro"
+		s: "ESPRO"
 	},
 	{
 		id: "essek-tov",
-		s: "eto"
+		s: "ETO"
 	},
 	{
 		id: "essentia",
-		s: "ess"
+		s: "ESS"
 	},
 	{
 		id: "etc8",
-		s: "etc8"
+		s: "ETC8"
 	},
 	{
 		id: "eterbase",
-		s: "xbase"
+		s: "XBASE"
 	},
 	{
 		id: "eternal-cash",
-		s: "ec"
+		s: "EC"
 	},
 	{
 		id: "eternity",
-		s: "ent"
+		s: "ENT"
 	},
 	{
 		id: "etf-dao",
-		s: "tfd"
+		s: "TFD"
 	},
 	{
 		id: "etg-finance",
-		s: "etgf"
+		s: "ETGF"
 	},
 	{
 		id: "eth-12-day-ema-crossover-set",
-		s: "eth12emaco"
+		s: "ETH12EMACO"
 	},
 	{
 		id: "eth_20_day_ma_crossover_set",
-		s: "eth20smaco"
+		s: "ETH20SMACO"
 	},
 	{
 		id: "eth-20-day-ma-crossover-yield-set",
-		s: "ethmacoapy"
+		s: "ETHMACOAPY"
 	},
 	{
 		id: "eth-20-ma-crossover-yield-set-ii",
-		s: "eth20macoapy"
+		s: "ETH20MACOAPY"
 	},
 	{
 		id: "eth-26-day-ema-crossover-set",
-		s: "eth26emaco"
+		s: "ETH26EMACO"
 	},
 	{
 		id: "eth-26-ema-crossover-yield-set",
-		s: "ethemaapy"
+		s: "ETHEMAAPY"
 	},
 	{
 		id: "eth-26-ma-crossover-yield-ii",
-		s: "ethemaapy"
+		s: "ETHEMAAPY"
 	},
 	{
 		id: "eth2-staking-by-poolx",
-		s: "eth2"
+		s: "ETH2"
 	},
 	{
 		id: "eth-2x-flexible-leverage-index",
-		s: "ETH2x-FLI"
+		s: "ETH2X-FLI"
 	},
 	{
 		id: "eth-50-day-ma-crossover-set",
-		s: "eth50smaco"
+		s: "ETH50SMACO"
 	},
 	{
 		id: "eth-ai-limit-loss",
-		s: "ell"
+		s: "ELL"
 	},
 	{
 		id: "etha-lend",
-		s: "etha"
+		s: "ETHA"
 	},
 	{
 		id: "ethanol",
-		s: "enol"
+		s: "ENOL"
 	},
 	{
 		id: "ethart",
-		s: "arte"
+		s: "ARTE"
 	},
 	{
 		id: "ethbnt",
-		s: "ethbnt"
+		s: "ETHBNT"
 	},
 	{
 		id: "ethbold",
-		s: "etbold"
+		s: "ETBOLD"
 	},
 	{
 		id: "eth-btc-75-25-weight-set",
-		s: "ethbtc7525"
+		s: "ETHBTC7525"
 	},
 	{
 		id: "eth-btc-ema-ratio-trading-set",
-		s: "ethbtcemaco"
+		s: "ETHBTCEMACO"
 	},
 	{
 		id: "eth-btc-long-only-alpha-portfolio",
-		s: "ebloap"
+		s: "EBLOAP"
 	},
 	{
 		id: "eth-btc-rsi-ratio-trading-set",
-		s: "ethbtcrsi"
+		s: "ETHBTCRSI"
 	},
 	{
 		id: "etheal",
-		s: "heal"
+		s: "HEAL"
 	},
 	{
 		id: "ether-1",
@@ -32156,327 +32210,327 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "etherbone",
-		s: "ethbn"
+		s: "ETHBN"
 	},
 	{
 		id: "ethercoin-2",
-		s: "ete"
+		s: "ETE"
 	},
 	{
 		id: "etheremontoken",
-		s: "emont"
+		s: "EMONT"
 	},
 	{
 		id: "ethereum",
-		s: "eth"
+		s: "ETH"
 	},
 	{
 		id: "ethereumai",
-		s: "eai"
+		s: "EAI"
 	},
 	{
 		id: "ethereum-cash",
-		s: "ecash"
+		s: "ECASH"
 	},
 	{
 		id: "ethereum-classic",
-		s: "etc"
+		s: "ETC"
 	},
 	{
 		id: "ethereum-cloud",
-		s: "ety"
+		s: "ETY"
 	},
 	{
 		id: "ethereum-erush",
-		s: "eer"
+		s: "EER"
 	},
 	{
 		id: "ethereum-gold",
-		s: "etg"
+		s: "ETG"
 	},
 	{
 		id: "ethereum-gold-project",
-		s: "etgp"
-	},
-	{
-		id: "ethereum-high-yield-set",
-		s: "ehy"
+		s: "ETGP"
 	},
 	{
 		id: "ethereum-lightning-token",
-		s: "etlt"
+		s: "ETLT"
 	},
 	{
 		id: "ethereum-lite",
-		s: "elite"
+		s: "ELITE"
 	},
 	{
 		id: "ethereum-message-search",
-		s: "ems"
+		s: "EMS"
 	},
 	{
 		id: "ethereum-meta",
-		s: "ethm"
+		s: "ETHM"
 	},
 	{
 		id: "ethereum-money",
-		s: "ethmny"
+		s: "ETHMNY"
 	},
 	{
 		id: "ethereumsc",
-		s: "ethsc"
+		s: "ETHSC"
 	},
 	{
 		id: "ethereum-stake",
-		s: "ethys"
+		s: "ETHYS"
 	},
 	{
 		id: "ethereum-vault",
-		s: "ethv"
+		s: "ETHV"
 	},
 	{
 		id: "ethereumx",
-		s: "etx"
+		s: "ETX"
 	},
 	{
 		id: "ethereum-yield",
-		s: "ethy"
+		s: "ETHY"
 	},
 	{
 		id: "ethergem",
-		s: "egem"
+		s: "EGEM"
 	},
 	{
 		id: "etherinc",
-		s: "eti"
+		s: "ETI"
 	},
 	{
 		id: "etherisc",
-		s: "dip"
+		s: "DIP"
 	},
 	{
 		id: "ether-kingdoms-token",
-		s: "imp"
+		s: "IMP"
+	},
+	{
+		id: "etherland",
+		s: "ELAND"
 	},
 	{
 		id: "ether-legends",
-		s: "elet"
+		s: "ELET"
 	},
 	{
 		id: "ethernity-chain",
-		s: "ern"
+		s: "ERN"
 	},
 	{
 		id: "etheroll",
-		s: "dice"
+		s: "DICE"
 	},
 	{
 		id: "etherparty",
-		s: "fuel"
+		s: "FUEL"
 	},
 	{
 		id: "etherpay",
-		s: "ethpy"
+		s: "ETHPY"
 	},
 	{
 		id: "ethersportz",
-		s: "esz"
+		s: "ESZ"
 	},
 	{
 		id: "etherzero",
-		s: "etz"
+		s: "ETZ"
 	},
 	{
 		id: "ethichub",
-		s: "ethix"
+		s: "ETHIX"
 	},
 	{
 		id: "ethlend",
-		s: "lend"
+		s: "LEND"
 	},
 	{
 		id: "eth-limited",
-		s: "eld"
+		s: "ELD"
 	},
 	{
 		id: "eth-link-price-action-candlestick-set",
-		s: "linkethpa"
+		s: "LINKETHPA"
 	},
 	{
 		id: "eth-long-only-alpha-portfolio",
-		s: "eloap"
+		s: "ELOAP"
 	},
 	{
 		id: "eth-momentum-trigger-set",
-		s: "ethmo"
+		s: "ETHMO"
 	},
 	{
 		id: "eth-moonshot-x-set",
-		s: "ethmoonx"
+		s: "ETHMOONX"
 	},
 	{
 		id: "eth-moonshot-x-yield-set",
-		s: "ethmoonx"
+		s: "ETHMOONX"
 	},
 	{
 		id: "ethopt",
-		s: "opt"
+		s: "OPT"
 	},
 	{
 		id: "ethorse",
-		s: "horse"
+		s: "HORSE"
 	},
 	{
 		id: "ethos",
-		s: "vgx"
+		s: "VGX"
 	},
 	{
 		id: "ethplode",
-		s: "ethplo"
+		s: "ETHPLO"
 	},
 	{
 		id: "ethplus",
-		s: "ethp"
+		s: "ETHP"
 	},
 	{
 		id: "eth-price-action-candlestick-set",
-		s: "ethpa"
+		s: "ETHPA"
 	},
 	{
 		id: "eth-rsi-60-40-crossover-set",
-		s: "ethrsi6040"
+		s: "ETHRSI6040"
 	},
 	{
 		id: "eth-rsi-60-40-yield-set",
-		s: "ethrsiapy"
+		s: "ETHRSIAPY"
 	},
 	{
 		id: "eth-rsi-60-40-yield-set-ii",
-		s: "ethrsiapy"
+		s: "ETHRSIAPY"
 	},
 	{
 		id: "eth-smart-beta-set",
-		s: "ethsb"
+		s: "ETHSB"
 	},
 	{
 		id: "eth-trending-alpha-st-set-ii",
-		s: "etas"
+		s: "ETAS"
 	},
 	{
 		id: "ethusd-adl-4h-set",
-		s: "ethusdadl4"
+		s: "ETHUSDADL4"
 	},
 	{
 		id: "ethverse",
-		s: "ethv"
+		s: "ETHV"
 	},
 	{
 		id: "etor",
-		s: "etor"
+		s: "ETOR"
 	},
 	{
 		id: "etoro-euro",
-		s: "eurx"
+		s: "EURX"
 	},
 	{
 		id: "etoro-new-zealand-dollar",
-		s: "nzdx"
+		s: "NZDX"
 	},
 	{
 		id: "etoro-pound-sterling",
-		s: "gbpx"
+		s: "GBPX"
 	},
 	{
 		id: "etrade",
-		s: "ett"
+		s: "ETT"
 	},
 	{
 		id: "eub-chain",
-		s: "eubc"
+		s: "EUBC"
 	},
 	{
 		id: "euno",
-		s: "euno"
+		s: "EUNO"
 	},
 	{
 		id: "eunomia",
-		s: "ents"
+		s: "ENTS"
 	},
 	{
 		id: "eup-chain",
-		s: "eup"
+		s: "EUP"
 	},
 	{
 		id: "eurbase",
-		s: "ebase"
+		s: "EBASE"
 	},
 	{
 		id: "eureka-coin",
-		s: "erk"
+		s: "ERK"
 	},
 	{
 		id: "eurocoinpay",
-		s: "ecte"
+		s: "ECTE"
 	},
 	{
 		id: "europecoin",
-		s: "erc"
+		s: "ERC"
 	},
 	{
 		id: "eurxb",
-		s: "eurxb"
+		s: "EURXB"
 	},
 	{
 		id: "evacash",
-		s: "evc"
+		s: "EVC"
 	},
 	{
 		id: "eva-coin",
-		s: "eva"
+		s: "EVA"
 	},
 	{
 		id: "evan",
-		s: "evan"
+		s: "EVAN"
 	},
 	{
 		id: "evedo",
-		s: "eved"
+		s: "EVED"
 	},
 	{
 		id: "evencoin",
-		s: "evn"
+		s: "EVN"
 	},
 	{
 		id: "eventchain",
-		s: "evc"
+		s: "EVC"
 	},
 	{
 		id: "everex",
-		s: "evx"
+		s: "EVX"
 	},
 	{
 		id: "everid",
-		s: "id"
+		s: "ID"
 	},
 	{
 		id: "everipedia",
-		s: "iq"
+		s: "IQ"
 	},
 	{
 		id: "everitoken",
-		s: "evt"
+		s: "EVT"
 	},
 	{
 		id: "everus",
-		s: "evr"
+		s: "EVR"
 	},
 	{
 		id: "everycoin",
-		s: "evy"
+		s: "EVY"
 	},
 	{
 		id: "everyonescrypto",
-		s: "eoc"
+		s: "EOC"
 	},
 	{
 		id: "everyonetoken",
@@ -32484,123 +32538,123 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "every-original",
-		s: "eveo"
+		s: "EVEO"
 	},
 	{
 		id: "evil-coin",
-		s: "evil"
+		s: "EVIL"
 	},
 	{
 		id: "evimeria",
-		s: "evi"
+		s: "EVI"
 	},
 	{
 		id: "evolution-finance",
-		s: "evn"
+		s: "EVN"
 	},
 	{
 		id: "evrice",
-		s: "evc"
+		s: "EVC"
 	},
 	{
 		id: "excavo-finance",
-		s: "cavo"
+		s: "CAVO"
 	},
 	{
 		id: "exchain",
-		s: "ext"
+		s: "EXT"
 	},
 	{
 		id: "exchangen",
-		s: "exn"
+		s: "EXN"
 	},
 	{
 		id: "exchange-payment-coin",
-		s: "exp"
+		s: "EXP"
 	},
 	{
 		id: "exchange-union",
-		s: "xuc"
+		s: "XUC"
 	},
 	{
 		id: "exciting-japan-coin",
-		s: "xjp"
+		s: "XJP"
 	},
 	{
 		id: "exclusivecoin",
-		s: "excl"
+		s: "EXCL"
 	},
 	{
 		id: "exeedme",
-		s: "xed"
+		s: "XED"
 	},
 	{
 		id: "exenox-mobile",
-		s: "exnx"
+		s: "EXNX"
 	},
 	{
 		id: "exgold",
-		s: "exg"
+		s: "EXG"
 	},
 	{
 		id: "exmo-coin",
-		s: "exm"
+		s: "EXM"
 	},
 	{
 		id: "exmr-monero",
-		s: "exmr"
+		s: "EXMR"
 	},
 	{
 		id: "exnce",
-		s: "xnc"
+		s: "XNC"
 	},
 	{
 		id: "exnetwork-token",
-		s: "exnt"
+		s: "EXNT"
 	},
 	{
 		id: "exor",
-		s: "exor"
+		s: "EXOR"
 	},
 	{
 		id: "exosis",
-		s: "exo"
+		s: "EXO"
 	},
 	{
 		id: "expanse",
-		s: "exp"
+		s: "EXP"
 	},
 	{
 		id: "experience-chain",
-		s: "xpc"
+		s: "XPC"
 	},
 	{
 		id: "experiencecoin",
-		s: "epc"
+		s: "EPC"
 	},
 	{
 		id: "experty",
-		s: "exy"
+		s: "EXY"
 	},
 	{
 		id: "experty-wisdom-token",
-		s: "wis"
+		s: "WIS"
 	},
 	{
 		id: "exrnchain",
-		s: "exrn"
+		s: "EXRN"
 	},
 	{
 		id: "exrt-network",
-		s: "exrt"
+		s: "EXRT"
 	},
 	{
 		id: "extend-finance",
-		s: "exf"
+		s: "EXF"
 	},
 	{
 		id: "extradna",
-		s: "xdna"
+		s: "XDNA"
 	},
 	{
 		id: "extreme-private-masternode-coin",
@@ -32608,1019 +32662,1027 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "extstock-token",
-		s: "xt"
+		s: "XT"
 	},
 	{
 		id: "exus-coin",
-		s: "exus"
+		s: "EXUS"
 	},
 	{
 		id: "eyes-protocol",
-		s: "eyes"
+		s: "EYES"
 	},
 	{
 		id: "ezoow",
-		s: "ezw"
+		s: "EZW"
 	},
 	{
 		id: "ezystayz",
-		s: "ezy"
+		s: "EZY"
 	},
 	{
 		id: "face",
-		s: "face"
+		s: "FACE"
 	},
 	{
 		id: "facite",
-		s: "fit"
+		s: "FIT"
 	},
 	{
 		id: "factom",
-		s: "fct"
+		s: "FCT"
 	},
 	{
 		id: "facts",
-		s: "bkc"
+		s: "BKC"
 	},
 	{
 		id: "faircoin",
-		s: "fair"
+		s: "FAIR"
 	},
 	{
 		id: "fairgame",
-		s: "fair"
+		s: "FAIR"
 	},
 	{
 		id: "fairum",
-		s: "fai"
+		s: "FAI"
 	},
 	{
 		id: "fairyland",
-		s: "fldt"
+		s: "FLDT"
 	},
 	{
 		id: "faithcoin",
-		s: "faith"
+		s: "FAITH"
 	},
 	{
 		id: "falcon-token",
-		s: "fnt"
+		s: "FNT"
 	},
 	{
 		id: "falopa",
-		s: "flp"
+		s: "FLP"
 	},
 	{
 		id: "fame",
-		s: "fame"
+		s: "FAME"
+	},
+	{
+		id: "famous-coin",
+		s: "FAMOUS"
 	},
 	{
 		id: "fanaticos-cash",
-		s: "fch"
+		s: "FCH"
 	},
 	{
 		id: "fanbi-token",
-		s: "fbt"
+		s: "FBT"
 	},
 	{
 		id: "fango",
-		s: "xfg"
+		s: "XFG"
 	},
 	{
 		id: "fanstime",
-		s: "fti"
+		s: "FTI"
 	},
 	{
 		id: "fanta-finance",
-		s: "fanta"
+		s: "FANTA"
 	},
 	{
 		id: "fantasy-gold",
-		s: "fgc"
+		s: "FGC"
 	},
 	{
 		id: "fantom",
-		s: "ftm"
+		s: "FTM"
 	},
 	{
 		id: "fanzy",
-		s: "fx1"
+		s: "FX1"
 	},
 	{
 		id: "farm-defi",
-		s: "pfarm"
+		s: "PFARM"
 	},
 	{
 		id: "farming-bad",
-		s: "meth"
+		s: "METH"
 	},
 	{
 		id: "farmland-protocol",
-		s: "far"
+		s: "FAR"
 	},
 	{
 		id: "fashion-coin",
-		s: "fshn"
+		s: "FSHN"
 	},
 	{
 		id: "fastswap",
-		s: "fast"
+		s: "FAST"
 	},
 	{
 		id: "fatcoin",
-		s: "fat"
+		s: "FAT"
 	},
 	{
 		id: "fc-barcelona-fan-token",
-		s: "bar"
+		s: "BAR"
 	},
 	{
 		id: "fc-bitcoin",
-		s: "fcbtc"
+		s: "FCBTC"
 	},
 	{
 		id: "fds",
-		s: "fds"
+		s: "FDS"
 	},
 	{
 		id: "fear-greed-sentiment-set-ii",
-		s: "greed"
+		s: "GREED"
 	},
 	{
 		id: "feathercoin",
-		s: "ftc"
+		s: "FTC"
 	},
 	{
 		id: "fedoracoin",
-		s: "tips"
+		s: "TIPS"
 	},
 	{
 		id: "fedora-gold",
-		s: "fed"
+		s: "FED"
 	},
 	{
 		id: "fee-active-collateral-token",
-		s: "fact"
+		s: "FACT"
 	},
 	{
 		id: "feellike",
-		s: "fll"
+		s: "FLL"
 	},
 	{
 		id: "feg-token",
-		s: "feg"
+		s: "FEG"
 	},
 	{
 		id: "feirm",
-		s: "xfe"
+		s: "XFE"
 	},
 	{
 		id: "felix",
-		s: "flx"
+		s: "FLX"
 	},
 	{
 		id: "fera",
-		s: "fera"
+		s: "FERA"
 	},
 	{
 		id: "ferrum-network",
-		s: "frm"
+		s: "FRM"
 	},
 	{
 		id: "fess-chain",
-		s: "fess"
+		s: "FESS"
 	},
 	{
 		id: "fetch-ai",
-		s: "fet"
+		s: "FET"
 	},
 	{
 		id: "fetish-coin",
-		s: "fetish"
+		s: "FETISH"
 	},
 	{
 		id: "fex-token",
-		s: "fex"
+		s: "FEX"
 	},
 	{
 		id: "feyorra",
-		s: "fey"
+		s: "FEY"
 	},
 	{
 		id: "fibos",
-		s: "fo"
+		s: "FO"
 	},
 	{
 		id: "fidex-exchange",
-		s: "fex"
+		s: "FEX"
 	},
 	{
 		id: "fil12",
-		s: "fil12"
+		s: "FIL12"
 	},
 	{
 		id: "fil36",
-		s: "fil36"
+		s: "FIL36"
 	},
 	{
 		id: "filda",
-		s: "filda"
+		s: "FILDA"
 	},
 	{
 		id: "filecash",
-		s: "fic"
+		s: "FIC"
 	},
 	{
 		id: "filecoin",
-		s: "fil"
+		s: "FIL"
 	},
 	{
 		id: "filecoin-iou",
-		s: "fil6"
+		s: "FIL6"
 	},
 	{
 		id: "filenet",
-		s: "fn"
+		s: "FN"
 	},
 	{
 		id: "filestar",
-		s: "star"
+		s: "STAR"
 	},
 	{
 		id: "filestorm",
-		s: "fst"
+		s: "FST"
 	},
 	{
 		id: "finance-vote",
-		s: "fvt"
+		s: "FVT"
 	},
 	{
 		id: "financex-exchange",
-		s: "fnx"
+		s: "FNX"
 	},
 	{
 		id: "financex-exchange-token",
-		s: "fnxs"
+		s: "FNXS"
 	},
 	{
 		id: "financial-investment-token",
-		s: "fit"
+		s: "FIT"
 	},
 	{
 		id: "finchain",
-		s: "jrc"
+		s: "JRC"
 	},
 	{
 		id: "find-your-developer",
-		s: "fyd"
+		s: "FYD"
 	},
 	{
 		id: "finexbox-token",
-		s: "fnb"
+		s: "FNB"
 	},
 	{
 		id: "fingerprint",
-		s: "fgp"
+		s: "FGP"
 	},
 	{
 		id: "finiko",
-		s: "fnk"
+		s: "FNK"
 	},
 	{
 		id: "finnexus",
-		s: "fnx"
+		s: "FNX"
 	},
 	{
 		id: "finple",
-		s: "fpt"
+		s: "FPT"
 	},
 	{
 		id: "finswap",
-		s: "fnsp"
+		s: "FNSP"
 	},
 	{
 		id: "fintab",
-		s: "fntb"
+		s: "FNTB"
 	},
 	{
 		id: "fintrux",
-		s: "ftx"
+		s: "FTX"
 	},
 	{
 		id: "finxflo",
-		s: "fxf"
+		s: "FXF"
 	},
 	{
 		id: "fiola",
-		s: "fla"
+		s: "FLA"
 	},
 	{
 		id: "fio-protocol",
-		s: "fio"
+		s: "FIO"
 	},
 	{
 		id: "firdaos",
-		s: "fdo"
+		s: "FDO"
 	},
 	{
 		id: "fireants",
-		s: "ants"
+		s: "ANTS"
 	},
 	{
 		id: "fireball",
-		s: "fire"
+		s: "FIRE"
 	},
 	{
 		id: "fire-lotto",
-		s: "flot"
+		s: "FLOT"
 	},
 	{
 		id: "fire-protocol",
-		s: "fire"
+		s: "FIRE"
 	},
 	{
 		id: "firmachain",
-		s: "fct"
+		s: "FCT"
 	},
 	{
 		id: "first-bitcoin",
-		s: "bit"
+		s: "BIT"
 	},
 	{
 		id: "fisco",
-		s: "fscc"
+		s: "FSCC"
 	},
 	{
 		id: "fiscus-fyi",
-		s: "ffyi"
+		s: "FFYI"
 	},
 	{
 		id: "fission-cash",
-		s: "fcx"
+		s: "FCX"
 	},
 	{
 		id: "five-balance",
-		s: "fbn"
+		s: "FBN"
 	},
 	{
 		id: "five-star-coin",
-		s: "fsc"
+		s: "FSC"
 	},
 	{
 		id: "fixed-trade-coin",
-		s: "fxtc"
+		s: "FXTC"
 	},
 	{
 		id: "fk-coin",
-		s: "fk"
+		s: "FK"
 	},
 	{
 		id: "flama",
-		s: "fma"
+		s: "FMA"
 	},
 	{
 		id: "flamingo-finance",
-		s: "flm"
+		s: "FLM"
 	},
 	{
 		id: "flapp",
-		s: "flap"
+		s: "FLAP"
 	},
 	{
 		id: "flash",
-		s: "flash"
+		s: "FLASH"
 	},
 	{
 		id: "flash-stake",
-		s: "flash"
+		s: "FLASH"
 	},
 	{
 		id: "flashswap",
-		s: "fsp"
+		s: "FSP"
 	},
 	{
 		id: "flashx-advance",
-		s: "fsxa"
+		s: "FSXA"
 	},
 	{
 		id: "flashx-ultra",
-		s: "fsxu"
+		s: "FSXU"
 	},
 	{
 		id: "fleta",
-		s: "fleta"
+		s: "FLETA"
 	},
 	{
 		id: "flex-coin",
-		s: "flex"
+		s: "FLEX"
 	},
 	{
 		id: "flexeth-btc-set",
-		s: "flexethbtc"
+		s: "FLEXETHBTC"
 	},
 	{
 		id: "flex-usd",
-		s: "flexusd"
+		s: "FLEXUSD"
 	},
 	{
 		id: "fline",
-		s: "fln"
+		s: "FLN"
 	},
 	{
 		id: "flits",
-		s: "fls"
+		s: "FLS"
 	},
 	{
 		id: "flit-token",
-		s: "flt"
+		s: "FLT"
 	},
 	{
 		id: "flixxo",
-		s: "flixx"
+		s: "FLIXX"
 	},
 	{
 		id: "flo",
-		s: "flo"
+		s: "FLO"
 	},
 	{
 		id: "float-protocol",
-		s: "bank"
+		s: "BANK"
 	},
 	{
 		id: "florafic",
-		s: "fic"
+		s: "FIC"
+	},
+	{
+		id: "flourmix",
+		s: "FLO"
 	},
 	{
 		id: "flow",
-		s: "flow"
+		s: "FLOW"
 	},
 	{
 		id: "flowchaincoin",
-		s: "flc"
+		s: "FLC"
 	},
 	{
 		id: "fluttercoin",
-		s: "flt"
+		s: "FLT"
 	},
 	{
 		id: "flux",
-		s: "flux"
+		s: "FLUX"
 	},
 	{
 		id: "flynnjamm",
-		s: "jamm"
+		s: "JAMM"
 	},
 	{
 		id: "flypme",
-		s: "fyp"
+		s: "FYP"
 	},
 	{
 		id: "fme",
-		s: "fme"
+		s: "FME"
 	},
 	{
 		id: "fnaticx",
-		s: "fnax"
+		s: "FNAX"
 	},
 	{
 		id: "fnb-protocol",
-		s: "fnb"
+		s: "FNB"
 	},
 	{
 		id: "foam-protocol",
-		s: "foam"
+		s: "FOAM"
 	},
 	{
 		id: "foincoin",
-		s: "foin"
+		s: "FOIN"
 	},
 	{
 		id: "folder-protocol",
-		s: "fol"
+		s: "FOL"
 	},
 	{
 		id: "foldingcoin",
-		s: "fldc"
+		s: "FLDC"
 	},
 	{
 		id: "fompound",
-		s: "fomp"
+		s: "FOMP"
 	},
 	{
 		id: "font",
-		s: "font"
+		s: "FONT"
 	},
 	{
 		id: "foodcoin",
-		s: "food"
+		s: "FOOD"
 	},
 	{
 		id: "football-coin",
-		s: "xfc"
+		s: "XFC"
 	},
 	{
 		id: "force-for-fast",
-		s: "fff"
+		s: "FFF"
 	},
 	{
 		id: "force-protocol",
-		s: "for"
+		s: "FOR"
 	},
 	{
 		id: "foresight",
-		s: "fors"
+		s: "FORS"
 	},
 	{
 		id: "foresterx",
-		s: "fex"
+		s: "FEX"
 	},
 	{
 		id: "foresting",
-		s: "pton"
+		s: "PTON"
 	},
 	{
 		id: "forexcoin",
-		s: "forex"
+		s: "FOREX"
 	},
 	{
 		id: "formula",
-		s: "fml"
+		s: "FML"
 	},
 	{
 		id: "forte-coin",
-		s: "fotc"
+		s: "FOTC"
 	},
 	{
 		id: "fortknoxter",
-		s: "fkx"
+		s: "FKX"
 	},
 	{
 		id: "fortuna",
-		s: "fota"
+		s: "FOTA"
 	},
 	{
 		id: "fortune1coin",
-		s: "ft1"
+		s: "FT1"
 	},
 	{
 		id: "forty-seven-bank",
-		s: "fsbt"
+		s: "FSBT"
 	},
 	{
 		id: "foundgame",
-		s: "fgc"
+		s: "FGC"
 	},
 	{
 		id: "foundrydao-logistics",
-		s: "fry"
+		s: "FRY"
 	},
 	{
 		id: "fountain",
-		s: "ftn"
+		s: "FTN"
 	},
 	{
 		id: "foxdcoin",
-		s: "foxd"
+		s: "FOXD"
 	},
 	{
 		id: "foxswap",
-		s: "fox"
+		s: "FOX"
 	},
 	{
 		id: "fox-token",
-		s: "fox"
+		s: "FOX"
 	},
 	{
 		id: "fox-trading-token",
-		s: "foxt"
+		s: "FOXT"
 	},
 	{
 		id: "fractal",
-		s: "fcl"
+		s: "FCL"
 	},
 	{
 		id: "frasindo-rent",
-		s: "fras"
+		s: "FRAS"
 	},
 	{
 		id: "frax",
-		s: "frax"
+		s: "FRAX"
 	},
 	{
 		id: "frax-share",
-		s: "fxs"
+		s: "FXS"
 	},
 	{
 		id: "fredenergy",
-		s: "fred"
+		s: "FRED"
 	},
 	{
 		id: "freecash",
-		s: "fch"
+		s: "FCH"
 	},
 	{
 		id: "free-coin",
-		s: "free"
+		s: "FREE"
 	},
 	{
 		id: "freedom-reserve",
-		s: "fr"
+		s: "FR"
 	},
 	{
 		id: "freelancerchain",
-		s: "fcn"
+		s: "FCN"
 	},
 	{
 		id: "freeliquid",
-		s: "fl"
+		s: "FL"
 	},
 	{
 		id: "freetip",
-		s: "ftt"
+		s: "FTT"
 	},
 	{
 		id: "free-tool-box",
-		s: "ftb"
+		s: "FTB"
 	},
 	{
 		id: "freeway-token",
-		s: "fwt"
+		s: "FWT"
 	},
 	{
 		id: "freicoin",
-		s: "frc"
+		s: "FRC"
 	},
 	{
 		id: "freight-trust-network",
-		s: "edi"
+		s: "EDI"
 	},
 	{
 		id: "french-digital-reserve",
-		s: "fdr"
+		s: "FDR"
 	},
 	{
 		id: "french-ico-coin",
-		s: "fico"
+		s: "FICO"
 	},
 	{
 		id: "frenzy",
-		s: "fzy"
+		s: "FZY"
 	},
 	{
 		id: "freq-set-dollar",
-		s: "fsd"
+		s: "FSD"
 	},
 	{
 		id: "fridaybeers",
-		s: "beer"
+		s: "BEER"
 	},
 	{
 		id: "friends-with-benefits",
-		s: "fwb"
+		s: "FWB"
 	},
 	{
 		id: "friendz",
-		s: "fdz"
+		s: "FDZ"
 	},
 	{
 		id: "frmx-token",
-		s: "frmx"
+		s: "FRMX"
 	},
 	{
 		id: "fromm-car",
-		s: "fcr"
+		s: "FCR"
 	},
 	{
 		id: "frontier-token",
-		s: "front"
+		s: "FRONT"
 	},
 	{
 		id: "frozencoin-network",
-		s: "fz"
+		s: "FZ"
 	},
 	{
 		id: "fryworld",
-		s: "fries"
+		s: "FRIES"
 	},
 	{
 		id: "fsn",
-		s: "fsn"
+		s: "FSN"
 	},
 	{
 		id: "fsw-token",
-		s: "fsw"
+		s: "FSW"
 	},
 	{
 		id: "ftx-token",
-		s: "ftt"
+		s: "FTT"
 	},
 	{
 		id: "fudfinance",
-		s: "fud"
+		s: "FUD"
 	},
 	{
 		id: "fuel-token",
-		s: "fuel"
+		s: "FUEL"
 	},
 	{
 		id: "fujicoin",
-		s: "fjc"
+		s: "FJC"
 	},
 	{
 		id: "fuloos",
-		s: "fls"
+		s: "FLS"
 	},
 	{
 		id: "fundamenta",
-		s: "fmta"
+		s: "FMTA"
 	},
 	{
 		id: "fundchains",
-		s: "fund"
+		s: "FUND"
 	},
 	{
 		id: "funder-one",
-		s: "fundx"
+		s: "FUNDX"
 	},
 	{
 		id: "fundin",
-		s: "fdn"
+		s: "FDN"
 	},
 	{
 		id: "funfair",
-		s: "fun"
+		s: "FUN"
 	},
 	{
 		id: "funjo",
-		s: "funjo"
+		s: "FUNJO"
 	},
 	{
 		id: "funkeypay",
-		s: "fnk"
+		s: "FNK"
 	},
 	{
 		id: "funtime-coin",
-		s: "func"
+		s: "FUNC"
 	},
 	{
 		id: "furucombo",
-		s: "combo"
+		s: "COMBO"
 	},
 	{
 		id: "fuse-network-token",
-		s: "fuse"
+		s: "FUSE"
 	},
 	{
 		id: "fusible",
-		s: "fusii"
+		s: "FUSII"
 	},
 	{
 		id: "fusion-energy-x",
-		s: "fusion"
+		s: "FUSION"
 	},
 	{
 		id: "futurax",
-		s: "ftxt"
+		s: "FTXT"
 	},
 	{
 		id: "future1coin",
-		s: "f1c"
+		s: "F1C"
 	},
 	{
 		id: "future-cash-digital",
-		s: "fcd"
+		s: "FCD"
 	},
 	{
 		id: "futurescoin",
-		s: "fc"
+		s: "FC"
 	},
 	{
 		id: "futurocoin",
-		s: "fto"
+		s: "FTO"
 	},
 	{
 		id: "fuupay",
-		s: "fpt"
+		s: "FPT"
 	},
 	{
 		id: "fuze-token",
-		s: "fuze"
+		s: "FUZE"
 	},
 	{
 		id: "fuzex",
-		s: "fxt"
+		s: "FXT"
 	},
 	{
 		id: "fuzzballs",
-		s: "fuzz"
+		s: "FUZZ"
 	},
 	{
 		id: "fx-coin",
-		s: "fx"
+		s: "FX"
 	},
 	{
 		id: "fxpay",
-		s: "fxp"
+		s: "FXP"
 	},
 	{
 		id: "fxt-token",
-		s: "fxt"
+		s: "FXT"
 	},
 	{
 		id: "fyeth-finance",
-		s: "yeth"
+		s: "YETH"
 	},
 	{
 		id: "fyooz",
-		s: "fyz"
+		s: "FYZ"
 	},
 	{
 		id: "fyznft",
-		s: "fyznft"
+		s: "FYZNFT"
 	},
 	{
 		id: "g999",
-		s: "g999"
+		s: "G999"
 	},
 	{
 		id: "gadoshi",
-		s: "gadoshi"
+		s: "GADOSHI"
 	},
 	{
 		id: "gains-farm",
-		s: "gfarm"
+		s: "GFARM"
 	},
 	{
 		id: "gains-v2",
-		s: "gfarm2"
+		s: "GFARM2"
 	},
 	{
 		id: "gala",
-		s: "gala"
+		s: "GALA"
 	},
 	{
 		id: "galactrum",
-		s: "ore"
+		s: "ORE"
 	},
 	{
 		id: "galatasaray-fan-token",
-		s: "gal"
+		s: "GAL"
 	},
 	{
 		id: "galaxy-network",
-		s: "gnc"
+		s: "GNC"
 	},
 	{
 		id: "galaxy-pool-coin",
-		s: "gpo"
+		s: "GPO"
 	},
 	{
 		id: "galaxy-wallet",
-		s: "gc"
+		s: "GC"
 	},
 	{
 		id: "galilel",
-		s: "gali"
+		s: "GALI"
 	},
 	{
 		id: "gallery-finance",
-		s: "glf"
+		s: "GLF"
 	},
 	{
 		id: "gamb",
-		s: "gmb"
+		s: "GMB"
 	},
 	{
 		id: "gambit",
-		s: "gmt"
+		s: "GMT"
 	},
 	{
 		id: "game",
-		s: "gtc"
+		s: "GTC"
 	},
 	{
 		id: "gamebetcoin",
-		s: "gbt"
+		s: "GBT"
 	},
 	{
 		id: "gamecash",
-		s: "gcash"
+		s: "GCASH"
 	},
 	{
 		id: "game-chain",
-		s: "gmc"
+		s: "GMC"
 	},
 	{
 		id: "game-city",
-		s: "gmci"
+		s: "GMCI"
 	},
 	{
 		id: "gamecredits",
-		s: "game"
+		s: "GAME"
 	},
 	{
 		id: "game-fanz",
-		s: "gfn"
+		s: "GFN"
 	},
 	{
 		id: "gameflip",
-		s: "flp"
+		s: "FLP"
 	},
 	{
 		id: "game-stars",
-		s: "gst"
+		s: "GST"
 	},
 	{
 		id: "gamestop-finance",
-		s: "gme"
+		s: "GME"
 	},
 	{
 		id: "gameswap-org",
-		s: "gswap"
+		s: "GSWAP"
 	},
 	{
 		id: "game-x-coin",
-		s: "gxc"
+		s: "GXC"
 	},
 	{
 		id: "gana",
-		s: "gana"
+		s: "GANA"
 	},
 	{
 		id: "gapcoin",
-		s: "gap"
+		s: "GAP"
 	},
 	{
 		id: "gapp-network",
-		s: "gap"
+		s: "GAP"
 	},
 	{
 		id: "gard-governance-token",
-		s: "ggt"
+		s: "GGT"
 	},
 	{
 		id: "garlicoin",
-		s: "grlc"
+		s: "GRLC"
 	},
 	{
 		id: "gas",
-		s: "gas"
+		s: "GAS"
 	},
 	{
 		id: "gas-cash-back",
-		s: "gcbn"
+		s: "GCBN"
 	},
 	{
 		id: "gasgains",
-		s: "gasg"
+		s: "GASG"
 	},
 	{
 		id: "gasify",
-		s: "gsfy"
+		s: "GSFY"
 	},
 	{
 		id: "gasp",
-		s: "gasp"
+		s: "GASP"
 	},
 	{
 		id: "gastoken",
-		s: "gst2"
+		s: "GST2"
 	},
 	{
 		id: "gastroadvisor",
-		s: "fork"
+		s: "FORK"
 	},
 	{
 		id: "gatcoin",
-		s: "gat"
+		s: "GAT"
 	},
 	{
 		id: "gate",
-		s: "gate"
+		s: "GATE"
 	},
 	{
 		id: "gatechain-token",
-		s: "gt"
+		s: "GT"
 	},
 	{
 		id: "gather",
-		s: "gth"
+		s: "GTH"
 	},
 	{
 		id: "gazecoin",
-		s: "gze"
+		s: "GZE"
 	},
 	{
 		id: "gbrick",
-		s: "gbx"
+		s: "GBX"
 	},
 	{
 		id: "gcn-coin",
-		s: "gcn"
+		s: "GCN"
 	},
 	{
 		id: "gdac-token",
-		s: "gt"
+		s: "GT"
 	},
 	{
 		id: "geeq",
@@ -33628,779 +33690,791 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "gem-exchange-and-trading",
-		s: "gxt"
+		s: "GXT"
 	},
 	{
 		id: "gemini",
-		s: "lgc"
+		s: "LGC"
 	},
 	{
 		id: "gemini-dollar",
-		s: "gusd"
+		s: "GUSD"
 	},
 	{
 		id: "gems-2",
-		s: "gem"
+		s: "GEM"
+	},
+	{
+		id: "gemstone",
+		s: "GST"
 	},
 	{
 		id: "gemswap",
-		s: "gem"
+		s: "GEM"
 	},
 	{
 		id: "gemvault-coin",
-		s: "gvc"
+		s: "GVC"
 	},
 	{
 		id: "genaro-network",
-		s: "gnx"
+		s: "GNX"
 	},
 	{
 		id: "gene",
-		s: "gene"
+		s: "GENE"
 	},
 	{
 		id: "general-attention-currency",
-		s: "xac"
+		s: "XAC"
 	},
 	{
 		id: "generation-of-yield",
-		s: "ygy"
+		s: "YGY"
 	},
 	{
 		id: "genes-chain",
-		s: "genes"
+		s: "GENES"
 	},
 	{
 		id: "genesis-ecology",
-		s: "ge"
+		s: "GE"
 	},
 	{
 		id: "genesis-network",
-		s: "genx"
+		s: "GENX"
 	},
 	{
 		id: "genesis-token",
-		s: "gent"
+		s: "GENT"
 	},
 	{
 		id: "genesis-vision",
-		s: "gvt"
+		s: "GVT"
 	},
 	{
 		id: "genesisx",
-		s: "xgs"
+		s: "XGS"
 	},
 	{
 		id: "gene-source-code-token",
-		s: "gene"
+		s: "GENE"
 	},
 	{
 		id: "genexi",
-		s: "gxi"
+		s: "GXI"
 	},
 	{
 		id: "genix",
-		s: "genix"
+		s: "GENIX"
 	},
 	{
 		id: "genta",
-		s: "gena"
+		s: "GENA"
 	},
 	{
 		id: "gentarium",
-		s: "gtm"
+		s: "GTM"
 	},
 	{
 		id: "geocoin",
-		s: "geo"
+		s: "GEO"
 	},
 	{
 		id: "geodb",
-		s: "geo"
+		s: "GEO"
 	},
 	{
 		id: "gera-coin",
-		s: "gera"
+		s: "GERA"
 	},
 	{
 		id: "germancoin",
-		s: "gcx"
+		s: "GCX"
 	},
 	{
 		id: "ges",
-		s: "ges"
+		s: "GES"
 	},
 	{
 		id: "getmoder",
-		s: "gtmr"
+		s: "GTMR"
 	},
 	{
 		id: "get-token",
-		s: "get"
+		s: "GET"
 	},
 	{
 		id: "geyser",
-		s: "gysr"
+		s: "GYSR"
 	},
 	{
 		id: "geysercoin",
-		s: "gsr"
+		s: "GSR"
 	},
 	{
 		id: "gg-coin",
-		s: "ggc"
+		s: "GGC"
 	},
 	{
 		id: "gg-token",
-		s: "ggtk"
+		s: "GGTK"
 	},
 	{
 		id: "ghost-by-mcafee",
-		s: "ghost"
+		s: "GHOST"
 	},
 	{
 		id: "ghostprism",
-		s: "ghost"
+		s: "GHOST"
 	},
 	{
 		id: "ghost-talk",
-		s: "xscc"
+		s: "XSCC"
 	},
 	{
 		id: "giant",
-		s: "gic"
+		s: "GIC"
 	},
 	{
 		id: "giftedhands",
-		s: "ghd"
+		s: "GHD"
 	},
 	{
 		id: "gifto",
-		s: "gto"
+		s: "GTO"
 	},
 	{
 		id: "giga-watt-token",
-		s: "wtt"
+		s: "WTT"
 	},
 	{
 		id: "gigecoin",
-		s: "gig"
+		s: "GIG"
 	},
 	{
 		id: "giletjaunecoin",
-		s: "gjco"
+		s: "GJCO"
 	},
 	{
 		id: "gimmer",
-		s: "gmr"
+		s: "GMR"
 	},
 	{
 		id: "gincoin",
-		s: "gin"
+		s: "GIN"
 	},
 	{
 		id: "gire-token",
-		s: "get"
+		s: "GET"
 	},
 	{
 		id: "givingtoservices",
-		s: "svcs"
+		s: "SVCS"
 	},
 	{
 		id: "givly-coin",
-		s: "giv"
+		s: "GIV"
 	},
 	{
 		id: "gleec-coin",
-		s: "gleec"
+		s: "GLEEC"
 	},
 	{
 		id: "glex",
-		s: "glex"
+		s: "GLEX"
 	},
 	{
 		id: "glitch-protocol",
-		s: "glch"
+		s: "GLCH"
 	},
 	{
 		id: "global-aex-token",
-		s: "gat"
+		s: "GAT"
 	},
 	{
 		id: "globalboost",
-		s: "bsty"
+		s: "BSTY"
 	},
 	{
 		id: "global-business-hub",
-		s: "gbh"
+		s: "GBH"
 	},
 	{
 		id: "globalchainz",
-		s: "gcz"
+		s: "GCZ"
 	},
 	{
 		id: "global-china-cash",
-		s: "cnc"
+		s: "CNC"
 	},
 	{
 		id: "globalcoin",
-		s: "glc"
+		s: "GLC"
 	},
 	{
 		id: "global-crypto-alliance",
-		s: "call"
+		s: "CALL"
 	},
 	{
 		id: "global-digital-content",
-		s: "gdc"
+		s: "GDC"
 	},
 	{
 		id: "global-gaming",
-		s: "gmng"
+		s: "GMNG"
 	},
 	{
 		id: "global-hash-power",
-		s: "ghp"
+		s: "GHP"
 	},
 	{
 		id: "global-human-trust",
-		s: "ght"
+		s: "GHT"
 	},
 	{
 		id: "global-reserve-system",
-		s: "glob"
+		s: "GLOB"
 	},
 	{
 		id: "global-smart-asset",
-		s: "gsa"
+		s: "GSA"
 	},
 	{
 		id: "global-social-chain",
-		s: "gsc"
+		s: "GSC"
 	},
 	{
 		id: "globaltoken",
-		s: "glt"
+		s: "GLT"
 	},
 	{
 		id: "global-trust-coin",
-		s: "gtc"
+		s: "GTC"
 	},
 	{
 		id: "globaltrustfund-token",
-		s: "gtf"
+		s: "GTF"
 	},
 	{
 		id: "globalvillage-ecosystem",
-		s: "gve"
+		s: "GVE"
 	},
 	{
 		id: "globex",
-		s: "gex"
+		s: "GEX"
 	},
 	{
 		id: "glosfer-token",
-		s: "glo"
+		s: "GLO"
 	},
 	{
 		id: "glovecoin",
-		s: "glov"
+		s: "GLOV"
 	},
 	{
 		id: "glox-finance",
-		s: "glox"
+		s: "GLOX"
 	},
 	{
 		id: "glufco",
-		s: "glf"
+		s: "GLF"
 	},
 	{
 		id: "gmcoin",
-		s: "gm"
+		s: "GM"
 	},
 	{
 		id: "gneiss",
-		s: "gneiss"
+		s: "GNEISS"
 	},
 	{
 		id: "gnosis",
-		s: "gno"
+		s: "GNO"
 	},
 	{
 		id: "gny",
-		s: "gny"
+		s: "GNY"
 	},
 	{
 		id: "goaltime-n",
-		s: "gtx"
+		s: "GTX"
 	},
 	{
 		id: "goat-cash",
-		s: "goat"
+		s: "GOAT"
 	},
 	{
 		id: "goatcoin",
-		s: "goat"
+		s: "GOAT"
 	},
 	{
 		id: "gobyte",
-		s: "gbx"
+		s: "GBX"
 	},
 	{
 		id: "gochain",
-		s: "go"
+		s: "GO"
 	},
 	{
 		id: "goforit",
-		s: "goi"
+		s: "GOI"
 	},
 	{
 		id: "gogo-finance",
-		s: "gogo"
+		s: "GOGO"
 	},
 	{
 		id: "gokumarket-credit",
-		s: "gmc"
+		s: "GMC"
 	},
 	{
 		id: "gold",
-		s: "gold"
+		s: "GOLD"
 	},
 	{
 		id: "gold-and-gold",
-		s: "gng"
+		s: "GNG"
 	},
 	{
 		id: "gold-bcr",
-		s: "gbcr"
+		s: "GBCR"
 	},
 	{
 		id: "goldblock",
-		s: "gbk"
+		s: "GBK"
 	},
 	{
 		id: "goldblocks",
-		s: "gb"
+		s: "GB"
 	},
 	{
 		id: "gold-cash",
-		s: "gold"
+		s: "GOLD"
 	},
 	{
 		id: "goldcoin",
-		s: "glc"
+		s: "GLC"
 	},
 	{
 		id: "gold-coin-reserve",
-		s: "gcr"
+		s: "GCR"
 	},
 	{
 		id: "golden-bridge-coin",
-		s: "gbc"
+		s: "GBC"
 	},
 	{
 		id: "golden-goose",
-		s: "gold"
+		s: "GOLD"
 	},
 	{
 		id: "golden-ratio-coin",
-		s: "goldr"
+		s: "GOLDR"
 	},
 	{
 		id: "golden-ratio-token",
-		s: "grt"
+		s: "GRT"
 	},
 	{
 		id: "golden-token",
-		s: "gold"
+		s: "GOLD"
 	},
 	{
 		id: "goldenugget",
-		s: "gnto"
+		s: "GNTO"
 	},
 	{
 		id: "golder-coin",
-		s: "gldr"
+		s: "GLDR"
 	},
 	{
 		id: "goldfinx",
-		s: "gix"
+		s: "GIX"
 	},
 	{
 		id: "goldfund-ico",
-		s: "gfun"
+		s: "GFUN"
 	},
 	{
 		id: "goldkash",
-		s: "xgk"
+		s: "XGK"
 	},
 	{
 		id: "gold-mining-members",
-		s: "gmm"
+		s: "GMM"
 	},
 	{
 		id: "goldmint",
-		s: "mntp"
+		s: "MNTP"
 	},
 	{
 		id: "goldnero",
-		s: "gldx"
+		s: "GLDX"
 	},
 	{
 		id: "goldpieces",
-		s: "gp"
+		s: "GP"
 	},
 	{
 		id: "gold-poker",
-		s: "gpkr"
+		s: "GPKR"
 	},
 	{
 		id: "golem",
-		s: "glm"
+		s: "GLM"
 	},
 	{
 		id: "golff",
-		s: "gof"
+		s: "GOF"
 	},
 	{
 		id: "gomics",
-		s: "gom"
+		s: "GOM"
 	},
 	{
 		id: "gomoney2",
-		s: "gom2"
+		s: "GOM2"
 	},
 	{
 		id: "gonetwork",
-		s: "got"
+		s: "GOT"
 	},
 	{
 		id: "goocoin",
-		s: "gooc"
+		s: "GOOC"
 	},
 	{
 		id: "goosebet-token",
-		s: "gbt"
+		s: "GBT"
 	},
 	{
 		id: "goose-finance",
-		s: "egg"
+		s: "EGG"
 	},
 	{
 		id: "gorillayield",
-		s: "yape"
+		s: "YAPE"
 	},
 	{
 		id: "gossipcoin",
-		s: "goss"
+		s: "GOSS"
+	},
+	{
+		id: "goswapp",
+		s: "GOFI"
 	},
 	{
 		id: "gotogods",
-		s: "ogods"
+		s: "OGODS"
 	},
 	{
 		id: "gourmetgalaxy",
-		s: "gum"
+		s: "GUM"
 	},
 	{
 		id: "governance-zil",
-		s: "gzil"
+		s: "GZIL"
 	},
 	{
 		id: "governor-dao",
-		s: "gdao"
+		s: "GDAO"
 	},
 	{
 		id: "govi",
-		s: "govi"
+		s: "GOVI"
 	},
 	{
 		id: "gowithmi",
-		s: "gmat"
+		s: "GMAT"
 	},
 	{
 		id: "gp-token",
-		s: "xgp"
+		s: "XGP"
 	},
 	{
 		id: "gpu-coin",
-		s: "gpu"
+		s: "GPU"
 	},
 	{
 		id: "grabity",
-		s: "gbt"
+		s: "GBT"
 	},
 	{
 		id: "grace-period-token",
-		s: "gpt"
+		s: "GPT"
 	},
 	{
 		id: "grafenocoin-2",
-		s: "gfnc"
+		s: "GFNC"
 	},
 	{
 		id: "grafsound",
-		s: "gsmt"
+		s: "GSMT"
 	},
 	{
 		id: "graft-blockchain",
-		s: "grft"
+		s: "GRFT"
 	},
 	{
 		id: "grain-token",
-		s: "grain"
+		s: "GRAIN"
 	},
 	{
 		id: "gram",
-		s: "gram"
+		s: "GRAM"
 	},
 	{
 		id: "grandpa-fan",
-		s: "fyy"
+		s: "FYY"
 	},
 	{
 		id: "grap-finance",
-		s: "grap"
+		s: "GRAP"
 	},
 	{
 		id: "graviocoin",
-		s: "gio"
+		s: "GIO"
 	},
 	{
 		id: "gravity",
-		s: "gzro"
+		s: "GZRO"
 	},
 	{
 		id: "gravitycoin",
-		s: "gxx"
+		s: "GXX"
 	},
 	{
 		id: "grearn",
-		s: "gst"
+		s: "GST"
 	},
 	{
 		id: "greencoin",
-		s: "gre"
+		s: "GRE"
 	},
 	{
 		id: "greenheart-punt",
-		s: "punt"
+		s: "PUNT"
 	},
 	{
 		id: "green-light",
-		s: "gl"
+		s: "GL"
 	},
 	{
 		id: "greenpay-coin",
-		s: "gpc"
+		s: "GPC"
 	},
 	{
 		id: "gric",
-		s: "gc"
+		s: "GC"
 	},
 	{
 		id: "grid",
-		s: "grid"
+		s: "GRID"
 	},
 	{
 		id: "gridcoin-research",
-		s: "grc"
+		s: "GRC"
 	},
 	{
 		id: "grimcoin",
-		s: "grim"
+		s: "GRIM"
 	},
 	{
 		id: "grimm",
-		s: "grimm"
+		s: "GRIMM"
 	},
 	{
 		id: "grin",
-		s: "grin"
+		s: "GRIN"
 	},
 	{
 		id: "groestlcoin",
-		s: "grs"
+		s: "GRS"
 	},
 	{
 		id: "grom",
-		s: "gr"
+		s: "GR"
 	},
 	{
 		id: "groovy-finance",
-		s: "gvy"
+		s: "GVY"
 	},
 	{
 		id: "growers-international",
-		s: "grwi"
+		s: "GRWI"
 	},
 	{
 		id: "growthcoin",
-		s: "grw"
+		s: "GRW"
 	},
 	{
 		id: "growth-defi",
-		s: "gro"
+		s: "GRO"
 	},
 	{
 		id: "growth-root",
-		s: "groot"
+		s: "GROOT"
 	},
 	{
 		id: "grpl-finance-2",
-		s: "grpl"
+		s: "GRPL"
 	},
 	{
 		id: "grumpy-cat",
-		s: "grumpy"
+		s: "GRUMPY"
 	},
 	{
 		id: "gsenetwork",
-		s: "gse"
+		s: "GSE"
 	},
 	{
 		id: "gsmcoin",
-		s: "gsm"
+		s: "GSM"
 	},
 	{
 		id: "gspi",
-		s: "gspi"
+		s: "GSPI"
 	},
 	{
 		id: "gstcoin",
-		s: "gst"
+		s: "GST"
 	},
 	{
 		id: "gt-star-token",
-		s: "gts"
+		s: "GTS"
 	},
 	{
 		id: "guapcoin",
-		s: "guap"
+		s: "GUAP"
 	},
 	{
 		id: "guarded-ether",
-		s: "geth"
+		s: "GETH"
 	},
 	{
 		id: "guardium",
-		s: "guard"
+		s: "GUARD"
 	},
 	{
 		id: "guider",
-		s: "gdr"
+		s: "GDR"
 	},
 	{
 		id: "gulden",
-		s: "nlg"
+		s: "NLG"
 	},
 	{
 		id: "gulf-bits-coin",
-		s: "gbt"
+		s: "GBT"
 	},
 	{
 		id: "gulf-coin-gold",
-		s: "gcg"
+		s: "GCG"
 	},
 	{
 		id: "guncoin",
-		s: "gun"
+		s: "GUN"
 	},
 	{
 		id: "guns",
-		s: "guns"
+		s: "GUNS"
 	},
 	{
 		id: "gunthy",
-		s: "gunthy"
+		s: "GUNTHY"
 	},
 	{
 		id: "gusd-token",
-		s: "gusdt"
+		s: "GUSDT"
 	},
 	{
 		id: "guss-one",
-		s: "guss"
+		s: "GUSS"
 	},
 	{
 		id: "gxchain",
-		s: "gxc"
+		s: "GXC"
 	},
 	{
 		id: "gyen",
-		s: "gyen"
+		s: "GYEN"
 	},
 	{
 		id: "h3x",
-		s: "h3x"
+		s: "H3X"
+	},
+	{
+		id: "habitat",
+		s: "HBT"
 	},
 	{
 		id: "hackenai",
-		s: "hai"
+		s: "HAI"
 	},
 	{
 		id: "hackspace-capital",
-		s: "hac"
+		s: "HAC"
 	},
 	{
 		id: "hakka-finance",
-		s: "hakka"
+		s: "HAKKA"
 	},
 	{
 		id: "halalchain",
-		s: "hlc"
+		s: "HLC"
 	},
 	{
 		id: "halcyon",
-		s: "hal"
+		s: "HAL"
 	},
 	{
 		id: "halo-platform",
-		s: "halo"
+		s: "HALO"
 	},
 	{
 		id: "halving-coin",
-		s: "halv"
+		s: "HALV"
 	},
 	{
 		id: "hamburger",
-		s: "ham"
+		s: "HAM"
 	},
 	{
 		id: "hanacoin",
-		s: "hana"
+		s: "HANA"
 	},
 	{
 		id: "handshake",
-		s: "hns"
+		s: "HNS"
 	},
 	{
 		id: "hapi",
-		s: "hapi"
+		s: "HAPI"
 	},
 	{
 		id: "happy-birthday-coin",
-		s: "hbdc"
+		s: "HBDC"
 	},
 	{
 		id: "happycoin",
-		s: "hpc"
+		s: "HPC"
 	},
 	{
 		id: "hapy-coin",
-		s: "hapy"
+		s: "HAPY"
 	},
 	{
 		id: "hara-token",
-		s: "hart"
+		s: "HART"
 	},
 	{
 		id: "harcomia",
-		s: "hca"
+		s: "HCA"
 	},
 	{
 		id: "hardcore-finance",
-		s: "hcore"
+		s: "HCORE"
 	},
 	{
 		id: "hard-protocol",
@@ -34408,15 +34482,15 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "hardware-chain",
-		s: "hdw"
+		s: "HDW"
 	},
 	{
 		id: "harmony",
-		s: "one"
+		s: "ONE"
 	},
 	{
 		id: "harmonycoin",
-		s: "hmc"
+		s: "HMC"
 	},
 	{
 		id: "harrison-first",
@@ -34424,315 +34498,315 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "harvest-finance",
-		s: "farm"
+		s: "FARM"
 	},
 	{
 		id: "hash",
-		s: "hash"
+		s: "HASH"
 	},
 	{
 		id: "hash-bridge-oracle",
-		s: "hbo"
+		s: "HBO"
 	},
 	{
 		id: "hashbx",
-		s: "hbx"
+		s: "HBX"
 	},
 	{
 		id: "hashcoin",
-		s: "hsc"
+		s: "HSC"
 	},
 	{
 		id: "hashgard",
-		s: "gard"
+		s: "GARD"
 	},
 	{
 		id: "hashnet-biteco",
-		s: "hnb"
+		s: "HNB"
 	},
 	{
 		id: "hash-pot",
-		s: "hpot"
+		s: "HPOT"
 	},
 	{
 		id: "hashshare",
-		s: "hss"
+		s: "HSS"
 	},
 	{
 		id: "hatch",
-		s: "hatch"
+		s: "HATCH"
 	},
 	{
 		id: "hatch-dao",
-		s: "hatch"
+		s: "HATCH"
 	},
 	{
 		id: "hathor",
-		s: "htr"
+		s: "HTR"
 	},
 	{
 		id: "hauteclere-shards-2",
-		s: "haut"
+		s: "HAUT"
 	},
 	{
 		id: "haven",
-		s: "xhv"
+		s: "XHV"
 	},
 	{
 		id: "havethertoken",
-		s: "het"
+		s: "HET"
 	},
 	{
 		id: "havven",
-		s: "snx"
+		s: "SNX"
 	},
 	{
 		id: "havy-2",
-		s: "havy"
+		s: "HAVY"
 	},
 	{
 		id: "hawaii-coin",
-		s: "hwi"
+		s: "HWI"
 	},
 	{
 		id: "hazza",
-		s: "haz"
+		s: "HAZ"
 	},
 	{
 		id: "hbtc-token",
-		s: "hbc"
+		s: "HBC"
 	},
 	{
 		id: "hdac",
-		s: "hdac"
+		s: "HDAC"
 	},
 	{
 		id: "hdt",
-		s: "hdt"
+		s: "HDT"
 	},
 	{
 		id: "healing-plus",
-		s: "hp"
+		s: "HP"
 	},
 	{
 		id: "healthchainus",
-		s: "hcut"
+		s: "HCUT"
 	},
 	{
 		id: "heartbout",
-		s: "hb"
+		s: "HB"
 	},
 	{
 		id: "heartbout-pay",
-		s: "hp"
+		s: "HP"
 	},
 	{
 		id: "heartnumber",
-		s: "htn"
+		s: "HTN"
 	},
 	{
 		id: "heavens-gate",
-		s: "hate"
+		s: "HATE"
 	},
 	{
 		id: "hebeblock",
-		s: "hebe"
+		s: "HEBE"
 	},
 	{
 		id: "hecofi",
-		s: "hfi"
+		s: "HFI"
 	},
 	{
 		id: "hedera-hashgraph",
-		s: "hbar"
+		s: "HBAR"
 	},
 	{
 		id: "hedget",
-		s: "hget"
+		s: "HGET"
 	},
 	{
 		id: "hedgetrade",
-		s: "hedg"
+		s: "HEDG"
 	},
 	{
 		id: "hedpay",
-		s: "hdp.ф"
+		s: "HDP.Ф"
 	},
 	{
 		id: "hegic",
-		s: "hegic"
+		s: "HEGIC"
 	},
 	{
 		id: "heidi",
-		s: "hdi"
+		s: "HDI"
 	},
 	{
 		id: "helex-token",
-		s: "hlx"
+		s: "HLX"
 	},
 	{
 		id: "helgro",
-		s: "hgro"
+		s: "HGRO"
 	},
 	{
 		id: "helio-power-token",
-		s: "thpt"
+		s: "THPT"
 	},
 	{
 		id: "helios-protocol",
-		s: "hls"
+		s: "HLS"
 	},
 	{
 		id: "helium",
-		s: "hnt"
+		s: "HNT"
 	},
 	{
 		id: "helix",
-		s: "hlix"
+		s: "HLIX"
 	},
 	{
 		id: "helixnetwork",
-		s: "mhlx"
+		s: "MHLX"
 	},
 	{
 		id: "helleniccoin",
-		s: "hnc"
+		s: "HNC"
 	},
 	{
 		id: "hellogold",
-		s: "hgt"
+		s: "HGT"
 	},
 	{
 		id: "helmet-insure",
-		s: "helmet"
+		s: "HELMET"
 	},
 	{
 		id: "help-coin",
-		s: "hlp"
+		s: "HLP"
 	},
 	{
 		id: "helper-search-token",
-		s: "hsn"
+		s: "HSN"
 	},
 	{
 		id: "helpico",
-		s: "help"
+		s: "HELP"
 	},
 	{
 		id: "help-the-homeless-coin",
-		s: "hth"
+		s: "HTH"
 	},
 	{
 		id: "help-token",
-		s: "help"
+		s: "HELP"
 	},
 	{
 		id: "hempcoin-thc",
-		s: "thc"
+		s: "THC"
 	},
 	{
 		id: "heptafranc",
-		s: "hptf"
+		s: "HPTF"
 	},
 	{
 		id: "herbalist-token",
-		s: "herb"
+		s: "HERB"
 	},
 	{
 		id: "hermez-network-token",
-		s: "hez"
+		s: "HEZ"
 	},
 	{
 		id: "herocoin",
-		s: "play"
+		s: "PLAY"
 	},
 	{
 		id: "hero-node",
-		s: "her"
+		s: "HER"
 	},
 	{
 		id: "hero-token",
-		s: "raise"
+		s: "RAISE"
 	},
 	{
 		id: "hex",
-		s: "hex"
+		s: "HEX"
 	},
 	{
 		id: "hex-money",
-		s: "hxy"
+		s: "HXY"
 	},
 	{
 		id: "hey-bitcoin",
-		s: "hybn"
+		s: "HYBN"
 	},
 	{
 		id: "hgh-token",
-		s: "hgh"
+		s: "HGH"
 	},
 	{
 		id: "hiblocks",
-		s: "hibs"
+		s: "HIBS"
 	},
 	{
 		id: "hicoin",
-		s: "xhi"
+		s: "XHI"
 	},
 	{
 		id: "hidden-coin",
-		s: "hdn"
+		s: "HDN"
 	},
 	{
 		id: "higamecoin",
-		s: "hgc"
+		s: "HGC"
 	},
 	{
 		id: "high-performance-blockchain",
-		s: "hpb"
+		s: "HPB"
 	},
 	{
 		id: "hilux",
-		s: "hlx"
+		s: "HLX"
 	},
 	{
 		id: "hi-mutual-society",
-		s: "hmc"
+		s: "HMC"
 	},
 	{
 		id: "hintchain",
-		s: "hint"
+		s: "HINT"
 	},
 	{
 		id: "hippo-finance",
-		s: "hippo"
+		s: "HIPPO"
 	},
 	{
 		id: "hirevibes",
-		s: "hvt"
+		s: "HVT"
 	},
 	{
 		id: "historia",
-		s: "hta"
+		s: "HTA"
 	},
 	{
 		id: "hitchain",
-		s: "hit"
+		s: "HIT"
 	},
 	{
 		id: "hitcoin",
-		s: "htc"
+		s: "HTC"
 	},
 	{
 		id: "hithot",
-		s: "hithot"
+		s: "HITHOT"
 	},
 	{
 		id: "hithotx",
-		s: "hitx"
+		s: "HITX"
 	},
 	{
 		id: "hive",
-		s: "hive"
+		s: "HIVE"
 	},
 	{
 		id: "hive_dollar",
@@ -34740,659 +34814,655 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "hiveterminal",
-		s: "hvn"
+		s: "HVN"
 	},
 	{
 		id: "hiz-finance",
-		s: "hiz"
+		s: "HIZ"
 	},
 	{
 		id: "hland-token",
-		s: "hland"
+		s: "HLAND"
 	},
 	{
 		id: "hl-chain",
-		s: "hl"
+		s: "HL"
 	},
 	{
 		id: "hntc-energy-distributed-network",
-		s: "hntc"
+		s: "HNTC"
 	},
 	{
 		id: "hobonickels",
-		s: "hbn"
+		s: "HBN"
 	},
 	{
 		id: "hodlcoin",
-		s: "hodl"
+		s: "HODL"
 	},
 	{
 		id: "hodlearn",
-		s: "hodl"
+		s: "HODL"
 	},
 	{
 		id: "hodltree",
-		s: "htre"
+		s: "HTRE"
 	},
 	{
 		id: "hoge-finance",
-		s: "hoge"
+		s: "HOGE"
 	},
 	{
 		id: "holdtowin",
-		s: "7add"
+		s: "7ADD"
 	},
 	{
 		id: "holiday-chain",
-		s: "hcc"
+		s: "HCC"
 	},
 	{
 		id: "holistic-btc-set",
-		s: "tcapbtcusdc"
+		s: "TCAPBTCUSDC"
 	},
 	{
 		id: "holistic-eth-set",
-		s: "tcapethdai"
+		s: "TCAPETHDAI"
 	},
 	{
 		id: "hollygold",
-		s: "hgold"
+		s: "HGOLD"
 	},
 	{
 		id: "holotoken",
-		s: "hot"
+		s: "HOT"
 	},
 	{
 		id: "holyheld",
-		s: "holy"
+		s: "HOLY"
 	},
 	{
 		id: "holyheld-2",
-		s: "hh"
+		s: "HH"
 	},
 	{
 		id: "holy-trinity",
-		s: "holy"
+		s: "HOLY"
 	},
 	{
 		id: "homeros",
-		s: "hmr"
+		s: "HMR"
 	},
 	{
 		id: "homihelp",
-		s: "homi"
+		s: "HOMI"
 	},
 	{
 		id: "hom-token",
-		s: "homt"
+		s: "HOMT"
 	},
 	{
 		id: "hondaiscoin",
-		s: "hndc"
+		s: "HNDC"
 	},
 	{
 		id: "honestcoin",
-		s: "usdh"
+		s: "USDH"
 	},
 	{
 		id: "honest-mining",
-		s: "hnst"
+		s: "HNST"
 	},
 	{
 		id: "honey",
-		s: "hny"
+		s: "HNY"
 	},
 	{
 		id: "honk-honk",
-		s: "honk"
+		s: "HONK"
 	},
 	{
 		id: "hoo-token",
-		s: "hoo"
+		s: "HOO"
 	},
 	{
 		id: "hope",
-		s: "hope"
+		s: "HOPE"
 	},
 	{
 		id: "hopr",
-		s: "hopr"
+		s: "HOPR"
 	},
 	{
 		id: "hoqu",
-		s: "hqx"
+		s: "HQX"
 	},
 	{
 		id: "hora",
-		s: "hora"
+		s: "HORA"
 	},
 	{
 		id: "horuspay",
-		s: "horus"
+		s: "HORUS"
 	},
 	{
 		id: "hospital-coin",
-		s: "hosp"
+		s: "HOSP"
 	},
 	{
 		id: "hotbit-token",
-		s: "htb"
+		s: "HTB"
 	},
 	{
 		id: "hotchain",
-		s: "hotc"
+		s: "HOTC"
 	},
 	{
 		id: "hotdollars-token",
-		s: "hds"
+		s: "HDS"
 	},
 	{
 		id: "hotnow",
-		s: "hot"
+		s: "HOT"
 	},
 	{
 		id: "hotpot-base-token",
-		s: "pot"
+		s: "POT"
 	},
 	{
 		id: "howdoo",
-		s: "udoo"
+		s: "UDOO"
 	},
 	{
 		id: "hplus",
-		s: "hplus"
+		s: "HPLUS"
 	},
 	{
 		id: "hrd",
-		s: "hrd"
+		s: "HRD"
 	},
 	{
 		id: "hshare",
-		s: "hc"
+		s: "HC"
 	},
 	{
 		id: "htmlcoin",
-		s: "html"
+		s: "HTML"
 	},
 	{
 		id: "hubdao",
-		s: "hd"
+		s: "HD"
 	},
 	{
 		id: "hubii-network",
-		s: "hbt"
+		s: "HBT"
 	},
 	{
 		id: "hub-token",
-		s: "hub"
+		s: "HUB"
 	},
 	{
 		id: "hue",
-		s: "hue"
+		s: "HUE"
 	},
 	{
 		id: "humaniq",
-		s: "hmq"
+		s: "HMQ"
 	},
 	{
 		id: "humanscape",
-		s: "hum"
+		s: "HUM"
 	},
 	{
 		id: "huni",
-		s: "hni"
+		s: "HNI"
 	},
 	{
 		id: "hunt-token",
-		s: "hunt"
+		s: "HUNT"
 	},
 	{
 		id: "huobi-bitcoin-cash",
-		s: "hbch"
+		s: "HBCH"
 	},
 	{
 		id: "huobi-btc",
-		s: "hbtc"
+		s: "HBTC"
 	},
 	{
 		id: "huobi-ethereum",
-		s: "heth"
+		s: "HETH"
 	},
 	{
 		id: "huobi-fil",
-		s: "hfil"
+		s: "HFIL"
 	},
 	{
 		id: "huobi-litecoin",
-		s: "hltc"
+		s: "HLTC"
 	},
 	{
 		id: "huobi-polkadot",
-		s: "hdot"
+		s: "HDOT"
 	},
 	{
 		id: "huobi-pool-token",
-		s: "hpt"
+		s: "HPT"
 	},
 	{
 		id: "huobi-token",
-		s: "ht"
+		s: "HT"
 	},
 	{
 		id: "huotop",
-		s: "htp"
+		s: "HTP"
 	},
 	{
 		id: "hupayx",
-		s: "hup"
+		s: "HUP"
 	},
 	{
 		id: "hurify",
-		s: "hur"
+		s: "HUR"
 	},
 	{
 		id: "husd",
-		s: "husd"
+		s: "HUSD"
 	},
 	{
 		id: "hush",
-		s: "hush"
+		s: "HUSH"
 	},
 	{
 		id: "hustle-token",
-		s: "husl"
+		s: "HUSL"
 	},
 	{
 		id: "hut34-entropy",
-		s: "entrp"
+		s: "ENTRP"
 	},
 	{
 		id: "hxro",
-		s: "hxro"
+		s: "HXRO"
 	},
 	{
 		id: "hybrid-bank-cash",
-		s: "hbc"
+		s: "HBC"
 	},
 	{
 		id: "hybrix",
-		s: "hy"
+		s: "HY"
 	},
 	{
 		id: "hycon",
-		s: "hyc"
+		s: "HYC"
 	},
 	{
 		id: "hydra",
-		s: "hydra"
+		s: "HYDRA"
 	},
 	{
 		id: "hydradx",
-		s: "xhdx"
+		s: "XHDX"
 	},
 	{
 		id: "hydro",
-		s: "hydro"
+		s: "HYDRO"
 	},
 	{
 		id: "hydrocarbon-8",
-		s: "hc8"
+		s: "HC8"
 	},
 	{
 		id: "hydro-protocol",
-		s: "hot"
+		s: "HOT"
 	},
 	{
 		id: "hygenercoin",
-		s: "hg"
+		s: "HG"
 	},
 	{
 		id: "hymnode",
-		s: "hnt"
+		s: "HNT"
 	},
 	{
 		id: "hype",
-		s: "hype"
+		s: "HYPE"
 	},
 	{
 		id: "hype-bet",
-		s: "hypebet"
+		s: "HYPEBET"
 	},
 	{
 		id: "hypeburn",
-		s: "hburn"
+		s: "HBURN"
 	},
 	{
 		id: "hype-finance",
-		s: "hype"
+		s: "HYPE"
 	},
 	{
 		id: "hyperburn",
-		s: "hypr"
+		s: "HYPR"
 	},
 	{
 		id: "hyper-credit-network",
-		s: "hpay"
+		s: "HPAY"
 	},
 	{
 		id: "hyperdao",
-		s: "hdao"
+		s: "HDAO"
 	},
 	{
 		id: "hyperexchange",
-		s: "hx"
+		s: "HX"
 	},
 	{
 		id: "hyperion",
-		s: "hyn"
+		s: "HYN"
 	},
 	{
 		id: "hyper-pay",
-		s: "hpy"
+		s: "HPY"
 	},
 	{
 		id: "hyperquant",
-		s: "hqt"
+		s: "HQT"
 	},
 	{
 		id: "hyper-speed-network",
-		s: "hsn"
+		s: "HSN"
 	},
 	{
 		id: "hyperstake",
-		s: "hyp"
+		s: "HYP"
 	},
 	{
 		id: "hyve",
-		s: "hyve"
+		s: "HYVE"
 	},
 	{
 		id: "i0coin",
-		s: "i0c"
+		s: "I0C"
 	},
 	{
 		id: "i9-coin",
-		s: "i9c"
+		s: "I9C"
 	},
 	{
 		id: "i9x-coin",
-		s: "i9x"
+		s: "I9X"
 	},
 	{
 		id: "iab",
-		s: "iab"
+		s: "IAB"
 	},
 	{
 		id: "iada",
-		s: "iada"
+		s: "IADA"
 	},
 	{
 		id: "ibank",
-		s: "ibank"
+		s: "IBANK"
 	},
 	{
 		id: "ibch",
-		s: "ibch"
+		s: "IBCH"
 	},
 	{
 		id: "ibithub",
-		s: "ibh"
+		s: "IBH"
 	},
 	{
 		id: "ibnb",
-		s: "ibnb"
+		s: "IBNB"
 	},
 	{
 		id: "ibtc",
-		s: "iBTC"
+		s: "IBTC"
 	},
 	{
 		id: "icex",
-		s: "icex"
+		s: "ICEX"
 	},
 	{
 		id: "icherry-finance",
-		s: "ich"
+		s: "ICH"
 	},
 	{
 		id: "ichi-farm",
-		s: "ichi"
+		s: "ICHI"
 	},
 	{
 		id: "ick-mask",
-		s: "ick"
+		s: "ICK"
 	},
 	{
 		id: "icolcoin",
-		s: "icol"
+		s: "ICOL"
 	},
 	{
 		id: "icon",
-		s: "icx"
+		s: "ICX"
 	},
 	{
 		id: "iconiq-lab-token",
-		s: "icnq"
+		s: "ICNQ"
 	},
 	{
 		id: "idash",
-		s: "idash"
+		s: "IDASH"
 	},
 	{
 		id: "idavoll-network",
-		s: "idv"
+		s: "IDV"
 	},
 	{
 		id: "idc-token",
-		s: "it"
+		s: "IT"
 	},
 	{
 		id: "ideachain",
-		s: "ich"
+		s: "ICH"
 	},
 	{
 		id: "idealcash",
-		s: "deal"
+		s: "DEAL"
 	},
 	{
 		id: "ideaology",
-		s: "idea"
+		s: "IDEA"
 	},
 	{
 		id: "idefi",
-		s: "idefi"
+		s: "IDEFI"
 	},
 	{
 		id: "idena",
-		s: "iDNA"
+		s: "IDNA"
 	},
 	{
 		id: "idex-membership",
-		s: "idxm"
+		s: "IDXM"
 	},
 	{
 		id: "idextools",
-		s: "dext"
+		s: "DEXT"
 	},
 	{
 		id: "idk",
-		s: "idk"
+		s: "IDK"
 	},
 	{
 		id: "idle",
-		s: "idle"
+		s: "IDLE"
 	},
 	{
 		id: "idle-dai-risk-adjusted",
-		s: "idleDAISafe"
+		s: "IDLEDAISAFE"
 	},
 	{
 		id: "idle-dai-yield",
-		s: "idleDAIYield"
+		s: "IDLEDAIYIELD"
 	},
 	{
 		id: "idle-susd-yield",
-		s: "idleSUSDYield"
+		s: "IDLESUSDYIELD"
 	},
 	{
 		id: "idle-tusd-yield",
-		s: "idleTUSDYield"
+		s: "IDLETUSDYIELD"
 	},
 	{
 		id: "idle-usdc-risk-adjusted",
-		s: "idleUSDCSafe"
+		s: "IDLEUSDCSAFE"
 	},
 	{
 		id: "idle-usdc-yield",
-		s: "idleUSDCYield"
+		s: "IDLEUSDCYIELD"
 	},
 	{
 		id: "idle-usdt-risk-adjusted",
-		s: "IdleUSDTSafe"
+		s: "IDLEUSDTSAFE"
 	},
 	{
 		id: "idle-usdt-yield",
-		s: "idleUSDTYield"
+		s: "IDLEUSDTYIELD"
 	},
 	{
 		id: "idle-wbtc-yield",
-		s: "idleWBTCYield"
+		s: "IDLEWBTCYIELD"
 	},
 	{
 		id: "idl-token",
-		s: "idl"
+		s: "IDL"
 	},
 	{
 		id: "idoneus-token",
-		s: "idon"
+		s: "IDON"
 	},
 	{
 		id: "ieos",
-		s: "ieos"
+		s: "IEOS"
 	},
 	{
 		id: "ieth",
-		s: "ieth"
+		s: "IETH"
 	},
 	{
 		id: "iethereum",
-		s: "ieth"
+		s: "IETH"
 	},
 	{
 		id: "iexec-rlc",
-		s: "rlc"
+		s: "RLC"
 	},
 	{
 		id: "iftoken",
-		s: "ift"
+		s: "IFT"
 	},
 	{
 		id: "ifx24",
-		s: "ifx24"
+		s: "IFX24"
 	},
 	{
 		id: "ig-gold",
-		s: "igg"
+		s: "IGG"
 	},
 	{
 		id: "ignis",
-		s: "ignis"
+		s: "IGNIS"
 	},
 	{
 		id: "ignite",
-		s: "ign"
+		s: "IGN"
 	},
 	{
 		id: "ignition",
-		s: "ic"
+		s: "IC"
 	},
 	{
 		id: "igtoken",
-		s: "ig"
+		s: "IG"
 	},
 	{
 		id: "iht-real-estate-protocol",
-		s: "iht"
+		s: "IHT"
 	},
 	{
 		id: "ijascoin",
-		s: "ijc"
+		s: "IJC"
 	},
 	{
 		id: "ikomp",
-		s: "ikomp"
+		s: "IKOMP"
 	},
 	{
 		id: "ilcoin",
-		s: "ilc"
+		s: "ILC"
 	},
 	{
 		id: "ilgon",
-		s: "ilg"
+		s: "ILG"
 	},
 	{
 		id: "ilink",
-		s: "ilink"
+		s: "ILINK"
 	},
 	{
 		id: "imagecash",
-		s: "imgc"
+		s: "IMGC"
 	},
 	{
 		id: "imagecoin",
-		s: "img"
+		s: "IMG"
 	},
 	{
 		id: "imbtc",
-		s: "imbtc"
-	},
-	{
-		id: "imperial",
-		s: "units"
+		s: "IMBTC"
 	},
 	{
 		id: "impleum",
-		s: "impl"
+		s: "IMPL"
 	},
 	{
 		id: "improved-bitcoin",
-		s: "iBTC"
+		s: "IBTC"
 	},
 	{
 		id: "impulse-by-fdr",
-		s: "impulse"
+		s: "IMPULSE"
 	},
 	{
 		id: "ims-wallet",
-		s: "ims"
+		s: "IMS"
 	},
 	{
 		id: "imusd",
-		s: "imusd"
+		s: "IMUSD"
 	},
 	{
 		id: "imusify",
-		s: "imu"
+		s: "IMU"
 	},
 	{
 		id: "inbox-token",
-		s: "inbox"
+		s: "INBOX"
 	},
 	{
 		id: "incakoin",
-		s: "nka"
+		s: "NKA"
 	},
 	{
 		id: "incent",
-		s: "incnt"
+		s: "INCNT"
 	},
 	{
 		id: "incoin",
-		s: "in"
+		s: "IN"
 	},
 	{
 		id: "indahash",
-		s: "idh"
+		s: "IDH"
 	},
 	{
 		id: "index-chain",
@@ -35400,91 +35470,91 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "index-cooperative",
-		s: "index"
+		s: "INDEX"
 	},
 	{
 		id: "indexed-finance",
-		s: "ndx"
+		s: "NDX"
 	},
 	{
 		id: "indinode",
-		s: "xind"
+		s: "XIND"
 	},
 	{
 		id: "indorse",
-		s: "ind"
+		s: "IND"
 	},
 	{
 		id: "infchain",
-		s: "inf"
+		s: "INF"
 	},
 	{
 		id: "infinitecoin",
-		s: "ifc"
+		s: "IFC"
 	},
 	{
 		id: "infinite-ricks",
-		s: "rick"
+		s: "RICK"
 	},
 	{
 		id: "infinito",
-		s: "inft"
+		s: "INFT"
 	},
 	{
 		id: "infinitus-token",
-		s: "inf"
+		s: "INF"
 	},
 	{
 		id: "infinity-economics",
-		s: "xin"
+		s: "XIN"
 	},
 	{
 		id: "infinity-esaham",
-		s: "infs"
+		s: "INFS"
 	},
 	{
 		id: "infinium",
-		s: "inf"
+		s: "INF"
 	},
 	{
 		id: "inflationcoin",
-		s: "iflt"
+		s: "IFLT"
 	},
 	{
 		id: "influxcoin",
-		s: "infx"
+		s: "INFX"
 	},
 	{
 		id: "infocoin",
-		s: "info"
+		s: "INFO"
 	},
 	{
 		id: "injective-protocol",
-		s: "inj"
+		s: "INJ"
 	},
 	{
 		id: "ink",
-		s: "ink"
+		s: "INK"
 	},
 	{
 		id: "ink-protocol",
-		s: "xnk"
+		s: "XNK"
 	},
 	{
 		id: "inlock-token",
-		s: "ilk"
+		s: "ILK"
 	},
 	{
 		id: "inmax",
-		s: "inx"
+		s: "INX"
 	},
 	{
 		id: "inmediate",
-		s: "dit"
+		s: "DIT"
 	},
 	{
 		id: "innova",
-		s: "inn"
+		s: "INN"
 	},
 	{
 		id: "innovation-blockchain-payment",
@@ -35492,307 +35562,315 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "innovative-bioresearch",
-		s: "innbc"
+		s: "INNBC"
 	},
 	{
 		id: "innovativebioresearchclassic",
-		s: "innbcl"
+		s: "INNBCL"
 	},
 	{
 		id: "ino-coin",
-		s: "ino"
+		s: "INO"
 	},
 	{
 		id: "inoovi",
-		s: "ivi"
+		s: "IVI"
 	},
 	{
 		id: "inrtoken",
-		s: "inrt"
+		s: "INRT"
+	},
+	{
+		id: "ins3-finance-coin",
+		s: "ITF"
 	},
 	{
 		id: "insanecoin",
-		s: "insn"
+		s: "INSN"
 	},
 	{
 		id: "insight-chain",
-		s: "inb"
+		s: "INB"
 	},
 	{
 		id: "insight-protocol",
-		s: "inx"
+		s: "INX"
 	},
 	{
 		id: "insights-network",
-		s: "instar"
+		s: "INSTAR"
 	},
 	{
 		id: "instantily",
-		s: "tily"
+		s: "TILY"
 	},
 	{
 		id: "insula",
-		s: "isla"
+		s: "ISLA"
 	},
 	{
 		id: "insurace",
-		s: "insur"
+		s: "INSUR"
 	},
 	{
 		id: "insurance-block-cloud",
-		s: "ibs"
+		s: "IBS"
 	},
 	{
 		id: "insurance-fintech",
-		s: "ifc"
+		s: "IFC"
 	},
 	{
 		id: "insure",
-		s: "sure"
+		s: "SURE"
 	},
 	{
 		id: "insured-finance",
-		s: "infi"
+		s: "INFI"
 	},
 	{
 		id: "insurepal",
-		s: "ipl"
+		s: "IPL"
 	},
 	{
 		id: "insureum",
-		s: "isr"
+		s: "ISR"
 	},
 	{
 		id: "insurex",
-		s: "ixt"
+		s: "IXT"
 	},
 	{
 		id: "intelligence-quickly-chain",
-		s: "iqc"
+		s: "IQC"
 	},
 	{
 		id: "intelligent-eth-set-ii",
-		s: "inteth"
+		s: "INTETH"
 	},
 	{
 		id: "intelligent-internet-of-things-token",
-		s: "iiott"
+		s: "IIOTT"
 	},
 	{
 		id: "intelligent-investment-chain",
-		s: "iic"
+		s: "IIC"
 	},
 	{
 		id: "intelligent-ratio-set",
-		s: "intratio"
+		s: "INTRATIO"
 	},
 	{
 		id: "intelligent-trading-tech",
-		s: "itt"
+		s: "ITT"
 	},
 	{
 		id: "intellishare",
-		s: "ine"
+		s: "INE"
 	},
 	{
 		id: "intensecoin",
-		s: "lthn"
+		s: "LTHN"
 	},
 	{
 		id: "intercrone",
-		s: "icr"
+		s: "ICR"
 	},
 	{
 		id: "interest-bearing-eth",
-		s: "ibETH"
+		s: "IBETH"
 	},
 	{
 		id: "interfinex-bills",
-		s: "ifex"
+		s: "IFEX"
 	},
 	{
 		id: "international-cryptox",
-		s: "incx"
+		s: "INCX"
 	},
 	{
 		id: "internet-exchange-token",
-		s: "inex"
+		s: "INEX"
 	},
 	{
 		id: "internet-node-token",
-		s: "int"
+		s: "INT"
 	},
 	{
 		id: "internet-of-people",
-		s: "iop"
+		s: "IOP"
 	},
 	{
 		id: "internxt",
-		s: "inxt"
+		s: "INXT"
 	},
 	{
 		id: "interop",
-		s: "trop"
+		s: "TROP"
 	},
 	{
 		id: "intervalue",
-		s: "inve"
+		s: "INVE"
 	},
 	{
 		id: "intexcoin",
-		s: "intx"
+		s: "INTX"
 	},
 	{
 		id: "intucoin",
-		s: "intu"
+		s: "INTU"
+	},
+	{
+		id: "inventoryclub",
+		s: "VNT"
 	},
 	{
 		id: "inverse-finance",
-		s: "inv"
+		s: "INV"
 	},
 	{
 		id: "investcoin",
-		s: "invc"
+		s: "INVC"
 	},
 	{
 		id: "investdigital",
-		s: "idt"
+		s: "IDT"
 	},
 	{
 		id: "invictus-hyprion-fund",
-		s: "ihf"
+		s: "IHF"
 	},
 	{
 		id: "invizion",
-		s: "nvzn"
+		s: "NVZN"
 	},
 	{
 		id: "invoice-coin",
-		s: "ivc"
+		s: "IVC"
 	},
 	{
 		id: "invox-finance",
-		s: "invox"
+		s: "INVOX"
 	},
 	{
 		id: "inziderx-exchange",
-		s: "inx"
+		s: "INX"
 	},
 	{
 		id: "iocoin",
-		s: "ioc"
+		s: "IOC"
 	},
 	{
 		id: "ioex",
-		s: "ioex"
+		s: "IOEX"
 	},
 	{
 		id: "ion",
-		s: "ion"
+		s: "ION"
 	},
 	{
 		id: "ionchain-token",
-		s: "ionc"
+		s: "IONC"
 	},
 	{
 		id: "ioox-system",
-		s: "ioox"
+		s: "IOOX"
 	},
 	{
 		id: "iostoken",
-		s: "iost"
+		s: "IOST"
 	},
 	{
 		id: "iota",
-		s: "miota"
+		s: "MIOTA"
 	},
 	{
 		id: "iot-chain",
-		s: "itc"
+		s: "ITC"
 	},
 	{
 		id: "iote",
-		s: "iote"
+		s: "IOTE"
 	},
 	{
 		id: "iotedge-network",
-		s: "iote"
+		s: "IOTE"
 	},
 	{
 		id: "iotex",
-		s: "iotx"
+		s: "IOTX"
 	},
 	{
 		id: "iown",
-		s: "iown"
+		s: "IOWN"
 	},
 	{
 		id: "ipchain",
-		s: "ipc"
+		s: "IPC"
 	},
 	{
 		id: "ipfst",
-		s: "ipfst"
+		s: "IPFST"
 	},
 	{
 		id: "ipse",
-		s: "post"
+		s: "POST"
 	},
 	{
 		id: "ipx-token",
-		s: "ipx"
+		s: "IPX"
 	},
 	{
 		id: "iq-cash",
-		s: "iq"
+		s: "IQ"
 	},
 	{
 		id: "iqeon",
-		s: "iqn"
+		s: "IQN"
 	},
 	{
 		id: "iridium",
-		s: "ird"
+		s: "IRD"
 	},
 	{
 		id: "iris-network",
-		s: "iris"
+		s: "IRIS"
 	},
 	{
 		id: "isalcoin",
-		s: "isal"
+		s: "ISAL"
 	},
 	{
 		id: "ishop-plus",
-		s: "isp"
+		s: "ISP"
 	},
 	{
 		id: "ishop-token",
-		s: "ist"
+		s: "IST"
 	},
 	{
 		id: "istanbul-basaksehir-fan-token",
-		s: "ibfk"
+		s: "IBFK"
 	},
 	{
 		id: "istardust",
-		s: "isdt"
+		s: "ISDT"
 	},
 	{
 		id: "italian-lira",
-		s: "itl"
+		s: "ITL"
 	},
 	{
 		id: "italo",
-		s: "xta"
+		s: "XTA"
 	},
 	{
 		id: "itam-games",
-		s: "itam"
+		s: "ITAM"
 	},
 	{
 		id: "iten",
-		s: "iten"
+		s: "ITEN"
 	},
 	{
 		id: "iteration-syndicate",
@@ -35800,59 +35878,59 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "iticoin",
-		s: "iti"
+		s: "ITI"
 	},
 	{
 		id: "itochain-token",
-		s: "itoc"
+		s: "ITOC"
 	},
 	{
 		id: "iungo",
-		s: "ing"
+		s: "ING"
 	},
 	{
 		id: "ivy-mining",
-		s: "ivy"
+		s: "IVY"
 	},
 	{
 		id: "ixcoin",
-		s: "ixc"
+		s: "IXC"
 	},
 	{
 		id: "ixicash",
-		s: "ixi"
+		s: "IXI"
 	},
 	{
 		id: "ixinium",
-		s: "xxa"
+		s: "XXA"
 	},
 	{
 		id: "ixmr",
-		s: "ixmr"
+		s: "IXMR"
 	},
 	{
 		id: "ixrp",
-		s: "ixrp"
+		s: "IXRP"
 	},
 	{
 		id: "ixtz",
-		s: "ixtz"
+		s: "IXTZ"
 	},
 	{
 		id: "ize",
-		s: "ize"
+		s: "IZE"
 	},
 	{
 		id: "izeroium",
-		s: "izer"
+		s: "IZER"
 	},
 	{
 		id: "izichain",
-		s: "izi"
+		s: "IZI"
 	},
 	{
 		id: "jackpool-finance",
-		s: "jfi"
+		s: "JFI"
 	},
 	{
 		id: "jackpot",
@@ -35860,619 +35938,623 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "jade-currency",
-		s: "jade"
+		s: "JADE"
 	},
 	{
 		id: "japan-excitement-coin",
-		s: "jpx"
+		s: "JPX"
 	},
 	{
 		id: "jarvis",
-		s: "jar"
+		s: "JAR"
 	},
 	{
 		id: "jarvis-reward-token",
-		s: "jrt"
-	},
-	{
-		id: "jasmycoin",
-		s: "jasmy"
+		s: "JRT"
 	},
 	{
 		id: "jasper-coin",
-		s: "jac"
+		s: "JAC"
 	},
 	{
 		id: "javascript-token",
-		s: "js"
+		s: "JS"
 	},
 	{
 		id: "jboxcoin",
-		s: "jbx"
+		s: "JBX"
 	},
 	{
 		id: "jd-coin",
-		s: "jdc"
+		s: "JDC"
 	},
 	{
 		id: "jem",
-		s: "jem"
+		s: "JEM"
 	},
 	{
 		id: "jemoo-community",
-		s: "jmc"
+		s: "JMC"
 	},
 	{
 		id: "jetcoin",
-		s: "jet"
+		s: "JET"
 	},
 	{
 		id: "jetmint",
-		s: "xyz"
+		s: "XYZ"
 	},
 	{
 		id: "jewel",
-		s: "jwl"
+		s: "JWL"
 	},
 	{
 		id: "jfin-coin",
-		s: "jfin"
+		s: "JFIN"
 	},
 	{
 		id: "jiaozi",
-		s: "jiaozi"
+		s: "JIAOZI"
 	},
 	{
 		id: "jibrel",
-		s: "jnt"
+		s: "JNT"
 	},
 	{
 		id: "jinbi-token",
-		s: "jnb"
+		s: "JNB"
 	},
 	{
 		id: "jiviz",
-		s: "jvz"
+		s: "JVZ"
 	},
 	{
 		id: "jllone",
-		s: "jll"
+		s: "JLL"
 	},
 	{
 		id: "jmtime",
-		s: "jmt"
+		s: "JMT"
 	},
 	{
 		id: "jntrb",
-		s: "jntr/b"
+		s: "JNTR/B"
 	},
 	{
 		id: "jntre",
-		s: "jntr/e"
+		s: "JNTR/E"
 	},
 	{
 		id: "jobchain",
-		s: "job"
+		s: "JOB"
 	},
 	{
 		id: "jobscoin",
-		s: "jobs"
+		s: "JOBS"
 	},
 	{
 		id: "joint",
-		s: "joint"
+		s: "JOINT"
 	},
 	{
 		id: "jointer",
-		s: "jntr"
+		s: "JNTR"
 	},
 	{
 		id: "joon",
-		s: "joon"
+		s: "JOON"
 	},
 	{
 		id: "joorschain",
-		s: "jic"
+		s: "JIC"
 	},
 	{
 		id: "joos-protocol",
-		s: "joos"
+		s: "JOOS"
 	},
 	{
 		id: "joulecoin",
-		s: "xjo"
+		s: "XJO"
 	},
 	{
 		id: "joy-coin",
-		s: "joy"
+		s: "JOY"
 	},
 	{
 		id: "joy-of-all-culture",
-		s: "jac"
+		s: "JAC"
 	},
 	{
 		id: "joys",
-		s: "joys"
+		s: "JOYS"
 	},
 	{
 		id: "joyso",
-		s: "joy"
+		s: "JOY"
 	},
 	{
 		id: "joytube-token",
-		s: "jtt"
+		s: "JTT"
 	},
 	{
 		id: "jpyq-stablecoin-by-q-dao-v1",
-		s: "jpyq"
+		s: "JPYQ"
 	},
 	{
 		id: "jsb-foundation",
-		s: "jsb"
+		s: "JSB"
 	},
 	{
 		id: "jubi-token",
-		s: "jt"
+		s: "JT"
 	},
 	{
 		id: "juggernaut",
-		s: "jgn"
+		s: "JGN"
 	},
 	{
 		id: "juiice",
-		s: "jui"
+		s: "JUI"
 	},
 	{
 		id: "jul",
-		s: "jul"
+		s: "JUL"
 	},
 	{
 		id: "julien",
-		s: "julien"
+		s: "JULIEN"
 	},
 	{
 		id: "julswap",
-		s: "juld"
+		s: "JULD"
 	},
 	{
 		id: "jumpcoin",
-		s: "jump"
+		s: "JUMP"
 	},
 	{
 		id: "junca-cash",
-		s: "jcc"
+		s: "JCC"
 	},
 	{
 		id: "junsonmingchancoin",
-		s: "jmc"
+		s: "JMC"
 	},
 	{
 		id: "jupiter",
-		s: "jup"
+		s: "JUP"
 	},
 	{
 		id: "jur",
-		s: "jur"
+		s: "JUR"
 	},
 	{
 		id: "jurasaur",
-		s: "jrex"
+		s: "JREX"
 	},
 	{
 		id: "just",
-		s: "jst"
+		s: "JST"
 	},
 	{
 		id: "justbet",
-		s: "winr"
+		s: "WINR"
 	},
 	{
 		id: "justliquidity-binance",
-		s: "julb"
+		s: "JULB"
 	},
 	{
 		id: "just-network",
-		s: "jus"
+		s: "JUS"
 	},
 	{
 		id: "just-stablecoin",
-		s: "usdj"
+		s: "USDJ"
 	},
 	{
 		id: "juventus-fan-token",
-		s: "juv"
+		s: "JUV"
 	},
 	{
 		id: "kaaso",
-		s: "kaaso"
+		s: "KAASO"
 	},
 	{
 		id: "kadena",
-		s: "kda"
+		s: "KDA"
 	},
 	{
 		id: "kaiju",
-		s: "kaiju"
+		s: "KAIJU"
 	},
 	{
 		id: "kala",
-		s: "kala"
+		s: "KALA"
 	},
 	{
 		id: "kaleido",
-		s: "kal"
+		s: "KAL"
 	},
 	{
 		id: "kalicoin",
-		s: "kali"
+		s: "KALI"
 	},
 	{
 		id: "kalkulus",
-		s: "klks"
+		s: "KLKS"
 	},
 	{
 		id: "kambria",
-		s: "kat"
+		s: "KAT"
 	},
 	{
 		id: "kan",
-		s: "kan"
+		s: "KAN"
 	},
 	{
 		id: "kanadecoin",
-		s: "kndc"
+		s: "KNDC"
 	},
 	{
 		id: "kangal",
-		s: "kangal"
+		s: "KANGAL"
 	},
 	{
 		id: "kansas-city-chiefs-win-super-bowl",
-		s: "chiefs"
+		s: "CHIEFS"
 	},
 	{
 		id: "kanva",
-		s: "knv"
+		s: "KNV"
 	},
 	{
 		id: "karaganda-token",
-		s: "krg"
+		s: "KRG"
 	},
 	{
 		id: "karatgold-coin",
-		s: "kbc"
+		s: "KBC"
 	},
 	{
 		id: "karbo",
-		s: "krb"
+		s: "KRB"
 	},
 	{
 		id: "kardiachain",
-		s: "kai"
+		s: "KAI"
 	},
 	{
 		id: "karma-dao",
-		s: "karma"
+		s: "KARMA"
 	},
 	{
 		id: "kashhcoin",
-		s: "kashh"
+		s: "KASHH"
 	},
 	{
 		id: "kassia-home",
-		s: "kassiahome"
+		s: "KASSIAHOME"
 	},
 	{
 		id: "kassia-hotel",
-		s: "kassiahotel"
+		s: "KASSIAHOTEL"
 	},
 	{
 		id: "katalyo",
-		s: "ktlyo"
+		s: "KTLYO"
 	},
 	{
 		id: "katana-finance",
-		s: "katana"
+		s: "KATANA"
 	},
 	{
 		id: "kava",
-		s: "kava"
+		s: "KAVA"
 	},
 	{
 		id: "kawanggawa",
-		s: "kgw"
+		s: "KGW"
 	},
 	{
 		id: "kcash",
-		s: "kcash"
+		s: "KCASH"
 	},
 	{
 		id: "kdag",
-		s: "kdag"
+		s: "KDAG"
 	},
 	{
 		id: "kebab-token",
-		s: "kebab"
+		s: "KEBAB"
 	},
 	{
 		id: "keep3r-bsc-network",
-		s: "kp3rb"
+		s: "KP3RB"
 	},
 	{
 		id: "keep3rv1",
-		s: "kp3r"
+		s: "KP3R"
 	},
 	{
 		id: "keep4r",
-		s: "kp4r"
+		s: "KP4R"
 	},
 	{
 		id: "keep-calm",
-		s: "kch"
+		s: "KCH"
 	},
 	{
 		id: "keep-network",
-		s: "keep"
+		s: "KEEP"
 	},
 	{
 		id: "kemacoin",
-		s: "kema"
+		s: "KEMA"
 	},
 	{
 		id: "kepler-network",
-		s: "kmw"
+		s: "KMW"
 	},
 	{
 		id: "kerman",
-		s: "kerman"
+		s: "KERMAN"
 	},
 	{
 		id: "kevacoin",
-		s: "kva"
+		s: "KVA"
 	},
 	{
 		id: "key",
-		s: "key"
+		s: "KEY"
 	},
 	{
 		id: "keyco",
-		s: "kec"
+		s: "KEC"
 	},
 	{
 		id: "keysians-network",
-		s: "ken"
+		s: "KEN"
 	},
 	{
 		id: "keytango",
-		s: "tango"
+		s: "TANGO"
 	},
 	{
 		id: "khipu-token",
-		s: "kip"
+		s: "KIP"
 	},
 	{
 		id: "kickico",
-		s: "kick"
+		s: "KICK"
 	},
 	{
 		id: "kids-cash",
-		s: "kash"
+		s: "KASH"
 	},
 	{
 		id: "kiloample",
-		s: "kmpl"
+		s: "KMPL"
 	},
 	{
 		id: "kilopi",
-		s: "lop"
+		s: "LOP"
 	},
 	{
 		id: "kimchi-finance",
-		s: "kimchi"
+		s: "KIMCHI"
 	},
 	{
 		id: "kimchiswap",
-		s: "kswap"
+		s: "KSWAP"
 	},
 	{
 		id: "kimex",
-		s: "kmx"
+		s: "KMX"
 	},
 	{
 		id: "kimochi-finance",
-		s: "kimochi"
+		s: "KIMOCHI"
 	},
 	{
 		id: "kin",
-		s: "kin"
+		s: "KIN"
 	},
 	{
 		id: "kind-ads-token",
-		s: "kind"
+		s: "KIND"
 	},
 	{
 		id: "kindcow-finance",
-		s: "kind"
+		s: "KIND"
 	},
 	{
 		id: "kine-protocol",
-		s: "kine"
+		s: "KINE"
 	},
 	{
 		id: "kingdom-game-4-0",
-		s: "kdg"
+		s: "KDG"
 	},
 	{
 		id: "king-maker-coin",
-		s: "kmc"
+		s: "KMC"
 	},
 	{
 		id: "king-money",
-		s: "kim"
+		s: "KIM"
 	},
 	{
 		id: "king-of-defi",
-		s: "kodx"
+		s: "KODX"
 	},
 	{
 		id: "kingscoin",
-		s: "kgs"
+		s: "KGS"
 	},
 	{
 		id: "king-swap",
-		s: "$king"
+		s: "$KING"
 	},
 	{
 		id: "kingxchain",
-		s: "kxc"
+		s: "KXC"
 	},
 	{
 		id: "kira-network",
-		s: "kex"
+		s: "KEX"
 	},
 	{
 		id: "kirobo",
-		s: "kiro"
+		s: "KIRO"
 	},
 	{
 		id: "kitcoin",
-		s: "ktc"
+		s: "KTC"
 	},
 	{
 		id: "kittenfinance",
-		s: "kif"
+		s: "KIF"
 	},
 	{
 		id: "kittoken",
-		s: "kit"
+		s: "KIT"
+	},
+	{
+		id: "kiwigo",
+		s: "KGO"
 	},
 	{
 		id: "kiwi-token",
-		s: "kiwi"
+		s: "KIWI"
 	},
 	{
 		id: "kizunacoin",
-		s: "kiz"
+		s: "KIZ"
 	},
 	{
 		id: "kkcoin",
-		s: "kk"
+		s: "KK"
 	},
 	{
 		id: "klayswap-protocol",
-		s: "ksp"
+		s: "KSP"
 	},
 	{
 		id: "klay-token",
-		s: "klay"
+		s: "KLAY"
 	},
 	{
 		id: "kleros",
-		s: "pnk"
+		s: "PNK"
 	},
 	{
 		id: "klever",
-		s: "klv"
+		s: "KLV"
 	},
 	{
 		id: "klimatas",
-		s: "kts"
+		s: "KTS"
 	},
 	{
 		id: "klondike-bond",
-		s: "kbond"
+		s: "KBOND"
 	},
 	{
 		id: "klondike-btc",
-		s: "kbtc"
+		s: "KBTC"
 	},
 	{
 		id: "klondike-finance",
-		s: "klon"
+		s: "KLON"
 	},
 	{
 		id: "kmushicoin",
-		s: "ktv"
+		s: "KTV"
 	},
 	{
 		id: "knekted",
-		s: "knt"
+		s: "KNT"
 	},
 	{
 		id: "know-your-developer",
-		s: "kydc"
+		s: "KYDC"
 	},
 	{
 		id: "knoxfs",
-		s: "kfx"
+		s: "KFX"
 	},
 	{
 		id: "kobocoin",
-		s: "kobo"
+		s: "KOBO"
 	},
 	{
 		id: "koel-coin",
-		s: "koel"
+		s: "KOEL"
 	},
 	{
 		id: "koinon",
-		s: "koin"
+		s: "KOIN"
 	},
 	{
 		id: "koinos",
-		s: "koin"
+		s: "KOIN"
 	},
 	{
 		id: "kok-coin",
-		s: "kok"
+		s: "KOK"
 	},
 	{
 		id: "kolin",
-		s: "kolin"
+		s: "KOLIN"
 	},
 	{
 		id: "koloop-basic",
-		s: "kpc"
+		s: "KPC"
 	},
 	{
 		id: "komet",
-		s: "komet"
+		s: "KOMET"
 	},
 	{
 		id: "komodo",
-		s: "kmd"
+		s: "KMD"
 	},
 	{
 		id: "kompass",
-		s: "komp"
+		s: "KOMP"
 	},
 	{
 		id: "konjungate",
-		s: "konj"
+		s: "KONJ"
+	},
+	{
+		id: "konomi-network",
+		s: "KONO"
 	},
 	{
 		id: "kora-network",
-		s: "knt"
+		s: "KNT"
 	},
 	{
 		id: "korbot-platform",
-		s: "kbot"
+		s: "KBOT"
 	},
 	{
 		id: "koto",
-		s: "koto"
+		s: "KOTO"
 	},
 	{
 		id: "koumei",
-		s: "kmc"
+		s: "KMC"
 	},
 	{
 		id: "kper-network",
-		s: "kper"
+		s: "KPER"
 	},
 	{
 		id: "kreds",
-		s: "kreds"
+		s: "KREDS"
 	},
 	{
 		id: "krios",
@@ -36480,235 +36562,235 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "kronn",
-		s: "krex"
+		s: "KREX"
 	},
 	{
 		id: "kryll",
-		s: "krl"
+		s: "KRL"
 	},
 	{
 		id: "kryptofranc",
-		s: "kyf"
+		s: "KYF"
 	},
 	{
 		id: "kryptokrona",
-		s: "xkr"
+		s: "XKR"
 	},
 	{
 		id: "krypton-token",
-		s: "kgc"
+		s: "KGC"
 	},
 	{
 		id: "kskin",
-		s: "ksk"
+		s: "KSK"
 	},
 	{
 		id: "kstarcoin",
-		s: "ksc"
+		s: "KSC"
 	},
 	{
 		id: "k-tune",
-		s: "ktt"
+		s: "KTT"
 	},
 	{
 		id: "kuaitoken",
-		s: "kt"
+		s: "KT"
 	},
 	{
 		id: "kublaicoin",
-		s: "kub"
+		s: "KUB"
 	},
 	{
 		id: "kubocoin",
-		s: "kubo"
+		s: "KUBO"
 	},
 	{
 		id: "kucoin-shares",
-		s: "kcs"
+		s: "KCS"
 	},
 	{
 		id: "kuende",
-		s: "kue"
+		s: "KUE"
 	},
 	{
 		id: "kuky-star",
-		s: "kuky"
+		s: "KUKY"
 	},
 	{
 		id: "kulupu",
-		s: "klp"
+		s: "KLP"
 	},
 	{
 		id: "kurrent",
-		s: "kurt"
+		s: "KURT"
 	},
 	{
 		id: "kusama",
-		s: "ksm"
+		s: "KSM"
 	},
 	{
 		id: "kush-finance",
-		s: "kseed"
+		s: "KSEED"
 	},
 	{
 		id: "kuverit",
-		s: "kuv"
+		s: "KUV"
 	},
 	{
 		id: "kvant",
-		s: "kvnt"
+		s: "KVNT"
 	},
 	{
 		id: "kvi",
-		s: "kvi"
+		s: "KVI"
 	},
 	{
 		id: "kwhcoin",
-		s: "kwh"
+		s: "KWH"
 	},
 	{
 		id: "kyanite",
-		s: "kyan"
+		s: "KYAN"
 	},
 	{
 		id: "kyber-network",
-		s: "knc"
+		s: "KNC"
 	},
 	{
 		id: "kyc-crypto",
-		s: "mima"
+		s: "MIMA"
 	},
 	{
 		id: "kylin-network",
-		s: "kyl"
+		s: "KYL"
 	},
 	{
 		id: "kysc-token",
-		s: "kysc"
+		s: "KYSC"
 	},
 	{
 		id: "kzcash",
-		s: "kzc"
+		s: "KZC"
 	},
 	{
 		id: "labs-group",
-		s: "labs"
+		s: "LABS"
 	},
 	{
 		id: "ladz",
-		s: "ladz"
+		s: "LADZ"
 	},
 	{
 		id: "lambda",
-		s: "lamb"
+		s: "LAMB"
 	},
 	{
 		id: "lamden",
-		s: "tau"
+		s: "TAU"
 	},
 	{
 		id: "lanacoin",
-		s: "lana"
+		s: "LANA"
 	},
 	{
 		id: "landbox",
-		s: "land"
+		s: "LAND"
 	},
 	{
 		id: "laq-pay",
-		s: "laq"
+		s: "LAQ"
 	},
 	{
 		id: "largo-coin",
-		s: "lrg"
+		s: "LRG"
 	},
 	{
 		id: "latamcash",
-		s: "lmch"
+		s: "LMCH"
 	},
 	{
 		id: "latex-chain",
-		s: "lxc"
+		s: "LXC"
 	},
 	{
 		id: "latino-token",
-		s: "latino"
+		s: "LATINO"
 	},
 	{
 		id: "latiumx",
-		s: "latx"
+		s: "LATX"
 	},
 	{
 		id: "latoken",
-		s: "la"
+		s: "LA"
 	},
 	{
 		id: "lattice-token",
-		s: "ltx"
+		s: "LTX"
 	},
 	{
 		id: "launchpool",
-		s: "lpool"
+		s: "LPOOL"
 	},
 	{
 		id: "lbk",
-		s: "lbk"
+		s: "LBK"
 	},
 	{
 		id: "lbrl",
-		s: "lbrl"
+		s: "LBRL"
 	},
 	{
 		id: "lbry-credits",
-		s: "lbc"
+		s: "LBC"
 	},
 	{
 		id: "lbt-chain",
-		s: "lbt"
+		s: "LBT"
 	},
 	{
 		id: "lcg",
-		s: "lcg"
+		s: "LCG"
 	},
 	{
 		id: "lcx",
-		s: "lcx"
+		s: "LCX"
 	},
 	{
 		id: "lead-token",
-		s: "lead"
+		s: "LEAD"
 	},
 	{
 		id: "leafcoin",
-		s: "leaf"
+		s: "LEAF"
 	},
 	{
 		id: "leasehold",
-		s: "lsh"
+		s: "LSH"
 	},
 	{
 		id: "legal-block",
-		s: "lbk"
+		s: "LBK"
 	},
 	{
 		id: "legends-room",
-		s: "more"
+		s: "MORE"
 	},
 	{
 		id: "legolas-exchange",
-		s: "lgo"
+		s: "LGO"
 	},
 	{
 		id: "lemochain",
-		s: "lemo"
+		s: "LEMO"
 	},
 	{
 		id: "lemon-bet",
-		s: "lbet"
+		s: "LBET"
 	},
 	{
 		id: "lendchain",
-		s: "lv"
+		s: "LV"
 	},
 	{
 		id: "lendefi",
@@ -36716,271 +36798,275 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "lendhub",
-		s: "lhb"
+		s: "LHB"
 	},
 	{
 		id: "lendingblock",
-		s: "lnd"
+		s: "LND"
 	},
 	{
 		id: "lendroid-support-token",
-		s: "lst"
+		s: "LST"
 	},
 	{
 		id: "leocoin",
-		s: "lc4"
+		s: "LC4"
 	},
 	{
 		id: "leo-token",
-		s: "leo"
+		s: "LEO"
 	},
 	{
 		id: "lepard-coin",
-		s: "lp"
+		s: "LP"
+	},
+	{
+		id: "lepricon",
+		s: "L3P"
 	},
 	{
 		id: "letitride",
-		s: "lir"
+		s: "LIR"
 	},
 	{
 		id: "level01-derivatives-exchange",
-		s: "lvx"
+		s: "LVX"
 	},
 	{
 		id: "levelapp",
-		s: "lvl"
+		s: "LVL"
 	},
 	{
 		id: "levelg",
-		s: "levelg"
+		s: "LEVELG"
 	},
 	{
 		id: "leverj",
-		s: "lev"
+		s: "LEV"
 	},
 	{
 		id: "leverj-gluon",
-		s: "l2"
+		s: "L2"
 	},
 	{
 		id: "levolution",
-		s: "levl"
+		s: "LEVL"
 	},
 	{
 		id: "lgcy-network",
-		s: "lgcy"
+		s: "LGCY"
 	},
 	{
 		id: "lhcoin",
-		s: "lhcoin"
+		s: "LHCOIN"
 	},
 	{
 		id: "lht",
-		s: "lht"
+		s: "LHT"
 	},
 	{
 		id: "libartysharetoken",
-		s: "lst"
+		s: "LST"
 	},
 	{
 		id: "libera",
-		s: "lib"
+		s: "LIB"
 	},
 	{
 		id: "liber-coin",
-		s: "lbr"
+		s: "LBR"
 	},
 	{
 		id: "libertas-token",
-		s: "libertas"
+		s: "LIBERTAS"
 	},
 	{
 		id: "libfx",
-		s: "libfx"
+		s: "LIBFX"
 	},
 	{
 		id: "libonomy",
-		s: "lby"
+		s: "LBY"
 	},
 	{
 		id: "libra-2",
-		s: "lc"
+		s: "LC"
 	},
 	{
 		id: "libra-credit",
-		s: "lba"
+		s: "LBA"
 	},
 	{
 		id: "librefreelencer",
-		s: "libref"
+		s: "LIBREF"
 	},
 	{
 		id: "lichang",
-		s: "lc"
+		s: "LC"
 	},
 	{
 		id: "lido-dao",
-		s: "ldo"
+		s: "LDO"
 	},
 	{
 		id: "lien",
-		s: "lien"
+		s: "LIEN"
 	},
 	{
 		id: "life",
-		s: "life"
+		s: "LIFE"
 	},
 	{
 		id: "life-is-camping-community",
-		s: "licc"
+		s: "LICC"
 	},
 	{
 		id: "life-style-chain",
-		s: "lst"
+		s: "LST"
 	},
 	{
 		id: "lightbit",
-		s: "litb"
+		s: "LITB"
 	},
 	{
 		id: "lightforge",
-		s: "ltfg"
+		s: "LTFG"
 	},
 	{
 		id: "lightning-bitcoin",
-		s: "lbtc"
+		s: "LBTC"
 	},
 	{
 		id: "lightningcoin",
-		s: "lc"
+		s: "LC"
 	},
 	{
 		id: "lightning-protocol",
-		s: "light"
+		s: "LIGHT"
 	},
 	{
 		id: "lightpaycoin",
-		s: "lpc"
+		s: "LPC"
 	},
 	{
 		id: "lightstreams",
-		s: "pht"
+		s: "PHT"
 	},
 	{
 		id: "likecoin",
-		s: "like"
+		s: "LIKE"
 	},
 	{
 		id: "limestone-network",
-		s: "limex"
+		s: "LIMEX"
 	},
 	{
 		id: "limitless-vip",
-		s: "vip"
+		s: "VIP"
 	},
 	{
 		id: "limitswap",
-		s: "limit"
+		s: "LIMIT"
 	},
 	{
 		id: "lina",
-		s: "lina"
+		s: "LINA"
 	},
 	{
 		id: "linda",
-		s: "mrx"
+		s: "MRX"
 	},
 	{
 		id: "linear",
-		s: "lina"
+		s: "LINA"
 	},
 	{
 		id: "linear-bsc",
-		s: "lina"
+		s: "LINA"
 	},
 	{
 		id: "linfinity",
-		s: "lfc"
+		s: "LFC"
 	},
 	{
 		id: "linix",
-		s: "lnx"
+		s: "LNX"
 	},
 	{
 		id: "link",
-		s: "ln"
+		s: "LN"
 	},
 	{
 		id: "linka",
-		s: "linka"
+		s: "LINKA"
 	},
 	{
 		id: "linkart",
-		s: "lar"
+		s: "LAR"
 	},
 	{
 		id: "linkbased",
-		s: "lbd"
+		s: "LBD"
 	},
 	{
 		id: "linkcoin-token",
-		s: "lkn"
+		s: "LKN"
 	},
 	{
 		id: "linker-coin",
-		s: "lnc"
+		s: "LNC"
 	},
 	{
 		id: "link-eth-growth-alpha-set",
-		s: "lega"
+		s: "LEGA"
 	},
 	{
 		id: "link-eth-long-only-alpha-portfolio",
-		s: "leloap"
+		s: "LELOAP"
 	},
 	{
 		id: "link-eth-rsi-ratio-trading-set",
-		s: "linkethrsi"
+		s: "LINKETHRSI"
 	},
 	{
 		id: "linkeye",
-		s: "let"
+		s: "LET"
 	},
 	{
 		id: "link-platform",
-		s: "lnk"
+		s: "LNK"
 	},
 	{
 		id: "link-profit-taker-set",
-		s: "linkpt"
+		s: "LINKPT"
 	},
 	{
 		id: "link-rsi-crossover-set",
-		s: "linkrsico"
+		s: "LINKRSICO"
 	},
 	{
 		id: "linktoken",
-		s: "ltk"
+		s: "LTK"
 	},
 	{
 		id: "linkusd",
-		s: "linkusd"
+		s: "LINKUSD"
 	},
 	{
 		id: "lipchain",
-		s: "lips"
+		s: "LIPS"
 	},
 	{
 		id: "liquid-bank",
-		s: "liq"
+		s: "LIQ"
 	},
 	{
 		id: "liquid-defi",
-		s: "liq"
+		s: "LIQ"
 	},
 	{
 		id: "liquidity-bot-token",
-		s: "liq"
+		s: "LIQ"
 	},
 	{
 		id: "liquidity-dividends-protocol",
@@ -36988,283 +37074,283 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "liquidity-network",
-		s: "lqd"
+		s: "LQD"
 	},
 	{
 		id: "liquid-lottery-rtc",
-		s: "liqlo"
+		s: "LIQLO"
 	},
 	{
 		id: "liquidwave",
-		s: "liquid"
+		s: "LIQUID"
 	},
 	{
 		id: "lisk",
-		s: "lsk"
+		s: "LSK"
 	},
 	{
 		id: "litbinex-coin",
-		s: "ltb"
+		s: "LTB"
 	},
 	{
 		id: "litebar",
-		s: "ltb"
+		s: "LTB"
 	},
 	{
 		id: "litebitcoin",
-		s: "lbtc"
+		s: "LBTC"
 	},
 	{
 		id: "litecash",
-		s: "cash"
+		s: "CASH"
 	},
 	{
 		id: "litecoin",
-		s: "ltc"
+		s: "LTC"
 	},
 	{
 		id: "litecoin-bep2",
-		s: "ltcb"
+		s: "LTCB"
 	},
 	{
 		id: "litecoin-cash",
-		s: "lcc"
+		s: "LCC"
 	},
 	{
 		id: "litecoin-finance",
-		s: "ltfn"
+		s: "LTFN"
 	},
 	{
 		id: "litecoin-plus",
-		s: "lcp"
+		s: "LCP"
 	},
 	{
 		id: "litecoin-sv",
-		s: "lsv"
+		s: "LSV"
 	},
 	{
 		id: "litecoin-token",
-		s: "ltk"
+		s: "LTK"
 	},
 	{
 		id: "litecoin-ultra",
-		s: "ltcu"
+		s: "LTCU"
 	},
 	{
 		id: "litecoinz",
-		s: "ltz"
+		s: "LTZ"
 	},
 	{
 		id: "litedoge",
-		s: "ldoge"
+		s: "LDOGE"
 	},
 	{
 		id: "litegold",
-		s: "ltg"
+		s: "LTG"
 	},
 	{
 		id: "litenero",
-		s: "ltnx"
+		s: "LTNX"
 	},
 	{
 		id: "litentry",
-		s: "lit"
+		s: "LIT"
 	},
 	{
 		id: "litex",
-		s: "lxt"
+		s: "LXT"
 	},
 	{
 		id: "lition",
-		s: "lit"
+		s: "LIT"
 	},
 	{
 		id: "litonium",
-		s: "lit"
+		s: "LIT"
 	},
 	{
 		id: "littlesesame",
-		s: "lsc"
+		s: "LSC"
 	},
 	{
 		id: "livenodes",
-		s: "lno"
+		s: "LNO"
 	},
 	{
 		id: "livenodes-token",
-		s: "lnot"
+		s: "LNOT"
 	},
 	{
 		id: "livenpay",
-		s: "lvn"
+		s: "LVN"
 	},
 	{
 		id: "livepeer",
-		s: "lpt"
+		s: "LPT"
 	},
 	{
 		id: "lives-token",
-		s: "lvt"
+		s: "LVT"
 	},
 	{
 		id: "lkr-coin",
-		s: "lkr"
+		s: "LKR"
 	},
 	{
 		id: "lm-token",
-		s: "lm"
+		s: "LM"
 	},
 	{
 		id: "lnko-token",
-		s: "lnko"
+		s: "LNKO"
 	},
 	{
 		id: "load-network",
-		s: "load"
+		s: "LOAD"
 	},
 	{
 		id: "loanburst",
-		s: "lburst"
+		s: "LBURST"
 	},
 	{
 		id: "loa-protocol",
-		s: "loa"
+		s: "LOA"
 	},
 	{
 		id: "lobstex-coin",
-		s: "lobs"
+		s: "LOBS"
 	},
 	{
 		id: "localcoinswap",
-		s: "lcs"
+		s: "LCS"
 	},
 	{
 		id: "locicoin",
-		s: "loci"
+		s: "LOCI"
 	},
 	{
 		id: "lockchain",
-		s: "loc"
+		s: "LOC"
 	},
 	{
 		id: "lock-token",
-		s: "lock"
+		s: "LOCK"
 	},
 	{
 		id: "loki-network",
-		s: "oxen"
+		s: "OXEN"
 	},
 	{
 		id: "loltoken",
-		s: "lol"
+		s: "LOL"
 	},
 	{
 		id: "long-coin",
-		s: "long"
+		s: "LONG"
 	},
 	{
 		id: "loom-network",
-		s: "loom"
+		s: "LOOM"
 	},
 	{
 		id: "loon-network",
-		s: "loon"
+		s: "LOON"
 	},
 	{
 		id: "loopring",
-		s: "lrc"
+		s: "LRC"
 	},
 	{
 		id: "lotoblock",
-		s: "loto"
+		s: "LOTO"
 	},
 	{
 		id: "lotto",
-		s: "lotto"
+		s: "LOTTO"
 	},
 	{
 		id: "lottonation",
-		s: "lnt"
+		s: "LNT"
 	},
 	{
 		id: "lovechain",
-		s: "lov"
+		s: "LOV"
 	},
 	{
 		id: "love-coin",
-		s: "love"
+		s: "LOVE"
 	},
 	{
 		id: "lovehearts",
-		s: "lvh"
+		s: "LVH"
 	},
 	{
 		id: "lp-3pool-curve",
-		s: "3crv"
+		s: "3CRV"
 	},
 	{
 		id: "l-pesa",
-		s: "lpk"
+		s: "LPK"
 	},
 	{
 		id: "lp-renbtc-curve",
-		s: "renbtcCurve"
+		s: "RENBTCCURVE"
 	},
 	{
 		id: "lp-scurve",
-		s: "sCurve"
+		s: "SCURVE"
 	},
 	{
 		id: "lto-network",
-		s: "lto"
+		s: "LTO"
 	},
 	{
 		id: "lua-token",
-		s: "lua"
+		s: "LUA"
 	},
 	{
 		id: "lucent",
-		s: "lcnt"
+		s: "LCNT"
 	},
 	{
 		id: "luckchain",
-		s: "bash"
+		s: "BASH"
 	},
 	{
 		id: "luckstar",
-		s: "lst"
+		s: "LST"
 	},
 	{
 		id: "lucky-2",
-		s: "lucky"
+		s: "LUCKY"
 	},
 	{
 		id: "luckyseventoken",
-		s: "lst"
+		s: "LST"
 	},
 	{
 		id: "lucy",
-		s: "lucy"
+		s: "LUCY"
 	},
 	{
 		id: "ludena-protocol",
-		s: "ldn"
+		s: "LDN"
 	},
 	{
 		id: "ludos",
-		s: "lud"
+		s: "LUD"
 	},
 	{
 		id: "lukki-operating-token",
-		s: "lot"
+		s: "LOT"
 	},
 	{
 		id: "lukso-token",
-		s: "lyxe"
+		s: "LYXE"
 	},
 	{
 		id: "lumeneo",
-		s: "lmo"
+		s: "LMO"
 	},
 	{
 		id: "lumos",
@@ -37272,167 +37358,171 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "luna-nusa-coin",
-		s: "lncx"
+		s: "LNCX"
 	},
 	{
 		id: "lunarium",
-		s: "xln"
+		s: "XLN"
 	},
 	{
 		id: "lunarx",
-		s: "lx"
+		s: "LX"
 	},
 	{
 		id: "lunch-money",
-		s: "lmy"
+		s: "LMY"
 	},
 	{
 		id: "lunes",
-		s: "lunes"
+		s: "LUNES"
 	},
 	{
 		id: "lunesxag",
-		s: "lxag"
+		s: "LXAG"
 	},
 	{
 		id: "lung-protocol",
-		s: "l2p"
+		s: "L2P"
 	},
 	{
 		id: "lunyr",
-		s: "lun"
+		s: "LUN"
 	},
 	{
 		id: "lux",
-		s: "lx"
+		s: "LX"
 	},
 	{
 		id: "lux-bio-exchange-coin",
-		s: "lbxc"
+		s: "LBXC"
 	},
 	{
 		id: "luxcoin",
-		s: "lux"
+		s: "LUX"
 	},
 	{
 		id: "luxurious-pro-network-token",
-		s: "lpnt"
+		s: "LPNT"
 	},
 	{
 		id: "luxurium",
-		s: "lxmt"
+		s: "LXMT"
 	},
 	{
 		id: "lyfe",
-		s: "lyfe"
+		s: "LYFE"
 	},
 	{
 		id: "lykke",
-		s: "lkk"
+		s: "LKK"
 	},
 	{
 		id: "lympo",
-		s: "lym"
+		s: "LYM"
 	},
 	{
 		id: "lynchpin_token",
-		s: "lyn"
+		s: "LYN"
 	},
 	{
 		id: "lync-network",
-		s: "lync"
+		s: "LYNC"
 	},
 	{
 		id: "lynx",
-		s: "lynx"
+		s: "LYNX"
 	},
 	{
 		id: "lyra",
-		s: "lyr"
+		s: "LYR"
 	},
 	{
 		id: "lytix",
-		s: "lytx"
+		s: "LYTX"
 	},
 	{
 		id: "lyze",
-		s: "lze"
+		s: "LZE"
 	},
 	{
 		id: "mach",
-		s: "mach"
+		s: "MACH"
 	},
 	{
 		id: "machinecoin",
-		s: "mac"
+		s: "MAC"
 	},
 	{
 		id: "machix",
-		s: "mcx"
+		s: "MCX"
 	},
 	{
 		id: "macpo",
-		s: "macpo"
+		s: "MACPO"
 	},
 	{
 		id: "mad-network",
-		s: "mad"
+		s: "MAD"
 	},
 	{
 		id: "maecenas",
-		s: "art"
+		s: "ART"
 	},
 	{
 		id: "mafia-network",
-		s: "mafi"
+		s: "MAFI"
 	},
 	{
 		id: "maggie",
-		s: "mag"
+		s: "MAG"
 	},
 	{
 		id: "magi",
-		s: "xmg"
+		s: "XMG"
 	},
 	{
 		id: "magic-cube",
-		s: "mcc"
+		s: "MCC"
 	},
 	{
 		id: "magic-e-stock",
-		s: "msb"
+		s: "MSB"
+	},
+	{
+		id: "magikarp-finance",
+		s: "MAGI"
 	},
 	{
 		id: "magnachain",
-		s: "mgc"
+		s: "MGC"
 	},
 	{
 		id: "mahadao",
-		s: "maha"
+		s: "MAHA"
 	},
 	{
 		id: "maidsafecoin",
-		s: "maid"
+		s: "MAID"
 	},
 	{
 		id: "maincoin",
-		s: "mnc"
+		s: "MNC"
 	},
 	{
 		id: "mainframe",
-		s: "mft"
+		s: "MFT"
 	},
 	{
 		id: "mainstream-for-the-underground",
-		s: "mftu"
+		s: "MFTU"
 	},
 	{
 		id: "majatoken",
-		s: "mja"
+		s: "MJA"
 	},
 	{
 		id: "makcoin",
-		s: "mak"
+		s: "MAK"
 	},
 	{
 		id: "make-more-money",
@@ -37440,35 +37530,35 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "maker",
-		s: "mkr"
+		s: "MKR"
 	},
 	{
 		id: "makes",
-		s: "mks"
+		s: "MKS"
 	},
 	{
 		id: "maki-finance",
-		s: "maki"
+		s: "MAKI"
 	},
 	{
 		id: "malwarechain",
-		s: "malw"
+		s: "MALW"
 	},
 	{
 		id: "manateecoin",
-		s: "mtc"
+		s: "MTC"
 	},
 	{
 		id: "mandala-exchange-token",
-		s: "mdx"
+		s: "MDX"
 	},
 	{
 		id: "mandi-token",
-		s: "mandi"
+		s: "MANDI"
 	},
 	{
 		id: "mangochain",
-		s: "mgp"
+		s: "MGP"
 	},
 	{
 		id: "mangocoin",
@@ -37476,59 +37566,59 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "mangu",
-		s: "mnguz"
+		s: "MNGUZ"
 	},
 	{
 		id: "manna",
-		s: "manna"
+		s: "MANNA"
 	},
 	{
 		id: "mano-coin",
-		s: "mano"
+		s: "MANO"
 	},
 	{
 		id: "mantis-network",
-		s: "mntis"
+		s: "MNTIS"
 	},
 	{
 		id: "mantra-dao",
-		s: "om"
+		s: "OM"
 	},
 	{
 		id: "many",
-		s: "many"
+		s: "MANY"
 	},
 	{
 		id: "mao-zedong",
-		s: "mao"
+		s: "MAO"
 	},
 	{
 		id: "mapcoin",
-		s: "mapc"
+		s: "MAPC"
 	},
 	{
 		id: "maps",
-		s: "maps"
+		s: "MAPS"
 	},
 	{
 		id: "marblecoin",
-		s: "mbc"
+		s: "MBC"
 	},
 	{
 		id: "marcopolo",
-		s: "map"
+		s: "MAP"
 	},
 	{
 		id: "marginswap",
-		s: "mfi"
+		s: "MFI"
 	},
 	{
 		id: "margix",
-		s: "mgx"
+		s: "MGX"
 	},
 	{
 		id: "mario-cash-jan-2021",
-		s: "mario-cash-jan-2021"
+		s: "MARIO-CASH-JAN-2021"
 	},
 	{
 		id: "markaccy",
@@ -37536,471 +37626,463 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "market-arbitrage-coin",
-		s: "marc"
+		s: "MARC"
 	},
 	{
 		id: "marketpeak",
-		s: "peak"
+		s: "PEAK"
 	},
 	{
 		id: "markyt",
-		s: "mar"
+		s: "MAR"
 	},
 	{
 		id: "marlin",
-		s: "pond"
+		s: "POND"
 	},
 	{
 		id: "mar-network",
-		s: "mars"
+		s: "MARS"
 	},
 	{
 		id: "mars",
-		s: "mars"
+		s: "MARS"
 	},
 	{
 		id: "marscoin",
-		s: "mars"
+		s: "MARS"
 	},
 	{
 		id: "marshal-lion-group-coin",
-		s: "mlgc"
+		s: "MLGC"
 	},
 	{
 		id: "martexcoin",
-		s: "mxt"
+		s: "MXT"
 	},
 	{
 		id: "martkist",
-		s: "martk"
+		s: "MARTK"
 	},
 	{
 		id: "marvrodi-salute-vision",
-		s: "msv"
+		s: "MSV"
 	},
 	{
 		id: "marxcoin",
-		s: "marx"
+		s: "MARX"
 	},
 	{
 		id: "masari",
-		s: "msr"
+		s: "MSR"
 	},
 	{
 		id: "mask-network",
-		s: "mask"
+		s: "MASK"
 	},
 	{
 		id: "masq",
-		s: "masq"
+		s: "MASQ"
 	},
 	{
 		id: "mass",
-		s: "mass"
+		s: "MASS"
 	},
 	{
 		id: "mass-vehicle-ledger",
-		s: "mvl"
+		s: "MVL"
 	},
 	{
 		id: "master-contract-token",
-		s: "mct"
-	},
-	{
-		id: "master-mix-token",
-		s: "mmt"
+		s: "MCT"
 	},
 	{
 		id: "masternet",
-		s: "mash"
+		s: "MASH"
 	},
 	{
 		id: "master-usd",
-		s: "musd"
+		s: "MUSD"
 	},
 	{
 		id: "masterwin",
-		s: "mw"
+		s: "MW"
 	},
 	{
 		id: "matchpool",
-		s: "gup"
+		s: "GUP"
 	},
 	{
 		id: "math",
-		s: "math"
+		s: "MATH"
 	},
 	{
 		id: "matic-aave-aave",
-		s: "maaave"
+		s: "MAAAVE"
 	},
 	{
 		id: "matic-aave-dai",
-		s: "madai"
+		s: "MADAI"
 	},
 	{
 		id: "matic-aave-link",
-		s: "malink"
+		s: "MALINK"
 	},
 	{
 		id: "matic-aave-tusd",
-		s: "matusd"
+		s: "MATUSD"
 	},
 	{
 		id: "matic-aave-uni",
-		s: "mauni"
+		s: "MAUNI"
 	},
 	{
 		id: "matic-aave-usdc",
-		s: "mausdc"
+		s: "MAUSDC"
 	},
 	{
 		id: "matic-aave-usdt",
-		s: "mausdt"
+		s: "MAUSDT"
 	},
 	{
 		id: "matic-aave-weth",
-		s: "maweth"
+		s: "MAWETH"
 	},
 	{
 		id: "matic-aave-yfi",
-		s: "mayfi"
+		s: "MAYFI"
 	},
 	{
 		id: "matic-network",
-		s: "matic"
+		s: "MATIC"
 	},
 	{
 		id: "matrexcoin",
-		s: "mac"
+		s: "MAC"
 	},
 	{
 		id: "matrix-ai-network",
-		s: "man"
+		s: "MAN"
 	},
 	{
 		id: "matryx",
-		s: "mtx"
+		s: "MTX"
 	},
 	{
 		id: "maverick-chain",
-		s: "mvc"
+		s: "MVC"
 	},
 	{
 		id: "mavro",
-		s: "mvr"
+		s: "MVR"
 	},
 	{
 		id: "maxcoin",
-		s: "max"
+		s: "MAX"
 	},
 	{
 		id: "maxonrow",
-		s: "mxw"
+		s: "MXW"
 	},
 	{
 		id: "max-property-group",
-		s: "mpg"
+		s: "MPG"
 	},
 	{
 		id: "max-token",
-		s: "max"
+		s: "MAX"
 	},
 	{
 		id: "maya-coin",
-		s: "maya"
+		s: "MAYA"
 	},
 	{
 		id: "maya-preferred-223",
-		s: "mayp"
+		s: "MAYP"
 	},
 	{
 		id: "maza",
-		s: "mzc"
+		s: "MZC"
 	},
 	{
 		id: "mbitbooks",
-		s: "mbit"
+		s: "MBIT"
 	},
 	{
 		id: "mbm-token",
-		s: "mbm"
+		s: "MBM"
 	},
 	{
 		id: "mcbase-finance",
-		s: "mcbase"
+		s: "MCBASE"
 	},
 	{
 		id: "mcdex",
-		s: "mcb"
+		s: "MCB"
 	},
 	{
 		id: "mchain",
-		s: "mar"
+		s: "MAR"
 	},
 	{
 		id: "m-chain",
-		s: "m"
+		s: "M"
 	},
 	{
 		id: "mci-coin",
-		s: "mci"
+		s: "MCI"
 	},
 	{
 		id: "mcobit",
-		s: "mct"
+		s: "MCT"
 	},
 	{
 		id: "mdex",
-		s: "mdx"
+		s: "MDX"
 	},
 	{
 		id: "mdsquare",
-		s: "tmed"
+		s: "TMED"
 	},
 	{
 		id: "mdtoken",
-		s: "mdtk"
+		s: "MDTK"
 	},
 	{
 		id: "mdu",
-		s: "mdu"
+		s: "MDU"
 	},
 	{
 		id: "measurable-data-token",
-		s: "mdt"
+		s: "MDT"
 	},
 	{
 		id: "meconcash",
-		s: "mch"
+		s: "MCH"
 	},
 	{
 		id: "mecro-coin",
-		s: "mec"
+		s: "MEC"
 	},
 	{
 		id: "medalte",
-		s: "mdtl"
+		s: "MDTL"
 	},
 	{
 		id: "medibit",
-		s: "medibit"
+		s: "MEDIBIT"
 	},
 	{
 		id: "medibloc",
-		s: "med"
+		s: "MED"
 	},
 	{
 		id: "medicalchain",
-		s: "mtn"
+		s: "MTN"
 	},
 	{
 		id: "medical-token-currency",
-		s: "mtc"
+		s: "MTC"
 	},
 	{
 		id: "medicalveda",
-		s: "mveda"
+		s: "MVEDA"
 	},
 	{
 		id: "medican-coin",
-		s: "mcan"
+		s: "MCAN"
 	},
 	{
 		id: "medic-coin",
-		s: "medic"
+		s: "MEDIC"
 	},
 	{
 		id: "mediconnect",
-		s: "medi"
+		s: "MEDI"
 	},
 	{
 		id: "medikey",
-		s: "mkey"
+		s: "MKEY"
 	},
 	{
 		id: "medishares",
-		s: "mds"
+		s: "MDS"
 	},
 	{
 		id: "medium",
-		s: "mdm"
+		s: "MDM"
 	},
 	{
 		id: "medooza-ecosystem",
-		s: "mdza"
+		s: "MDZA"
 	},
 	{
 		id: "medusa",
-		s: "dusa"
+		s: "DUSA"
 	},
 	{
 		id: "meetluna",
-		s: "lstr"
+		s: "LSTR"
 	},
 	{
 		id: "meetone",
-		s: "meetone"
+		s: "MEETONE"
 	},
 	{
 		id: "meetple",
-		s: "mpt"
+		s: "MPT"
 	},
 	{
 		id: "meettoken",
-		s: "mtt"
+		s: "MTT"
 	},
 	{
 		id: "megacoin",
-		s: "mec"
+		s: "MEC"
 	},
 	{
 		id: "megacryptopolis",
-		s: "mega"
+		s: "MEGA"
 	},
 	{
 		id: "mega-lottery-services-global",
-		s: "mlr"
+		s: "MLR"
 	},
 	{
 		id: "meld-gold",
-		s: "mcau"
+		s: "MCAU"
 	},
 	{
 		id: "melon",
-		s: "mln"
+		s: "MLN"
 	},
 	{
 		id: "melonheadsprotocol",
-		s: "mhsp"
+		s: "MHSP"
 	},
 	{
 		id: "membrana-platform",
-		s: "mbn"
+		s: "MBN"
 	},
 	{
 		id: "meme-cash",
-		s: "mch"
+		s: "MCH"
 	},
 	{
 		id: "memetic",
-		s: "meme"
+		s: "MEME"
 	},
 	{
 		id: "menapay",
-		s: "mpay"
+		s: "MPAY"
 	},
 	{
 		id: "menlo-one",
-		s: "one"
-	},
-	{
-		id: "meowth",
-		s: "meowth"
+		s: "ONE"
 	},
 	{
 		id: "meraki",
-		s: "mek"
+		s: "MEK"
 	},
 	{
 		id: "merculet",
-		s: "mvp"
+		s: "MVP"
 	},
 	{
 		id: "mercury",
-		s: "mer"
+		s: "MER"
 	},
 	{
 		id: "merebel",
-		s: "meri"
+		s: "MERI"
 	},
 	{
 		id: "merge",
-		s: "merge"
+		s: "MERGE"
 	},
 	{
 		id: "mergecoin",
-		s: "mgc"
+		s: "MGC"
 	},
 	{
 		id: "meridaworld",
-		s: "mer"
+		s: "MER"
 	},
 	{
 		id: "meridian-network",
-		s: "lock"
+		s: "LOCK"
 	},
 	{
 		id: "meritcoins",
-		s: "mrc"
+		s: "MRC"
 	},
 	{
 		id: "meroechain",
-		s: "mrc"
+		s: "MRC"
 	},
 	{
 		id: "mesefa",
-		s: "sefa"
+		s: "SEFA"
 	},
 	{
 		id: "meshbox",
-		s: "mesh"
+		s: "MESH"
 	},
 	{
 		id: "meta",
-		s: "mta"
+		s: "MTA"
 	},
 	{
 		id: "metacoin",
-		s: "mtc"
+		s: "MTC"
 	},
 	{
 		id: "metadium",
-		s: "meta"
+		s: "META"
 	},
 	{
 		id: "metagame",
-		s: "seed"
+		s: "SEED"
 	},
 	{
 		id: "metahash",
-		s: "mhc"
+		s: "MHC"
 	},
 	{
 		id: "metal",
-		s: "mtl"
+		s: "MTL"
 	},
 	{
 		id: "metal-music-coin",
-		s: "mtlmc3"
+		s: "MTLMC3"
 	},
 	{
 		id: "metal-packaging-token",
-		s: "mpt"
+		s: "MPT"
 	},
 	{
 		id: "metamorph",
-		s: "metm"
+		s: "METM"
 	},
 	{
 		id: "metanoia",
-		s: "noia"
+		s: "NOIA"
 	},
 	{
 		id: "metaprediction",
-		s: "metp"
+		s: "METP"
 	},
 	{
 		id: "metaverse-dualchain-network-architecture",
-		s: "dna"
+		s: "DNA"
 	},
 	{
 		id: "metaverse-etp",
-		s: "etp"
+		s: "ETP"
 	},
 	{
 		id: "metawhale-btc",
-		s: "mwbtc"
+		s: "MWBTC"
 	},
 	{
 		id: "metawhale-gold",
@@ -38008,455 +38090,455 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "meter",
-		s: "mtrg"
+		s: "MTRG"
 	},
 	{
 		id: "meter-governance-mapped-by-meter-io",
-		s: "eMTRG"
+		s: "EMTRG"
 	},
 	{
 		id: "meter-stable",
-		s: "mtr"
+		s: "MTR"
 	},
 	{
 		id: "metis",
-		s: "mts"
+		s: "MTS"
 	},
 	{
 		id: "metric-exchange",
-		s: "metric"
+		s: "METRIC"
 	},
 	{
 		id: "metronome",
-		s: "met"
+		s: "MET"
 	},
 	{
 		id: "mettalex",
-		s: "mtlx"
+		s: "MTLX"
 	},
 	{
 		id: "mex",
-		s: "mex"
+		s: "MEX"
 	},
 	{
 		id: "mexc-token",
-		s: "mexc"
+		s: "MEXC"
 	},
 	{
 		id: "mfcoin",
-		s: "mfc"
+		s: "MFC"
 	},
 	{
 		id: "mgc-token",
-		s: "mgc"
+		s: "MGC"
 	},
 	{
 		id: "miami",
-		s: "miami"
+		s: "MIAMI"
 	},
 	{
 		id: "mib-coin",
-		s: "mib"
+		s: "MIB"
 	},
 	{
 		id: "microbitcoin",
-		s: "mbc"
+		s: "MBC"
 	},
 	{
 		id: "micro-blood-science",
-		s: "mbs"
+		s: "MBS"
 	},
 	{
 		id: "microchain",
-		s: "mb"
+		s: "MB"
 	},
 	{
 		id: "microcoin",
-		s: "mcc"
+		s: "MCC"
 	},
 	{
 		id: "micromines",
-		s: "micro"
+		s: "MICRO"
 	},
 	{
 		id: "micromoney",
-		s: "amm"
+		s: "AMM"
 	},
 	{
 		id: "midas",
-		s: "midas"
+		s: "MIDAS"
 	},
 	{
 		id: "midas-cash",
-		s: "mcash"
+		s: "MCASH"
 	},
 	{
 		id: "midas-dollar",
-		s: "mdo"
+		s: "MDO"
 	},
 	{
 		id: "midas-dollar-share",
-		s: "mds"
+		s: "MDS"
 	},
 	{
 		id: "midas-gold",
-		s: "mdg"
+		s: "MDG"
 	},
 	{
 		id: "midas-protocol",
-		s: "mas"
+		s: "MAS"
 	},
 	{
 		id: "migranet",
-		s: "mig"
+		s: "MIG"
 	},
 	{
 		id: "miks-coin",
-		s: "miks"
+		s: "MIKS"
 	},
 	{
 		id: "mileverse",
-		s: "mvc"
+		s: "MVC"
 	},
 	{
 		id: "milfies",
-		s: "milf"
+		s: "MILF"
 	},
 	{
 		id: "milk",
-		s: "mlk"
+		s: "MLK"
 	},
 	{
 		id: "milk2",
-		s: "milk2"
+		s: "MILK2"
 	},
 	{
 		id: "millenniumclub",
-		s: "mclb"
+		s: "MCLB"
 	},
 	{
 		id: "millimeter",
-		s: "mm"
+		s: "MM"
 	},
 	{
 		id: "mimblewimblecoin",
-		s: "mwc"
+		s: "MWC"
 	},
 	{
 		id: "mimidi",
-		s: "mmd"
+		s: "MMD"
 	},
 	{
 		id: "mimosa",
-		s: "mimo"
+		s: "MIMO"
 	},
 	{
 		id: "mincoin",
-		s: "mnc"
+		s: "MNC"
 	},
 	{
 		id: "mindcoin",
-		s: "mnd"
+		s: "MND"
 	},
 	{
 		id: "mindol",
-		s: "min"
+		s: "MIN"
 	},
 	{
 		id: "minds",
-		s: "minds"
+		s: "MINDS"
 	},
 	{
 		id: "minebee",
-		s: "mb"
+		s: "MB"
 	},
 	{
 		id: "mineral",
-		s: "mnr"
+		s: "MNR"
 	},
 	{
 		id: "minereum",
-		s: "mne"
+		s: "MNE"
 	},
 	{
 		id: "minergate-token",
-		s: "mg"
+		s: "MG"
 	},
 	{
 		id: "mineum",
-		s: "mnm"
+		s: "MNM"
 	},
 	{
 		id: "mini",
-		s: "mini"
+		s: "MINI"
 	},
 	{
 		id: "minibitcoin",
-		s: "mbtc"
+		s: "MBTC"
 	},
 	{
 		id: "mintcoin",
-		s: "mint"
+		s: "MINT"
 	},
 	{
 		id: "minty-art",
-		s: "minty"
+		s: "MINTY"
 	},
 	{
 		id: "mirai",
-		s: "mri"
+		s: "MRI"
 	},
 	{
 		id: "miraqle",
-		s: "mql"
+		s: "MQL"
 	},
 	{
 		id: "mir-coin",
-		s: "mir"
+		s: "MIR"
 	},
 	{
 		id: "mirocana",
-		s: "miro"
+		s: "MIRO"
 	},
 	{
 		id: "mirrored-airbnb",
-		s: "mabnb"
+		s: "MABNB"
 	},
 	{
 		id: "mirrored-alibaba",
-		s: "mbaba"
+		s: "MBABA"
 	},
 	{
 		id: "mirrored-amazon",
-		s: "mamzn"
+		s: "MAMZN"
 	},
 	{
 		id: "mirrored-amc-entertainment",
-		s: "mamc"
+		s: "MAMC"
 	},
 	{
 		id: "mirrored-apple",
-		s: "maapl"
+		s: "MAAPL"
 	},
 	{
 		id: "mirrored-bitcoin",
-		s: "mbtc"
+		s: "MBTC"
 	},
 	{
 		id: "mirrored-ether",
-		s: "meth"
+		s: "METH"
 	},
 	{
 		id: "mirrored-facebook",
-		s: "mfb"
+		s: "MFB"
 	},
 	{
 		id: "mirrored-gamestop",
-		s: "mgme"
+		s: "MGME"
 	},
 	{
 		id: "mirrored-goldman-sachs",
-		s: "mgs"
+		s: "MGS"
 	},
 	{
 		id: "mirrored-google",
-		s: "mgoogl"
+		s: "MGOOGL"
 	},
 	{
 		id: "mirrored-invesco-qqq-trust",
-		s: "mqqq"
+		s: "MQQQ"
 	},
 	{
 		id: "mirrored-ishares-gold-trust",
-		s: "miau"
+		s: "MIAU"
 	},
 	{
 		id: "mirrored-ishares-silver-trust",
-		s: "mslv"
+		s: "MSLV"
 	},
 	{
 		id: "mirrored-microsoft",
-		s: "mmsft"
+		s: "MMSFT"
 	},
 	{
 		id: "mirrored-netflix",
-		s: "mnflx"
+		s: "MNFLX"
 	},
 	{
 		id: "mirrored-proshares-vix",
-		s: "mvixy"
+		s: "MVIXY"
 	},
 	{
 		id: "mirrored-tesla",
-		s: "mtsla"
+		s: "MTSLA"
 	},
 	{
 		id: "mirrored-twitter",
-		s: "mtwtr"
+		s: "MTWTR"
 	},
 	{
 		id: "mirrored-united-states-oil-fund",
-		s: "muso"
+		s: "MUSO"
 	},
 	{
 		id: "mirror-protocol",
-		s: "mir"
+		s: "MIR"
 	},
 	{
 		id: "mirror-world-token",
-		s: "mw"
+		s: "MW"
 	},
 	{
 		id: "misbloc",
-		s: "msb"
+		s: "MSB"
 	},
 	{
 		id: "miss",
-		s: "miss"
+		s: "MISS"
 	},
 	{
 		id: "mith-cash",
-		s: "mic"
+		s: "MIC"
 	},
 	{
 		id: "mithril",
-		s: "mith"
+		s: "MITH"
 	},
 	{
 		id: "mithril-share",
-		s: "mis"
+		s: "MIS"
 	},
 	{
 		id: "mixin",
-		s: "xin"
+		s: "XIN"
 	},
 	{
 		id: "mixmarvel",
-		s: "mix"
+		s: "MIX"
 	},
 	{
 		id: "mixtrust",
-		s: "mxt"
+		s: "MXT"
 	},
 	{
 		id: "mktcoin",
-		s: "mlm"
+		s: "MLM"
 	},
 	{
 		id: "mmocoin",
-		s: "mmo"
+		s: "MMO"
 	},
 	{
 		id: "mm-token",
-		s: "mm"
+		s: "MM"
 	},
 	{
 		id: "mnmcoin",
-		s: "mnmc"
+		s: "MNMC"
 	},
 	{
 		id: "mnpcoin",
-		s: "mnp"
+		s: "MNP"
 	},
 	{
 		id: "mnpostree",
-		s: "mptc"
+		s: "MPTC"
 	},
 	{
 		id: "moac",
-		s: "moac"
+		s: "MOAC"
 	},
 	{
 		id: "mobiecoin",
-		s: "mbx"
+		s: "MBX"
 	},
 	{
 		id: "mobilecoin",
-		s: "mob"
+		s: "MOB"
 	},
 	{
 		id: "mobile-crypto-pay-coin",
-		s: "mcpc"
+		s: "MCPC"
 	},
 	{
 		id: "mobilego",
-		s: "mgo"
+		s: "MGO"
 	},
 	{
 		id: "mobilian-coin",
-		s: "mbn"
+		s: "MBN"
 	},
 	{
 		id: "mobilink-coin",
-		s: "molk"
+		s: "MOLK"
 	},
 	{
 		id: "mobit-global",
-		s: "mbgl"
+		s: "MBGL"
 	},
 	{
 		id: "mobius",
-		s: "mobi"
+		s: "MOBI"
 	},
 	{
 		id: "mochimo",
-		s: "mcm"
+		s: "MCM"
 	},
 	{
 		id: "moco-project",
-		s: "moco"
+		s: "MOCO"
 	},
 	{
 		id: "modefi",
-		s: "mod"
+		s: "MOD"
 	},
 	{
 		id: "model-x-coin",
-		s: "modx"
+		s: "MODX"
 	},
 	{
 		id: "modern-investment-coin",
-		s: "modic"
+		s: "MODIC"
 	},
 	{
 		id: "modex",
-		s: "modex"
+		s: "MODEX"
 	},
 	{
 		id: "modum",
-		s: "mod"
+		s: "MOD"
 	},
 	{
 		id: "moeda-loyalty-points",
-		s: "mda"
+		s: "MDA"
 	},
 	{
 		id: "moflux-clash-of-kings",
-		s: "mfck"
+		s: "MFCK"
 	},
 	{
 		id: "mogu",
-		s: "mogx"
+		s: "MOGX"
 	},
 	{
 		id: "mogwai",
-		s: "mog"
+		s: "MOG"
 	},
 	{
 		id: "moji-experience-points",
-		s: "mexp"
+		s: "MEXP"
 	},
 	{
 		id: "mojocoin",
-		s: "mojo"
+		s: "MOJO"
 	},
 	{
 		id: "molecular-future",
-		s: "mof"
+		s: "MOF"
 	},
 	{
 		id: "molten",
-		s: "mol"
+		s: "MOL"
 	},
 	{
 		id: "momentum",
@@ -38464,323 +38546,335 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "momocash",
-		s: "moc"
+		s: "MOC"
 	},
 	{
 		id: "monacoin",
-		s: "mona"
+		s: "MONA"
 	},
 	{
 		id: "monavale",
-		s: "mona"
+		s: "MONA"
 	},
 	{
 		id: "monero",
-		s: "xmr"
+		s: "XMR"
 	},
 	{
 		id: "monero-classic-xmc",
-		s: "xmc"
+		s: "XMC"
 	},
 	{
 		id: "monerov",
-		s: "xmv"
+		s: "XMV"
 	},
 	{
 		id: "moneta",
-		s: "moneta"
+		s: "MONETA"
 	},
 	{
 		id: "monetaryunit",
-		s: "mue"
+		s: "MUE"
 	},
 	{
 		id: "moneta-verde",
-		s: "mcn"
+		s: "MCN"
 	},
 	{
 		id: "monetha",
-		s: "mth"
+		s: "MTH"
 	},
 	{
 		id: "moneybyte",
-		s: "mon"
+		s: "MON"
 	},
 	{
 		id: "money-cash-miner",
-		s: "mcm"
+		s: "MCM"
 	},
 	{
 		id: "moneynet",
-		s: "mnc"
+		s: "MNC"
 	},
 	{
 		id: "money-party",
-		s: "party"
+		s: "PARTY"
 	},
 	{
 		id: "money-plant-token",
-		s: "mpt"
+		s: "MPT"
 	},
 	{
 		id: "money-printer-go-brrr-set",
-		s: "brrr"
+		s: "BRRR"
 	},
 	{
 		id: "moneyswap",
-		s: "mswap"
+		s: "MSWAP"
 	},
 	{
 		id: "moneytoken",
-		s: "imt"
+		s: "IMT"
 	},
 	{
 		id: "money-token",
-		s: "mnt"
+		s: "MNT"
 	},
 	{
 		id: "mongo-coin",
-		s: "mongocm"
+		s: "MONGOCM"
 	},
 	{
 		id: "monkey-coin",
-		s: "mc"
+		s: "MC"
 	},
 	{
 		id: "monkey-king-token",
-		s: "mkt"
+		s: "MKT"
 	},
 	{
 		id: "monkey-project",
-		s: "monk"
+		s: "MONK"
 	},
 	{
 		id: "monnos",
-		s: "mns"
+		s: "MNS"
 	},
 	{
 		id: "monster-cash-share",
-		s: "mss"
+		s: "MSS"
 	},
 	{
 		id: "monster-slayer-cash",
-		s: "msc"
+		s: "MSC"
+	},
+	{
+		id: "moola",
+		s: "MLA"
 	},
 	{
 		id: "moon",
-		s: "moon"
+		s: "MOON"
 	},
 	{
 		id: "moonai",
-		s: "mooi"
+		s: "MOOI"
 	},
 	{
 		id: "moonbase",
-		s: "mbbased"
+		s: "MBBASED"
 	},
 	{
 		id: "mooncoin",
-		s: "moon"
+		s: "MOON"
 	},
 	{
 		id: "mooncoin-v1",
-		s: "moon"
+		s: "MOON"
 	},
 	{
 		id: "moonday-finance",
-		s: "Moonday"
+		s: "MOONDAY"
 	},
 	{
 		id: "moon-juice",
-		s: "juice"
+		s: "JUICE"
 	},
 	{
 		id: "moonrabbit",
-		s: "mrk"
+		s: "MRK"
 	},
 	{
 		id: "moonswap",
-		s: "moon"
+		s: "MOON"
 	},
 	{
 		id: "moontools",
-		s: "moons"
+		s: "MOONS"
 	},
 	{
 		id: "moon-yfi",
-		s: "myfi"
+		s: "MYFI"
 	},
 	{
 		id: "moozicore",
-		s: "mzg"
+		s: "MZG"
 	},
 	{
 		id: "morality",
-		s: "mo"
+		s: "MO"
 	},
 	{
 		id: "morcrypto-coin",
-		s: "mor"
+		s: "MOR"
 	},
 	{
 		id: "mork",
-		s: "mork"
+		s: "MORK"
 	},
 	{
 		id: "morley-cash",
-		s: "mcn"
+		s: "MCN"
 	},
 	{
 		id: "morpher",
-		s: "mph"
+		s: "MPH"
 	},
 	{
 		id: "morpheus-labs",
-		s: "mitx"
+		s: "MITX"
 	},
 	{
 		id: "morpheus-network",
-		s: "mrph"
+		s: "MRPH"
+	},
+	{
+		id: "moss-carbon-credit",
+		s: "MCO2"
 	},
 	{
 		id: "mossland",
-		s: "moc"
+		s: "MOC"
 	},
 	{
 		id: "most-protocol",
-		s: "most"
+		s: "MOST"
 	},
 	{
 		id: "motacoin",
-		s: "mota"
+		s: "MOTA"
 	},
 	{
 		id: "mothership",
-		s: "msp"
+		s: "MSP"
 	},
 	{
 		id: "motiv-protocol",
-		s: "mov"
+		s: "MOV"
 	},
 	{
 		id: "motocoin",
-		s: "moto"
+		s: "MOTO"
 	},
 	{
 		id: "mountains-and-valleys-ethbtc-set",
-		s: "mavc"
+		s: "MAVC"
 	},
 	{
 		id: "mouse",
-		s: "mouse"
+		s: "MOUSE"
 	},
 	{
 		id: "mousecoin",
-		s: "mic3"
+		s: "MIC3"
 	},
 	{
 		id: "moviebloc",
-		s: "mbl"
+		s: "MBL"
 	},
 	{
 		id: "mox",
-		s: "mox"
+		s: "MOX"
 	},
 	{
 		id: "mozox",
-		s: "mozox"
+		s: "MOZOX"
 	},
 	{
 		id: "mp3",
-		s: "mp3"
+		s: "MP3"
 	},
 	{
 		id: "mp4",
-		s: "mp4"
+		s: "MP4"
 	},
 	{
 		id: "mrv",
-		s: "mrv"
+		s: "MRV"
 	},
 	{
 		id: "msn",
-		s: "msn"
+		s: "MSN"
 	},
 	{
 		id: "mstable-btc",
-		s: "mbtc"
+		s: "MBTC"
 	},
 	{
 		id: "mtblock",
-		s: "mts"
+		s: "MTS"
 	},
 	{
 		id: "mti-finance",
-		s: "mti"
+		s: "MTI"
 	},
 	{
 		id: "mt-pelerin-shares",
-		s: "mps"
+		s: "MPS"
 	},
 	{
 		id: "mttcoin",
-		s: "mttcoin"
+		s: "MTTCOIN"
 	},
 	{
 		id: "muay-thai-pass",
-		s: "mtc"
+		s: "MTC"
+	},
+	{
+		id: "mu-dank",
+		s: "DANK"
 	},
 	{
 		id: "multicoincasino",
-		s: "mcc"
+		s: "MCC"
 	},
 	{
 		id: "multiplier",
-		s: "mxx"
+		s: "MXX"
 	},
 	{
 		id: "multiplier-bsc",
-		s: "bmxx"
+		s: "BMXX"
 	},
 	{
 		id: "multivac",
-		s: "mtv"
+		s: "MTV"
 	},
 	{
 		id: "multiven",
-		s: "mtcn"
+		s: "MTCN"
 	},
 	{
 		id: "musd",
-		s: "musd"
+		s: "MUSD"
 	},
 	{
 		id: "muse-2",
-		s: "muse"
+		s: "MUSE"
 	},
 	{
 		id: "mushroom",
-		s: "mush"
+		s: "MUSH"
 	},
 	{
 		id: "musk",
-		s: "musk"
+		s: "MUSK"
 	},
 	{
 		id: "must",
-		s: "must"
+		s: "MUST"
 	},
 	{
 		id: "mustangcoin",
-		s: "mst"
+		s: "MST"
 	},
 	{
 		id: "mute",
-		s: "mute"
+		s: "MUTE"
 	},
 	{
 		id: "muzika-network",
-		s: "mzk"
+		s: "MZK"
 	},
 	{
 		id: "mvg-token",
@@ -38788,859 +38882,863 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "mvp",
-		s: "mvp"
+		s: "MVP"
 	},
 	{
 		id: "mxc",
-		s: "mxc"
+		s: "MXC"
 	},
 	{
 		id: "mx-token",
-		s: "mx"
+		s: "MX"
 	},
 	{
 		id: "mybit-token",
-		s: "myb"
+		s: "MYB"
 	},
 	{
 		id: "myce",
-		s: "yce"
+		s: "YCE"
 	},
 	{
 		id: "mycro-ico",
-		s: "myo"
+		s: "MYO"
 	},
 	{
 		id: "my-crypto-play",
-		s: "mcp"
+		s: "MCP"
 	},
 	{
 		id: "myfichain",
-		s: "myfi"
+		s: "MYFI"
 	},
 	{
 		id: "mykey",
-		s: "key"
+		s: "KEY"
 	},
 	{
 		id: "mykonos-coin",
-		s: "myk"
+		s: "MYK"
 	},
 	{
 		id: "mymn",
-		s: "mymn"
+		s: "MYMN"
 	},
 	{
 		id: "my-neighbor-alice",
-		s: "alice"
+		s: "ALICE"
 	},
 	{
 		id: "mynt",
-		s: "mynt"
+		s: "MYNT"
 	},
 	{
 		id: "myriadcoin",
-		s: "xmy"
+		s: "XMY"
 	},
 	{
 		id: "mysterious-sound",
-		s: "mst"
+		s: "MST"
 	},
 	{
 		id: "mysterium",
-		s: "myst"
+		s: "MYST"
 	},
 	{
 		id: "mytoken",
-		s: "mt"
+		s: "MT"
 	},
 	{
 		id: "mytracknet-token",
-		s: "mtnt"
+		s: "MTNT"
 	},
 	{
 		id: "mytvchain",
-		s: "mytv"
+		s: "MYTV"
 	},
 	{
 		id: "myubi",
-		s: "myu"
+		s: "MYU"
 	},
 	{
 		id: "mywish",
-		s: "wish"
+		s: "WISH"
 	},
 	{
 		id: "myx-network",
-		s: "myx"
+		s: "MYX"
 	},
 	{
 		id: "n3rd-finance",
-		s: "N3RDz"
+		s: "N3RDZ"
 	},
 	{
 		id: "nacho-coin",
-		s: "nacho"
+		s: "NACHO"
 	},
 	{
 		id: "naga",
-		s: "ngc"
+		s: "NGC"
 	},
 	{
 		id: "nagaswap",
-		s: "bnw"
+		s: "BNW"
 	},
 	{
 		id: "nahmii",
-		s: "nii"
+		s: "NII"
 	},
 	{
 		id: "naka-bodhi-token",
-		s: "nbot"
+		s: "NBOT"
 	},
 	{
 		id: "name-changing-token",
-		s: "nct"
+		s: "NCT"
 	},
 	{
 		id: "namecoin",
-		s: "nmc"
+		s: "NMC"
 	},
 	{
 		id: "nami-corporation-token",
-		s: "nami"
+		s: "NAMI"
 	},
 	{
 		id: "nami-trade",
-		s: "nac"
+		s: "NAC"
 	},
 	{
 		id: "nanjcoin",
-		s: "nanj"
+		s: "NANJ"
 	},
 	{
 		id: "nano",
-		s: "nano"
+		s: "NANO"
 	},
 	{
 		id: "nantrade",
-		s: "nan"
+		s: "NAN"
 	},
 	{
 		id: "napoleon-x",
-		s: "npx"
+		s: "NPX"
 	},
 	{
 		id: "narrative",
-		s: "nrve"
+		s: "NRVE"
 	},
 	{
 		id: "nar-token",
-		s: "nar"
+		s: "NAR"
 	},
 	{
 		id: "naruto-bsc",
-		s: "naruto2"
+		s: "NARUTO2"
 	},
 	{
 		id: "narwhale",
-		s: "nawa"
+		s: "NAWA"
 	},
 	{
 		id: "nasdacoin",
-		s: "nsd"
+		s: "NSD"
 	},
 	{
 		id: "nasgo",
-		s: "nsg"
+		s: "NSG"
 	},
 	{
 		id: "native-utility-token",
-		s: "nut"
+		s: "NUT"
 	},
 	{
 		id: "natmin-pure-escrow",
-		s: "nat"
+		s: "NAT"
 	},
 	{
 		id: "nature",
-		s: "nat"
+		s: "NAT"
 	},
 	{
 		id: "natus-vincere-fan-token",
-		s: "navi"
+		s: "NAVI"
 	},
 	{
 		id: "nav-coin",
-		s: "nav"
+		s: "NAV"
 	},
 	{
 		id: "navibration",
-		s: "navi"
+		s: "NAVI"
 	},
 	{
 		id: "nayuta-coin",
-		s: "nc"
+		s: "NC"
 	},
 	{
 		id: "naz-coin",
-		s: "naz"
+		s: "NAZ"
 	},
 	{
 		id: "ndau",
-		s: "ndau"
+		s: "NDAU"
 	},
 	{
 		id: "ndex",
-		s: "ndx"
+		s: "NDX"
 	},
 	{
 		id: "ndn-link",
-		s: "ndn"
+		s: "NDN"
 	},
 	{
 		id: "neal",
-		s: "neal"
+		s: "NEAL"
 	},
 	{
 		id: "near",
-		s: "near"
+		s: "NEAR"
 	},
 	{
 		id: "neblio",
-		s: "nebl"
+		s: "NEBL"
 	},
 	{
 		id: "nebulas",
-		s: "nas"
+		s: "NAS"
 	},
 	{
 		id: "nectar-token",
-		s: "nec"
+		s: "NEC"
 	},
 	{
 		id: "neeo-token",
-		s: "neeo"
+		s: "NEEO"
 	},
 	{
 		id: "neetcoin",
-		s: "neet"
+		s: "NEET"
 	},
 	{
 		id: "neeva-defi",
-		s: "nva"
+		s: "NVA"
 	},
 	{
 		id: "neexstar",
-		s: "neex"
+		s: "NEEX"
 	},
 	{
 		id: "nekonium",
-		s: "nuko"
+		s: "NUKO"
 	},
 	{
 		id: "nem",
-		s: "xem"
+		s: "XEM"
 	},
 	{
 		id: "nemocoin",
-		s: "nemo"
+		s: "NEMO"
 	},
 	{
 		id: "neo",
-		s: "neo"
+		s: "NEO"
 	},
 	{
 		id: "neon-exchange",
-		s: "nex"
+		s: "NEX"
 	},
 	{
 		id: "neo-smart-energy",
-		s: "nse"
+		s: "NSE"
 	},
 	{
 		id: "neoworld-cash",
-		s: "nash"
+		s: "NASH"
 	},
 	{
 		id: "nerva",
-		s: "xnv"
+		s: "XNV"
 	},
 	{
 		id: "nerve-finance",
-		s: "nrv"
+		s: "NRV"
 	},
 	{
 		id: "nervenetwork",
-		s: "nvt"
+		s: "NVT"
 	},
 	{
 		id: "nervos-network",
-		s: "ckb"
+		s: "CKB"
 	},
 	{
 		id: "nest",
-		s: "nest"
+		s: "NEST"
 	},
 	{
 		id: "nestegg-coin",
-		s: "egg"
+		s: "EGG"
 	},
 	{
 		id: "nestree",
-		s: "egg"
+		s: "EGG"
 	},
 	{
 		id: "netbox-coin",
-		s: "nbx"
+		s: "NBX"
 	},
 	{
 		id: "netcoin",
-		s: "net"
+		s: "NET"
 	},
 	{
 		id: "netko",
-		s: "netko"
+		s: "NETKO"
 	},
 	{
 		id: "netkoin",
-		s: "ntk"
+		s: "NTK"
 	},
 	{
 		id: "netkoin-liquid",
-		s: "liquid"
+		s: "LIQUID"
 	},
 	{
 		id: "netm",
-		s: "ntm"
+		s: "NTM"
 	},
 	{
 		id: "netrum",
-		s: "ntr"
+		s: "NTR"
 	},
 	{
 		id: "neumark",
-		s: "neu"
+		s: "NEU"
 	},
 	{
 		id: "neural-protocol",
-		s: "nrp"
+		s: "NRP"
 	},
 	{
 		id: "neurochain",
-		s: "ncc"
+		s: "NCC"
 	},
 	{
 		id: "neuromorphic-io",
-		s: "nmp"
+		s: "NMP"
 	},
 	{
 		id: "neurotoken",
-		s: "ntk"
+		s: "NTK"
 	},
 	{
 		id: "neutrino",
-		s: "usdn"
+		s: "USDN"
 	},
 	{
 		id: "neutrino-system-base-token",
-		s: "nsbt"
+		s: "NSBT"
 	},
 	{
 		id: "neutron",
-		s: "ntrn"
+		s: "NTRN"
 	},
 	{
 		id: "nevacoin",
-		s: "neva"
+		s: "NEVA"
 	},
 	{
 		id: "new-bitshares",
-		s: "nbs"
+		s: "NBS"
 	},
 	{
 		id: "newdex-token",
-		s: "ndx"
+		s: "NDX"
 	},
 	{
 		id: "newland",
-		s: "nld"
+		s: "NLD"
 	},
 	{
 		id: "nework",
-		s: "nkc"
+		s: "NKC"
 	},
 	{
 		id: "new-power-coin",
-		s: "npw"
+		s: "NPW"
 	},
 	{
 		id: "news24",
-		s: "news"
+		s: "NEWS"
 	},
 	{
 		id: "newscrypto-coin",
-		s: "nwc"
+		s: "NWC"
 	},
 	{
 		id: "newsolution",
-		s: "nst"
+		s: "NST"
 	},
 	{
 		id: "newstoken",
-		s: "newos"
+		s: "NEWOS"
 	},
 	{
 		id: "newton-coin-project",
-		s: "ncp"
+		s: "NCP"
 	},
 	{
 		id: "newtonium",
-		s: "newton"
+		s: "NEWTON"
 	},
 	{
 		id: "newton-project",
-		s: "new"
+		s: "NEW"
 	},
 	{
 		id: "new-year-bull",
-		s: "nyb"
+		s: "NYB"
 	},
 	{
 		id: "newyorkcoin",
-		s: "nyc"
+		s: "NYC"
 	},
 	{
 		id: "newyork-exchange",
-		s: "nye"
+		s: "NYE"
 	},
 	{
 		id: "nexalt",
-		s: "xlt"
+		s: "XLT"
 	},
 	{
 		id: "nexdax",
-		s: "nt"
+		s: "NT"
 	},
 	{
 		id: "nexfin",
-		s: "nex"
+		s: "NEX"
 	},
 	{
 		id: "nexo",
-		s: "nexo"
+		s: "NEXO"
 	},
 	{
 		id: "nextdao",
-		s: "nax"
+		s: "NAX"
 	},
 	{
 		id: "nextexchange",
-		s: "next"
+		s: "NEXT"
 	},
 	{
 		id: "nexty",
-		s: "nty"
+		s: "NTY"
 	},
 	{
 		id: "nexus",
-		s: "nxs"
+		s: "NXS"
 	},
 	{
 		id: "nexxo",
-		s: "nexxo"
+		s: "NEXXO"
 	},
 	{
 		id: "nft-index",
-		s: "nfti"
+		s: "NFTI"
 	},
 	{
 		id: "nftlootbox",
-		s: "loot"
+		s: "LOOT"
 	},
 	{
 		id: "nftl-token",
-		s: "nftl"
+		s: "NFTL"
 	},
 	{
 		id: "nft-protocol",
-		s: "nft"
+		s: "NFT"
 	},
 	{
 		id: "nft-rehab",
-		s: "rehab"
+		s: "REHAB"
 	},
 	{
 		id: "nftx",
-		s: "nftx"
+		s: "NFTX"
 	},
 	{
 		id: "nftx-hashmasks-index",
-		s: "mask"
+		s: "MASK"
 	},
 	{
 		id: "nfx-coin",
-		s: "nfxc"
+		s: "NFXC"
 	},
 	{
 		id: "ngin",
-		s: "ng"
+		s: "NG"
 	},
 	{
 		id: "ngot",
-		s: "ngot"
+		s: "NGOT"
 	},
 	{
 		id: "nibbleclassic",
-		s: "nbxc"
+		s: "NBXC"
 	},
 	{
 		id: "nice",
-		s: "nice"
+		s: "NICE"
 	},
 	{
 		id: "nilu",
-		s: "nilu"
+		s: "NILU"
 	},
 	{
 		id: "nimiq-2",
-		s: "nim"
+		s: "NIM"
 	},
 	{
 		id: "niobio-cash",
-		s: "nbr"
+		s: "NBR"
 	},
 	{
 		id: "niobium-coin",
-		s: "nbc"
+		s: "NBC"
 	},
 	{
 		id: "nioshares",
-		s: "nio"
+		s: "NIO"
 	},
 	{
 		id: "nirvana",
-		s: "vana"
+		s: "VANA"
 	},
 	{
 		id: "nitroex",
-		s: "ntx"
+		s: "NTX"
 	},
 	{
 		id: "nitro-platform-token",
-		s: "ntrt"
+		s: "NTRT"
 	},
 	{
 		id: "nitrous-finance",
-		s: "nos"
+		s: "NOS"
 	},
 	{
 		id: "nix-bridge-token",
-		s: "voice"
+		s: "VOICE"
 	},
 	{
 		id: "nix-platform",
-		s: "nix"
+		s: "NIX"
 	},
 	{
 		id: "nkn",
-		s: "nkn"
+		s: "NKN"
 	},
 	{
 		id: "nms-token",
-		s: "nmst"
+		s: "NMST"
 	},
 	{
 		id: "nnb-token",
-		s: "nnb"
+		s: "NNB"
 	},
 	{
 		id: "noah-ark",
-		s: "noahark"
+		s: "NOAHARK"
 	},
 	{
 		id: "noah-coin",
-		s: "noahp"
+		s: "NOAHP"
 	},
 	{
 		id: "noblecoin",
-		s: "nobl"
+		s: "NOBL"
 	},
 	{
 		id: "nobrainer-finance",
-		s: "brain"
+		s: "BRAIN"
 	},
 	{
 		id: "noderunners",
-		s: "ndr"
+		s: "NDR"
 	},
 	{
 		id: "nodestats",
-		s: "ns"
+		s: "NS"
 	},
 	{
 		id: "noel-capital",
-		s: "noel"
+		s: "NOEL"
 	},
 	{
 		id: "noia-network",
-		s: "noia"
+		s: "NOIA"
 	},
 	{
 		id: "noiz-chain",
-		s: "noiz"
+		s: "NOIZ"
 	},
 	{
 		id: "nokencoin",
-		s: "nokn"
+		s: "NOKN"
 	},
 	{
 		id: "noku",
-		s: "noku"
+		s: "NOKU"
 	},
 	{
 		id: "nolecoin",
-		s: "nole"
+		s: "NOLE"
 	},
 	{
 		id: "nolewater",
-		s: "amsk"
+		s: "AMSK"
 	},
 	{
 		id: "nolimitcoin",
-		s: "nlc2"
+		s: "NLC2"
+	},
+	{
+		id: "nominex",
+		s: "NMX"
 	},
 	{
 		id: "non-fungible-yearn",
-		s: "nfy"
+		s: "NFY"
 	},
 	{
 		id: "noob-finance",
-		s: "$noob"
+		s: "$NOOB"
 	},
 	{
 		id: "noodle-finance",
-		s: "noodle"
+		s: "NOODLE"
 	},
 	{
 		id: "nord-finance",
-		s: "nord"
+		s: "NORD"
 	},
 	{
 		id: "northern",
-		s: "nort"
+		s: "NORT"
 	},
 	{
 		id: "nosturis",
-		s: "ntrs"
+		s: "NTRS"
 	},
 	{
 		id: "note-blockchain",
-		s: "ntbc"
+		s: "NTBC"
 	},
 	{
 		id: "no-trump-augur-prediction-token",
-		s: "ntrump"
+		s: "NTRUMP"
 	},
 	{
 		id: "nova",
-		s: "nova"
+		s: "NOVA"
 	},
 	{
 		id: "novacoin",
-		s: "nvc"
+		s: "NVC"
 	},
 	{
 		id: "novadefi",
-		s: "nmt"
+		s: "NMT"
 	},
 	{
 		id: "novara-calcio-fan-token",
-		s: "nov"
+		s: "NOV"
 	},
 	{
 		id: "novem-gold-token",
-		s: "nnn"
+		s: "NNN"
 	},
 	{
 		id: "novo",
-		s: "novo"
+		s: "NOVO"
 	},
 	{
 		id: "npccoin",
-		s: "npc"
+		s: "NPC"
 	},
 	{
 		id: "npcoin",
-		s: "npc"
+		s: "NPC"
 	},
 	{
 		id: "npo-coin",
-		s: "npo"
+		s: "NPO"
 	},
 	{
 		id: "nss-coin",
-		s: "nss"
+		s: "NSS"
 	},
 	{
 		id: "nsure-network",
-		s: "nsure"
+		s: "NSURE"
 	},
 	{
 		id: "nter",
-		s: "nter"
+		s: "NTER"
 	},
 	{
 		id: "ntoken0031",
-		s: "n0031"
+		s: "N0031"
 	},
 	{
 		id: "nubits",
-		s: "usnbt"
+		s: "USNBT"
 	},
 	{
 		id: "nucleus-vision",
-		s: "ncash"
+		s: "NCASH"
 	},
 	{
 		id: "nuclum",
-		s: "nlm"
+		s: "NLM"
 	},
 	{
 		id: "nuco-cloud",
-		s: "ncdt"
+		s: "NCDT"
 	},
 	{
 		id: "nucypher",
-		s: "nu"
+		s: "NU"
 	},
 	{
 		id: "nuggets",
-		s: "nug"
+		s: "NUG"
 	},
 	{
 		id: "nulink",
-		s: "nlink"
+		s: "NLINK"
 	},
 	{
 		id: "nullex",
-		s: "nlx"
+		s: "NLX"
 	},
 	{
 		id: "nuls",
-		s: "nuls"
+		s: "NULS"
 	},
 	{
 		id: "numeraire",
-		s: "nmr"
+		s: "NMR"
 	},
 	{
 		id: "nusd",
-		s: "susd"
+		s: "SUSD"
 	},
 	{
 		id: "nushares",
-		s: "nsr"
+		s: "NSR"
 	},
 	{
 		id: "nutcoin",
-		s: "nut"
+		s: "NUT"
 	},
 	{
 		id: "nuvo-cash",
-		s: "nuvo"
+		s: "NUVO"
 	},
 	{
 		id: "nxm",
-		s: "nxm"
+		s: "NXM"
 	},
 	{
 		id: "nxt",
-		s: "nxt"
+		s: "NXT"
 	},
 	{
 		id: "nyanswop-token",
-		s: "nya"
+		s: "NYA"
 	},
 	{
 		id: "nyantereum",
-		s: "nyante"
+		s: "NYANTE"
 	},
 	{
 		id: "nyan-v2",
-		s: "nyan-2"
+		s: "NYAN-2"
 	},
 	{
 		id: "nydronia",
-		s: "nia"
+		s: "NIA"
 	},
 	{
 		id: "nyerium",
-		s: "nyex"
+		s: "NYEX"
 	},
 	{
 		id: "nyxcoin",
-		s: "nyx"
+		s: "NYX"
 	},
 	{
 		id: "nyzo",
-		s: "nyzo"
+		s: "NYZO"
 	},
 	{
 		id: "oasis-2",
-		s: "xos"
+		s: "XOS"
 	},
 	{
 		id: "oasis-city",
-		s: "osc"
+		s: "OSC"
 	},
 	{
 		id: "oasis-network",
-		s: "rose"
+		s: "ROSE"
 	},
 	{
 		id: "obee-network",
-		s: "obee"
+		s: "OBEE"
 	},
 	{
 		id: "obic",
-		s: "obic"
+		s: "OBIC"
 	},
 	{
 		id: "obitan-chain",
-		s: "obtc"
+		s: "OBTC"
 	},
 	{
 		id: "obr",
-		s: "obr"
+		s: "OBR"
 	},
 	{
 		id: "observer-coin",
-		s: "obsr"
+		s: "OBSR"
 	},
 	{
 		id: "ocdai",
-		s: "ocdai"
+		s: "OCDAI"
 	},
 	{
 		id: "oceanchain",
-		s: "oc"
+		s: "OC"
 	},
 	{
 		id: "oceanex-token",
-		s: "oce"
+		s: "OCE"
 	},
 	{
 		id: "ocean-protocol",
-		s: "ocean"
+		s: "OCEAN"
 	},
 	{
 		id: "oc-protocol",
-		s: "ocp"
+		s: "OCP"
 	},
 	{
 		id: "ocrv",
-		s: "ocrv"
+		s: "OCRV"
 	},
 	{
 		id: "octocoin",
@@ -39648,819 +39746,823 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "octofi",
-		s: "octo"
+		s: "OCTO"
 	},
 	{
 		id: "octree",
-		s: "oct"
+		s: "OCT"
 	},
 	{
 		id: "oculor",
-		s: "ocul"
+		s: "OCUL"
 	},
 	{
 		id: "ocusdc",
-		s: "ocusdc"
+		s: "OCUSDC"
 	},
 	{
 		id: "oddo-coin",
-		s: "odc"
+		s: "ODC"
+	},
+	{
+		id: "oddz",
+		s: "ODDZ"
 	},
 	{
 		id: "odem",
-		s: "ode"
+		s: "ODE"
 	},
 	{
 		id: "odin-token",
-		s: "odin"
+		s: "ODIN"
 	},
 	{
 		id: "odinycoin",
-		s: "odc"
+		s: "ODC"
 	},
 	{
 		id: "oduwa-coin",
-		s: "owc"
+		s: "OWC"
 	},
 	{
 		id: "oduwausd",
-		s: "owdt"
+		s: "OWDT"
 	},
 	{
 		id: "odyssey",
-		s: "ocn"
+		s: "OCN"
 	},
 	{
 		id: "offshift",
-		s: "xft"
+		s: "XFT"
 	},
 	{
 		id: "ofin-token",
-		s: "on"
+		s: "ON"
 	},
 	{
 		id: "og-fan-token",
-		s: "og"
+		s: "OG"
 	},
 	{
 		id: "ohm-coin",
-		s: "ohmc"
+		s: "OHMC"
 	},
 	{
 		id: "oikos",
-		s: "oks"
+		s: "OKS"
 	},
 	{
 		id: "oilage",
-		s: "oil"
+		s: "OIL"
 	},
 	{
 		id: "oin-finance",
-		s: "oin"
+		s: "OIN"
 	},
 	{
 		id: "okb",
-		s: "okb"
+		s: "OKB"
 	},
 	{
 		id: "okcash",
-		s: "ok"
+		s: "OK"
 	},
 	{
 		id: "okexchain",
-		s: "okt"
+		s: "OKT"
 	},
 	{
 		id: "okschain",
-		s: "oks"
+		s: "OKS"
 	},
 	{
 		id: "olcf",
-		s: "olcf"
+		s: "OLCF"
 	},
 	{
 		id: "olestars",
-		s: "ole"
+		s: "OLE"
 	},
 	{
 		id: "olo",
-		s: "olo"
+		s: "OLO"
 	},
 	{
 		id: "olxa",
-		s: "olxa"
+		s: "OLXA"
 	},
 	{
 		id: "olyseum",
-		s: "oly"
+		s: "OLY"
 	},
 	{
 		id: "ombre",
-		s: "omb"
+		s: "OMB"
 	},
 	{
 		id: "omc-group",
-		s: "omc"
+		s: "OMC"
 	},
 	{
 		id: "omega",
-		s: "omega"
+		s: "OMEGA"
 	},
 	{
 		id: "omega-protocol-money",
-		s: "opm"
+		s: "OPM"
 	},
 	{
 		id: "omisego",
-		s: "omg"
+		s: "OMG"
 	},
 	{
 		id: "omni",
-		s: "omni"
+		s: "OMNI"
 	},
 	{
 		id: "omnitude",
-		s: "ecom"
+		s: "ECOM"
 	},
 	{
 		id: "omniunit",
-		s: "omniunit"
+		s: "OMNIUNIT"
 	},
 	{
 		id: "omotenashicoin",
-		s: "mtns"
+		s: "MTNS"
 	},
 	{
 		id: "onbuff",
-		s: "onit"
+		s: "ONIT"
 	},
 	{
 		id: "one",
-		s: "one"
+		s: "ONE"
 	},
 	{
 		id: "one-cash",
-		s: "onc"
+		s: "ONC"
 	},
 	{
 		id: "one-dex",
-		s: "odex"
+		s: "ODEX"
 	},
 	{
 		id: "one-genesis",
-		s: "og"
+		s: "OG"
 	},
 	{
 		id: "one-hundred-coin-2",
-		s: "one"
+		s: "ONE"
 	},
 	{
 		id: "one-ledger",
-		s: "olt"
+		s: "OLT"
 	},
 	{
 		id: "oneroot-network",
-		s: "rnt"
+		s: "RNT"
 	},
 	{
 		id: "one-share",
-		s: "ons"
+		s: "ONS"
 	},
 	{
 		id: "oneswap-dao-token",
-		s: "ones"
+		s: "ONES"
 	},
 	{
 		id: "one-world-coin",
-		s: "owo"
+		s: "OWO"
 	},
 	{
 		id: "onex-network",
-		s: "onex"
+		s: "ONEX"
 	},
 	{
 		id: "ong",
-		s: "ong"
+		s: "ONG"
 	},
 	{
 		id: "ong-social",
-		s: "ong"
+		s: "ONG"
 	},
 	{
 		id: "onigiri",
-		s: "onigiri"
+		s: "ONIGIRI"
 	},
 	{
 		id: "onix",
-		s: "onx"
+		s: "ONX"
 	},
 	{
 		id: "onlexpa-token",
-		s: "onlexpa"
+		s: "ONLEXPA"
 	},
 	{
 		id: "online-expo",
-		s: "expo"
+		s: "EXPO"
 	},
 	{
 		id: "on-live",
-		s: "onl"
+		s: "ONL"
 	},
 	{
 		id: "ono",
-		s: "onot"
+		s: "ONOT"
 	},
 	{
 		id: "ontology",
-		s: "ont"
+		s: "ONT"
 	},
 	{
 		id: "onx-finance",
-		s: "onx"
+		s: "ONX"
 	},
 	{
 		id: "opacity",
-		s: "opct"
+		s: "OPCT"
 	},
 	{
 		id: "opal",
-		s: "opal"
+		s: "OPAL"
 	},
 	{
 		id: "opalcoin",
-		s: "auop"
+		s: "AUOP"
 	},
 	{
 		id: "op-coin",
-		s: "opc"
+		s: "OPC"
 	},
 	{
 		id: "openalexa-protocol",
-		s: "oap"
+		s: "OAP"
 	},
 	{
 		id: "openanx",
-		s: "oax"
-	},
-	{
-		id: "openbit",
-		s: "opn"
+		s: "OAX"
 	},
 	{
 		id: "open-governance-token",
-		s: "open"
+		s: "OPEN"
 	},
 	{
 		id: "opennity",
-		s: "opnn"
+		s: "OPNN"
 	},
 	{
 		id: "open-platform",
-		s: "open"
+		s: "OPEN"
 	},
 	{
 		id: "open-predict-token",
-		s: "opt"
+		s: "OPT"
 	},
 	{
 		id: "open-source-chain",
-		s: "osch"
+		s: "OSCH"
 	},
 	{
 		id: "opium",
-		s: "opium"
+		s: "OPIUM"
 	},
 	{
 		id: "option-room",
-		s: "room"
+		s: "ROOM"
 	},
 	{
 		id: "optitoken",
-		s: "opti"
+		s: "OPTI"
 	},
 	{
 		id: "opus",
-		s: "opt"
+		s: "OPT"
 	},
 	{
 		id: "oraclechain",
-		s: "oct"
+		s: "OCT"
 	},
 	{
 		id: "oracle-system",
-		s: "orc"
+		s: "ORC"
 	},
 	{
 		id: "oracle-top-5",
-		s: "orcl5"
+		s: "ORCL5"
 	},
 	{
 		id: "oracolxor",
-		s: "xor"
+		s: "XOR"
 	},
 	{
 		id: "oraichain-token",
-		s: "orai"
+		s: "ORAI"
 	},
 	{
 		id: "orbicular",
-		s: "orbi"
+		s: "ORBI"
 	},
 	{
 		id: "orbit-chain",
-		s: "orc"
+		s: "ORC"
 	},
 	{
 		id: "orbitcoin",
-		s: "orb"
+		s: "ORB"
 	},
 	{
 		id: "orbs",
-		s: "orbs"
+		s: "ORBS"
 	},
 	{
 		id: "orb-v2",
-		s: "orb"
+		s: "ORB"
 	},
 	{
 		id: "orbyt-token",
-		s: "orbyt"
+		s: "ORBYT"
 	},
 	{
 		id: "orchid-protocol",
-		s: "oxt"
+		s: "OXT"
+	},
+	{
+		id: "oreo",
+		s: "ORE"
 	},
 	{
 		id: "organix",
-		s: "ogx"
+		s: "OGX"
 	},
 	{
 		id: "orient",
-		s: "oft"
+		s: "OFT"
 	},
 	{
 		id: "orient-walt",
-		s: "htdf"
+		s: "HTDF"
 	},
 	{
 		id: "original-crypto-coin",
-		s: "tusc"
+		s: "TUSC"
 	},
 	{
 		id: "origin-dollar",
-		s: "ousd"
+		s: "OUSD"
 	},
 	{
 		id: "origin-protocol",
-		s: "ogn"
+		s: "OGN"
 	},
 	{
 		id: "origin-sport",
-		s: "ors"
+		s: "ORS"
 	},
 	{
 		id: "origintrail",
-		s: "trac"
+		s: "TRAC"
 	},
 	{
 		id: "origo",
-		s: "ogo"
+		s: "OGO"
 	},
 	{
 		id: "orion-protocol",
-		s: "orn"
+		s: "ORN"
 	},
 	{
 		id: "orium",
-		s: "orm"
+		s: "ORM"
 	},
 	{
 		id: "orlycoin",
-		s: "orly"
+		s: "ORLY"
 	},
 	{
 		id: "ormeus-cash",
-		s: "omc"
+		s: "OMC"
 	},
 	{
 		id: "ormeuscoin",
-		s: "orme"
+		s: "ORME"
 	},
 	{
 		id: "ormeus-ecosystem",
-		s: "eco"
+		s: "ECO"
 	},
 	{
 		id: "oro",
-		s: "oro"
+		s: "ORO"
 	},
 	{
 		id: "orsgroup-io",
-		s: "ors"
+		s: "ORS"
 	},
 	{
 		id: "oryx",
-		s: "oryx"
+		s: "ORYX"
 	},
 	{
 		id: "oryxcoin",
-		s: "estx"
+		s: "ESTX"
 	},
 	{
 		id: "osina",
-		s: "osina"
+		s: "OSINA"
 	},
 	{
 		id: "osmiumcoin",
-		s: "os76"
+		s: "OS76"
 	},
 	{
 		id: "otcbtc-token",
-		s: "otb"
+		s: "OTB"
 	},
 	{
 		id: "otocash",
-		s: "oto"
+		s: "OTO"
 	},
 	{
 		id: "ouroboros",
-		s: "ouro"
+		s: "OURO"
 	},
 	{
 		id: "our-pay",
-		s: "our"
+		s: "OUR"
 	},
 	{
 		id: "ovcode",
-		s: "ovc"
+		s: "OVC"
 	},
 	{
 		id: "over-powered-coin",
-		s: "opcx"
+		s: "OPCX"
 	},
 	{
 		id: "ovr",
-		s: "ovr"
+		s: "OVR"
 	},
 	{
 		id: "owl",
-		s: "owl"
+		s: "OWL"
 	},
 	{
 		id: "owl-token",
-		s: "owl"
+		s: "OWL"
 	},
 	{
 		id: "owndata",
-		s: "own"
+		s: "OWN"
 	},
 	{
 		id: "own-token",
-		s: "own"
+		s: "OWN"
 	},
 	{
 		id: "oxbitcoin",
-		s: "0xbtc"
+		s: "0XBTC"
 	},
 	{
 		id: "oxbull-tech",
-		s: "oxb"
+		s: "OXB"
 	},
 	{
 		id: "oxygen",
-		s: "oxy"
+		s: "OXY"
 	},
 	{
 		id: "ozziecoin",
-		s: "ozc"
+		s: "OZC"
 	},
 	{
 		id: "p2p",
-		s: "p2p"
+		s: "P2P"
 	},
 	{
 		id: "p2pgo",
-		s: "p2pg"
+		s: "P2PG"
 	},
 	{
 		id: "p2p-network",
-		s: "p2p"
+		s: "P2P"
 	},
 	{
 		id: "p2p-solutions-foundation",
-		s: "p2ps"
+		s: "P2PS"
 	},
 	{
 		id: "paccoin",
-		s: "pac"
+		s: "PAC"
 	},
 	{
 		id: "paid-network",
-		s: "paid"
+		s: "PAID"
 	},
 	{
 		id: "paint",
-		s: "paint"
+		s: "PAINT"
 	},
 	{
 		id: "pajama-finance",
-		s: "pjm"
+		s: "PJM"
 	},
 	{
 		id: "pakcoin",
-		s: "pak"
+		s: "PAK"
 	},
 	{
 		id: "palace",
-		s: "paa"
+		s: "PAA"
 	},
 	{
 		id: "palchain",
-		s: "palt"
+		s: "PALT"
 	},
 	{
 		id: "palletone",
-		s: "ptn"
+		s: "PTN"
 	},
 	{
 		id: "pamp-network",
-		s: "pamp"
+		s: "PAMP"
 	},
 	{
 		id: "pancake-bunny",
-		s: "bunny"
+		s: "BUNNY"
 	},
 	{
 		id: "pancakeswap-token",
-		s: "cake"
+		s: "CAKE"
 	},
 	{
 		id: "pandacoin",
-		s: "pnd"
+		s: "PND"
 	},
 	{
 		id: "panda-dao",
-		s: "pdao"
+		s: "PDAO"
 	},
 	{
 		id: "panda-yield",
-		s: "bboo"
+		s: "BBOO"
 	},
 	{
 		id: "pando",
-		s: "pando"
+		s: "PANDO"
 	},
 	{
 		id: "pandroyty-token",
-		s: "pdry"
+		s: "PDRY"
 	},
 	{
 		id: "pangea",
-		s: "xpat"
+		s: "XPAT"
 	},
 	{
 		id: "pangolin",
-		s: "png"
+		s: "PNG"
 	},
 	{
 		id: "pantheon-x",
-		s: "xpn"
+		s: "XPN"
 	},
 	{
 		id: "pantos",
-		s: "pan"
+		s: "PAN"
 	},
 	{
 		id: "panvala-pan",
-		s: "pan"
+		s: "PAN"
 	},
 	{
 		id: "paparazzi",
-		s: "pazzi"
+		s: "PAZZI"
 	},
 	{
 		id: "paper",
-		s: "paper"
+		s: "PAPER"
 	},
 	{
 		id: "parachute",
-		s: "par"
+		s: "PAR"
 	},
 	{
 		id: "parallelcoin",
-		s: "duo"
+		s: "DUO"
 	},
 	{
 		id: "parellel-network",
-		s: "pnc"
+		s: "PNC"
 	},
 	{
 		id: "pareto-network",
-		s: "pareto"
+		s: "PARETO"
 	},
 	{
 		id: "paris-saint-germain-fan-token",
-		s: "psg"
+		s: "PSG"
 	},
 	{
 		id: "parkbyte",
-		s: "pkb"
+		s: "PKB"
 	},
 	{
 		id: "parkgene",
-		s: "gene"
+		s: "GENE"
 	},
 	{
 		id: "parkingo",
-		s: "got"
+		s: "GOT"
 	},
 	{
 		id: "parsiq",
-		s: "prq"
+		s: "PRQ"
 	},
 	{
 		id: "parsiq-boost",
-		s: "prqboost"
+		s: "PRQBOOST"
 	},
 	{
 		id: "parsl",
-		s: "seed"
+		s: "SEED"
 	},
 	{
 		id: "par-stablecoin",
-		s: "par"
+		s: "PAR"
 	},
 	{
 		id: "particl",
-		s: "part"
+		s: "PART"
 	},
 	{
 		id: "particle-2",
-		s: "prtcle"
+		s: "PRTCLE"
 	},
 	{
 		id: "partner",
-		s: "prc"
+		s: "PRC"
 	},
 	{
 		id: "pascalcoin",
-		s: "pasc"
+		s: "PASC"
 	},
 	{
 		id: "passive-income",
-		s: "psi"
+		s: "PSI"
 	},
 	{
 		id: "passport-finance",
-		s: "pass"
+		s: "PASS"
 	},
 	{
 		id: "pasta-finance",
-		s: "pasta"
+		s: "PASTA"
 	},
 	{
 		id: "pastel",
-		s: "psl"
+		s: "PSL"
 	},
 	{
 		id: "patientory",
-		s: "ptoy"
+		s: "PTOY"
 	},
 	{
 		id: "patron",
-		s: "pat"
+		s: "PAT"
 	},
 	{
 		id: "paws-funds",
-		s: "paws"
+		s: "PAWS"
 	},
 	{
 		id: "pawtocol",
-		s: "upi"
+		s: "UPI"
 	},
 	{
 		id: "paxex",
-		s: "paxex"
+		s: "PAXEX"
 	},
 	{
 		id: "pax-gold",
-		s: "paxg"
+		s: "PAXG"
 	},
 	{
 		id: "paxos-standard",
-		s: "pax"
+		s: "PAX"
 	},
 	{
 		id: "payaccept",
-		s: "payt"
+		s: "PAYT"
 	},
 	{
 		id: "paycent",
-		s: "pyn"
+		s: "PYN"
 	},
 	{
 		id: "pay-coin",
-		s: "pci"
+		s: "PCI"
 	},
 	{
 		id: "paycon-token",
-		s: "con"
+		s: "CON"
 	},
 	{
 		id: "payfair",
-		s: "pfr"
+		s: "PFR"
 	},
 	{
 		id: "paymastercoin",
-		s: "pmc"
+		s: "PMC"
 	},
 	{
 		id: "payment-coin",
-		s: "pod"
+		s: "POD"
 	},
 	{
 		id: "payou-finance",
-		s: "payou"
+		s: "PAYOU"
 	},
 	{
 		id: "payperex",
-		s: "pax"
+		s: "PAX"
 	},
 	{
 		id: "paypex",
-		s: "payx"
+		s: "PAYX"
 	},
 	{
 		id: "paypie",
-		s: "ppp"
+		s: "PPP"
 	},
 	{
 		id: "paypolitan-token",
-		s: "epan"
+		s: "EPAN"
 	},
 	{
 		id: "payrue",
-		s: "propel"
+		s: "PROPEL"
 	},
 	{
 		id: "payship",
-		s: "pshp"
+		s: "PSHP"
 	},
 	{
 		id: "paytomat",
-		s: "pti"
+		s: "PTI"
 	},
 	{
 		id: "payturn",
-		s: "ptr"
+		s: "PTR"
 	},
 	{
 		id: "payusd",
-		s: "pusd"
+		s: "PUSD"
 	},
 	{
 		id: "payyoda",
-		s: "yot"
+		s: "YOT"
 	},
 	{
 		id: "pazzy",
-		s: "pazzy"
+		s: "PAZZY"
 	},
 	{
 		id: "pbs-chain",
-		s: "pbs"
+		s: "PBS"
 	},
 	{
 		id: "pbtc35a",
-		s: "pbtc35a"
+		s: "PBTC35A"
 	},
 	{
 		id: "pchain",
-		s: "pi"
+		s: "PI"
 	},
 	{
 		id: "pdx",
-		s: "pdx"
+		s: "PDX"
 	},
 	{
 		id: "peanut",
-		s: "nux"
+		s: "NUX"
 	},
 	{
 		id: "pearl-finance",
-		s: "pearl"
+		s: "PEARL"
 	},
 	{
 		id: "peculium",
-		s: "pcl"
+		s: "PCL"
 	},
 	{
 		id: "peepcoin",
-		s: "pcn"
+		s: "PCN"
 	},
 	{
 		id: "peercoin",
-		s: "ppc"
+		s: "PPC"
 	},
 	{
 		id: "peerex-network",
@@ -40468,231 +40570,231 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "peerguess",
-		s: "guess"
+		s: "GUESS"
 	},
 	{
 		id: "peerplays",
-		s: "ppy"
+		s: "PPY"
 	},
 	{
 		id: "peet-defi",
-		s: "pte"
+		s: "PTE"
 	},
 	{
 		id: "pegascoin",
-		s: "pgc"
+		s: "PGC"
 	},
 	{
 		id: "pegasus",
-		s: "pgs"
+		s: "PGS"
 	},
 	{
 		id: "pegnet",
-		s: "peg"
+		s: "PEG"
 	},
 	{
 		id: "pegshares",
-		s: "pegs"
+		s: "PEGS"
 	},
 	{
 		id: "pegsusd",
-		s: "pusd"
+		s: "PUSD"
 	},
 	{
 		id: "pengolincoin",
-		s: "pgo"
+		s: "PGO"
 	},
 	{
 		id: "penguin",
-		s: "peng"
+		s: "PENG"
 	},
 	{
 		id: "penguin-party-fish",
-		s: "fish"
+		s: "FISH"
 	},
 	{
 		id: "penta",
-		s: "pnt"
+		s: "PNT"
 	},
 	{
 		id: "peony-coin",
-		s: "pny"
+		s: "PNY"
 	},
 	{
 		id: "peos",
-		s: "peos"
+		s: "PEOS"
 	},
 	{
 		id: "pepedex",
-		s: "ppdex"
+		s: "PPDEX"
 	},
 	{
 		id: "pepegold",
-		s: "peps"
+		s: "PEPS"
 	},
 	{
 		id: "pepemon-pepeballs",
-		s: "ppblz"
+		s: "PPBLZ"
 	},
 	{
 		id: "percent",
-		s: "pct"
+		s: "PCT"
 	},
 	{
 		id: "perkle",
-		s: "prkl"
+		s: "PRKL"
 	},
 	{
 		id: "perkscoin",
-		s: "pct"
+		s: "PCT"
 	},
 	{
 		id: "perlin",
-		s: "perl"
+		s: "PERL"
 	},
 	{
 		id: "permission-coin",
-		s: "ask"
+		s: "ASK"
 	},
 	{
 		id: "perpetual-protocol",
-		s: "perp"
+		s: "PERP"
 	},
 	{
 		id: "perth-mint-gold-token",
-		s: "pmgt"
+		s: "PMGT"
 	},
 	{
 		id: "pesetacoin",
-		s: "ptc"
+		s: "PTC"
 	},
 	{
 		id: "pesobit",
-		s: "psb"
+		s: "PSB"
 	},
 	{
 		id: "p-ethereum",
-		s: "peth"
+		s: "PETH"
 	},
 	{
 		id: "petrachor",
-		s: "pta"
+		s: "PTA"
 	},
 	{
 		id: "petrodollar",
-		s: "xpd"
+		s: "XPD"
 	},
 	{
 		id: "petroleum",
-		s: "oil"
+		s: "OIL"
 	},
 	{
 		id: "pgf500",
-		s: "pgf7t"
+		s: "PGF7T"
 	},
 	{
 		id: "pha",
-		s: "pha"
+		s: "PHA"
 	},
 	{
 		id: "phantasma",
-		s: "soul"
+		s: "SOUL"
 	},
 	{
 		id: "phantasma-energy",
-		s: "kcal"
+		s: "KCAL"
 	},
 	{
 		id: "phantom",
-		s: "xph"
+		s: "XPH"
 	},
 	{
 		id: "phantom-token",
-		s: "phtf"
+		s: "PHTF"
 	},
 	{
 		id: "phantomx",
-		s: "pnx"
+		s: "PNX"
 	},
 	{
 		id: "philips-pay-coin",
-		s: "ppc"
+		s: "PPC"
 	},
 	{
 		id: "phillionex",
-		s: "phn"
+		s: "PHN"
 	},
 	{
 		id: "philosafe-token",
-		s: "plst"
+		s: "PLST"
 	},
 	{
 		id: "philscurrency",
-		s: "wage"
+		s: "WAGE"
 	},
 	{
 		id: "phoenixcoin",
-		s: "pxc"
+		s: "PXC"
 	},
 	{
 		id: "phoenixdao",
-		s: "phnx"
+		s: "PHNX"
 	},
 	{
 		id: "phoneum",
-		s: "pht"
+		s: "PHT"
 	},
 	{
 		id: "phore",
-		s: "phr"
+		s: "PHR"
 	},
 	{
 		id: "phoswap",
-		s: "pho"
+		s: "PHO"
 	},
 	{
 		id: "photon",
-		s: "pho"
+		s: "PHO"
 	},
 	{
 		id: "piasa",
-		s: "piasa"
+		s: "PIASA"
 	},
 	{
 		id: "pibble",
-		s: "pib"
+		s: "PIB"
 	},
 	{
 		id: "pica",
-		s: "pica"
+		s: "PICA"
 	},
 	{
 		id: "pick",
-		s: "pick"
+		s: "PICK"
 	},
 	{
 		id: "pickle-finance",
-		s: "pickle"
+		s: "PICKLE"
 	},
 	{
 		id: "piction-network",
-		s: "pxl"
+		s: "PXL"
 	},
 	{
 		id: "piedao-balanced-crypto-pie",
-		s: "bcp"
+		s: "BCP"
 	},
 	{
 		id: "piedao-btc",
-		s: "btc++"
+		s: "BTC++"
 	},
 	{
 		id: "piedao-defi",
-		s: "defi++"
+		s: "DEFI++"
 	},
 	{
 		id: "piedao-defi-large-cap",
-		s: "defi+l"
+		s: "DEFI+L"
 	},
 	{
 		id: "piedao-defi-small-cap",
@@ -40700,347 +40802,355 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "piedao-dough-v2",
-		s: "dough"
+		s: "DOUGH"
 	},
 	{
 		id: "piedao-yearn-ecosystem-pie",
-		s: "ypie"
+		s: "YPIE"
 	},
 	{
 		id: "piegon-gold",
-		s: "piegon"
+		s: "PIEGON"
 	},
 	{
 		id: "pigeoncoin",
-		s: "pgn"
+		s: "PGN"
 	},
 	{
 		id: "pig-finance",
-		s: "pig"
+		s: "PIG"
 	},
 	{
 		id: "pigx",
-		s: "pigx"
+		s: "PIGX"
 	},
 	{
 		id: "pikto-group",
-		s: "pkp"
+		s: "PKP"
 	},
 	{
 		id: "pillar",
-		s: "plr"
+		s: "PLR"
 	},
 	{
 		id: "pilnette",
-		s: "pvg"
+		s: "PVG"
+	},
+	{
+		id: "pilot",
+		s: "PTD"
 	},
 	{
 		id: "pinecoin",
-		s: "pine"
+		s: "PINE"
 	},
 	{
 		id: "pinkcoin",
-		s: "pink"
+		s: "PINK"
 	},
 	{
 		id: "piplcoin",
-		s: "pipl"
+		s: "PIPL"
 	},
 	{
 		id: "piratecash",
-		s: "pirate"
+		s: "PIRATE"
 	},
 	{
 		id: "pirate-chain",
-		s: "arrr"
+		s: "ARRR"
 	},
 	{
 		id: "pirl",
-		s: "pirl"
+		s: "PIRL"
 	},
 	{
 		id: "pitch",
-		s: "pitch"
+		s: "PITCH"
 	},
 	{
 		id: "pivot-token",
-		s: "pvt"
+		s: "PVT"
 	},
 	{
 		id: "pivx",
-		s: "pivx"
+		s: "PIVX"
 	},
 	{
 		id: "pivx-lite",
-		s: "pivxl"
+		s: "PIVXL"
 	},
 	{
 		id: "pixeos",
-		s: "pixeos"
+		s: "PIXEOS"
 	},
 	{
 		id: "pixie-coin",
-		s: "pxc"
+		s: "PXC"
 	},
 	{
 		id: "pizzaswap",
-		s: "pizza"
+		s: "PIZZA"
 	},
 	{
 		id: "pizza-usde",
-		s: "pizza"
+		s: "PIZZA"
 	},
 	{
 		id: "pkg-token",
-		s: "pkg"
+		s: "PKG"
 	},
 	{
 		id: "plaas-farmers-token",
-		s: "plaas"
+		s: "PLAAS"
 	},
 	{
 		id: "placeh",
-		s: "phl"
+		s: "PHL"
 	},
 	{
 		id: "plair",
-		s: "pla"
+		s: "PLA"
 	},
 	{
 		id: "planet",
-		s: "pla"
+		s: "PLA"
 	},
 	{
 		id: "plasma-finance",
-		s: "ppay"
+		s: "PPAY"
 	},
 	{
 		id: "platincoin",
-		s: "plc"
+		s: "PLC"
 	},
 	{
 		id: "platoncoin",
-		s: "pltc"
+		s: "PLTC"
 	},
 	{
 		id: "play2live",
-		s: "luc"
+		s: "LUC"
 	},
 	{
 		id: "playandlike",
-		s: "pal"
+		s: "PAL"
 	},
 	{
 		id: "playcent",
-		s: "pcnt"
+		s: "PCNT"
 	},
 	{
 		id: "playchip",
-		s: "pla"
+		s: "PLA"
 	},
 	{
 		id: "playcoin",
-		s: "plx"
+		s: "PLX"
 	},
 	{
 		id: "playdapp",
-		s: "pla"
+		s: "PLA"
 	},
 	{
 		id: "playervsplayercoin",
-		s: "pvp"
+		s: "PVP"
 	},
 	{
 		id: "playfuel",
-		s: "plf"
+		s: "PLF"
 	},
 	{
 		id: "playgame",
-		s: "pxg"
+		s: "PXG"
 	},
 	{
 		id: "playgroundz",
-		s: "iog"
+		s: "IOG"
 	},
 	{
 		id: "playkey",
-		s: "pkt"
+		s: "PKT"
 	},
 	{
 		id: "playmarket",
-		s: "pmt"
+		s: "PMT"
 	},
 	{
 		id: "play-token",
-		s: "play"
+		s: "PLAY"
 	},
 	{
 		id: "pledgecamp",
-		s: "plg"
+		s: "PLG"
 	},
 	{
 		id: "plex",
-		s: "plex"
+		s: "PLEX"
 	},
 	{
 		id: "plotx",
-		s: "plot"
+		s: "PLOT"
 	},
 	{
 		id: "plug",
-		s: "plg"
+		s: "PLG"
 	},
 	{
 		id: "pluracoin",
-		s: "plura"
+		s: "PLURA"
 	},
 	{
 		id: "plus-coin",
-		s: "nplc"
+		s: "NPLC"
 	},
 	{
 		id: "plusonecoin",
-		s: "plus1"
+		s: "PLUS1"
 	},
 	{
 		id: "pluto",
-		s: "plut"
+		s: "PLUT"
 	},
 	{
 		id: "pluton",
-		s: "plu"
+		s: "PLU"
 	},
 	{
 		id: "plutus-defi",
-		s: "plt"
+		s: "PLT"
 	},
 	{
 		id: "pnetwork",
-		s: "pnt"
+		s: "PNT"
 	},
 	{
 		id: "poa-network",
-		s: "poa"
+		s: "POA"
 	},
 	{
 		id: "poc-blockchain",
-		s: "poc"
+		s: "POC"
 	},
 	{
 		id: "poc-chain",
-		s: "pocc"
+		s: "POCC"
 	},
 	{
 		id: "pocket-arena",
-		s: "poc"
+		s: "POC"
 	},
 	{
 		id: "pocket-node",
-		s: "node"
+		s: "NODE"
 	},
 	{
 		id: "podo-point",
-		s: "pod"
+		s: "POD"
 	},
 	{
 		id: "poet",
-		s: "poe"
+		s: "POE"
 	},
 	{
 		id: "pofid-dao",
-		s: "pfid"
+		s: "PFID"
 	},
 	{
 		id: "point",
-		s: "point"
+		s: "POINT"
 	},
 	{
 		id: "pokeball",
-		s: "poke"
+		s: "POKE"
 	},
 	{
 		id: "pokerain",
-		s: "mmda"
+		s: "MMDA"
 	},
 	{
 		id: "poker-io",
-		s: "pok"
+		s: "POK"
 	},
 	{
 		id: "polar-chain",
-		s: "pola"
+		s: "POLA"
 	},
 	{
 		id: "polaris",
-		s: "polar"
+		s: "POLAR"
 	},
 	{
 		id: "polaris-share",
-		s: "pola"
+		s: "POLA"
 	},
 	{
 		id: "polcoin",
-		s: "plc"
+		s: "PLC"
 	},
 	{
 		id: "polis",
-		s: "polis"
+		s: "POLIS"
 	},
 	{
 		id: "polkabase",
-		s: "pbase"
+		s: "PBASE"
 	},
 	{
 		id: "polkabridge",
-		s: "pbr"
+		s: "PBR"
 	},
 	{
 		id: "polka-city",
-		s: "polc"
+		s: "POLC"
 	},
 	{
 		id: "polkacover",
-		s: "cvr"
+		s: "CVR"
 	},
 	{
 		id: "polkadot",
-		s: "dot"
+		s: "DOT"
+	},
+	{
+		id: "polkafoundry",
+		s: "PKF"
 	},
 	{
 		id: "polkainsure-finance",
-		s: "pis"
+		s: "PIS"
 	},
 	{
 		id: "polkamarkets",
-		s: "polk"
+		s: "POLK"
 	},
 	{
 		id: "polkastarter",
-		s: "pols"
+		s: "POLS"
 	},
 	{
 		id: "polkazeck",
-		s: "zck"
+		s: "ZCK"
 	},
 	{
 		id: "pollux-coin",
-		s: "pox"
+		s: "POX"
 	},
 	{
 		id: "polybius",
-		s: "plbt"
+		s: "PLBT"
 	},
 	{
 		id: "polyient-games-governance-token",
-		s: "pgt"
+		s: "PGT"
 	},
 	{
 		id: "polyient-games-unity",
-		s: "pgu"
+		s: "PGU"
 	},
 	{
 		id: "polymath-network",
-		s: "poly"
+		s: "POLY"
 	},
 	{
 		id: "polypux",
@@ -41048,859 +41158,871 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "polyswarm",
-		s: "nct"
+		s: "NCT"
 	},
 	{
 		id: "poma",
-		s: "pomac"
+		s: "POMAC"
 	},
 	{
 		id: "ponzicoin",
-		s: "ponzi"
+		s: "PONZI"
 	},
 	{
 		id: "poodle",
-		s: "poodl"
+		s: "POODL"
 	},
 	{
 		id: "poolcoin",
-		s: "pool"
+		s: "POOL"
 	},
 	{
 		id: "pool-of-stake",
-		s: "psk"
+		s: "PSK"
 	},
 	{
 		id: "poolstake",
-		s: "psk"
+		s: "PSK"
 	},
 	{
 		id: "pooltogether",
-		s: "pool"
+		s: "POOL"
 	},
 	{
 		id: "poolz-finance",
-		s: "poolz"
+		s: "POOLZ"
 	},
 	{
 		id: "popchain",
-		s: "pch"
+		s: "PCH"
 	},
 	{
 		id: "pop-chest-token",
-		s: "pop"
+		s: "POP"
 	},
 	{
 		id: "popcorn-token",
-		s: "corn"
+		s: "CORN"
 	},
 	{
 		id: "popularcoin",
-		s: "pop"
+		s: "POP"
 	},
 	{
 		id: "populous",
-		s: "ppt"
+		s: "PPT"
 	},
 	{
 		id: "populous-xbrl-token",
-		s: "pxt"
+		s: "PXT"
 	},
 	{
 		id: "porkchop",
-		s: "chop"
+		s: "CHOP"
 	},
 	{
 		id: "portal",
-		s: "portal"
+		s: "PORTAL"
 	},
 	{
 		id: "porte-token",
-		s: "porte"
+		s: "PORTE"
 	},
 	{
 		id: "portion",
-		s: "prt"
+		s: "PRT"
 	},
 	{
 		id: "port-of-defi-network",
-		s: "pdf"
+		s: "PDF"
 	},
 	{
 		id: "pos-coin",
-		s: "pos"
+		s: "POS"
 	},
 	{
 		id: "postcoin",
-		s: "post"
+		s: "POST"
 	},
 	{
 		id: "potcoin",
-		s: "pot"
+		s: "POT"
 	},
 	{
 		id: "potentiam",
-		s: "ptm"
+		s: "PTM"
 	},
 	{
 		id: "powerbalt",
-		s: "pwrb"
+		s: "PWRB"
 	},
 	{
 		id: "powercoin",
-		s: "pwr"
+		s: "PWR"
 	},
 	{
 		id: "power-index-pool-token",
-		s: "pipt"
+		s: "PIPT"
 	},
 	{
 		id: "power-ledger",
-		s: "powr"
+		s: "POWR"
 	},
 	{
 		id: "powertrade-fuel",
-		s: "ptf"
+		s: "PTF"
 	},
 	{
 		id: "prcy-coin",
-		s: "prcy"
+		s: "PRCY"
 	},
 	{
 		id: "precium",
-		s: "pcm"
+		s: "PCM"
 	},
 	{
 		id: "predator-coin",
-		s: "prd"
+		s: "PRD"
 	},
 	{
 		id: "predict",
-		s: "pt"
+		s: "PT"
 	},
 	{
 		id: "predictz",
-		s: "prdz"
+		s: "PRDZ"
+	},
+	{
+		id: "prediqt",
+		s: "PQT"
 	},
 	{
 		id: "predix-network",
-		s: "prdx"
+		s: "PRDX"
 	},
 	{
 		id: "premia",
-		s: "premia"
+		s: "PREMIA"
 	},
 	{
 		id: "presearch",
-		s: "pre"
+		s: "PRE"
 	},
 	{
 		id: "pressone",
-		s: "prs"
+		s: "PRS"
 	},
 	{
 		id: "presto",
-		s: "prstx"
+		s: "PRSTX"
 	},
 	{
 		id: "previse",
-		s: "prvs"
+		s: "PRVS"
 	},
 	{
 		id: "pria",
-		s: "pria"
+		s: "PRIA"
 	},
 	{
 		id: "pride",
-		s: "lgbtq"
+		s: "LGBTQ"
 	},
 	{
 		id: "primas",
-		s: "pst"
+		s: "PST"
 	},
 	{
 		id: "primecoin",
-		s: "xpm"
+		s: "XPM"
 	},
 	{
 		id: "prime-dai",
-		s: "pdai"
+		s: "PDAI"
 	},
 	{
 		id: "primedao",
-		s: "prime"
+		s: "PRIME"
 	},
 	{
 		id: "prime-finance",
-		s: "pfi"
+		s: "PFI"
 	},
 	{
 		id: "primestone",
-		s: "kkc"
+		s: "KKC"
 	},
 	{
 		id: "prime-whiterock-company",
-		s: "pwc"
+		s: "PWC"
 	},
 	{
 		id: "prime-xi",
-		s: "pxi"
+		s: "PXI"
 	},
 	{
 		id: "printer-finance",
-		s: "print"
+		s: "PRINT"
 	},
 	{
 		id: "privacy",
-		s: "prv"
+		s: "PRV"
 	},
 	{
 		id: "privatix",
-		s: "prix"
+		s: "PRIX"
 	},
 	{
 		id: "privcy",
-		s: "priv"
+		s: "PRIV"
 	},
 	{
 		id: "prizm",
-		s: "pzm"
+		s: "PZM"
 	},
 	{
 		id: "probit-exchange",
-		s: "prob"
+		s: "PROB"
 	},
 	{
 		id: "prochain",
-		s: "pra"
+		s: "PRA"
 	},
 	{
 		id: "profile-utility-token",
-		s: "put"
+		s: "PUT"
 	},
 	{
 		id: "project-inverse",
-		s: "xiv"
+		s: "XIV"
 	},
 	{
 		id: "project-pai",
-		s: "pai"
+		s: "PAI"
 	},
 	{
 		id: "project-shivom",
-		s: "omx"
+		s: "OMX"
 	},
 	{
 		id: "project-with",
-		s: "wiken"
+		s: "WIKEN"
 	},
 	{
 		id: "project-x",
-		s: "nanox"
+		s: "NANOX"
 	},
 	{
 		id: "prometeus",
-		s: "prom"
+		s: "PROM"
 	},
 	{
 		id: "promotionchain",
-		s: "pc"
+		s: "PC"
 	},
 	{
 		id: "proof-of-liquidity",
-		s: "pol"
+		s: "POL"
 	},
 	{
 		id: "propersix",
-		s: "psix"
+		s: "PSIX"
 	},
 	{
 		id: "prophecy",
-		s: "pry"
+		s: "PRY"
 	},
 	{
 		id: "prophet",
-		s: "prophet"
+		s: "PROPHET"
 	},
 	{
 		id: "props",
-		s: "props"
+		s: "PROPS"
 	},
 	{
 		id: "propy",
-		s: "pro"
+		s: "PRO"
 	},
 	{
 		id: "prospectors-gold",
-		s: "pgl"
+		s: "PGL"
 	},
 	{
 		id: "prosper",
-		s: "pros"
+		s: "PROS"
 	},
 	{
 		id: "prot",
-		s: "prot"
+		s: "PROT"
 	},
 	{
 		id: "protocol-finance",
-		s: "pfi"
+		s: "PFI"
 	},
 	{
 		id: "proton",
-		s: "xpr"
+		s: "XPR"
 	},
 	{
 		id: "proton-token",
-		s: "ptt"
+		s: "PTT"
 	},
 	{
 		id: "proud-money",
-		s: "proud"
+		s: "PROUD"
 	},
 	{
 		id: "proverty-eradication-coin",
-		s: "pec"
+		s: "PEC"
 	},
 	{
 		id: "provoco",
-		s: "voco"
+		s: "VOCO"
 	},
 	{
 		id: "proxeus",
-		s: "xes"
+		s: "XES"
 	},
 	{
 		id: "proximax",
-		s: "xpx"
+		s: "XPX"
 	},
 	{
 		id: "proxynode",
-		s: "prx"
+		s: "PRX"
 	},
 	{
 		id: "psrs",
-		s: "psrs"
+		s: "PSRS"
 	},
 	{
 		id: "psyche",
-		s: "usd1"
+		s: "USD1"
 	},
 	{
 		id: "psychic",
-		s: "psy"
+		s: "PSY"
 	},
 	{
 		id: "pteria",
-		s: "pteria"
+		s: "PTERIA"
 	},
 	{
 		id: "ptokens-btc",
-		s: "pbtc"
+		s: "PBTC"
 	},
 	{
 		id: "ptokens-ltc",
-		s: "pltc"
+		s: "PLTC"
 	},
 	{
 		id: "pub-finance",
-		s: "pint"
+		s: "PINT"
 	},
 	{
 		id: "publica",
-		s: "pbl"
+		s: "PBL"
 	},
 	{
 		id: "public-mint",
-		s: "mint"
+		s: "MINT"
 	},
 	{
 		id: "publish",
-		s: "news"
+		s: "NEWS"
 	},
 	{
 		id: "pumapay",
-		s: "pma"
+		s: "PMA"
 	},
 	{
 		id: "puml-better-health",
-		s: "puml"
+		s: "PUML"
 	},
 	{
 		id: "pump-coin",
-		s: "pump"
+		s: "PUMP"
 	},
 	{
 		id: "pundi-x",
-		s: "npxs"
+		s: "NPXS"
 	},
 	{
 		id: "pundi-x-nem",
-		s: "npxsxem"
+		s: "NPXSXEM"
 	},
 	{
 		id: "punk",
-		s: "punk"
+		s: "PUNK"
 	},
 	{
 		id: "punk-attr-4",
-		s: "punk-attr-4"
+		s: "PUNK-ATTR-4"
 	},
 	{
 		id: "punk-attr-5",
-		s: "punk-attr-5"
+		s: "PUNK-ATTR-5"
 	},
 	{
 		id: "punk-basic",
-		s: "punk-basic"
+		s: "PUNK-BASIC"
 	},
 	{
 		id: "punk-female",
-		s: "punk-female"
+		s: "PUNK-FEMALE"
 	},
 	{
 		id: "punk-zombie",
-		s: "punk-zombie"
+		s: "PUNK-ZOMBIE"
 	},
 	{
 		id: "puregold-token",
-		s: "pgpay"
+		s: "PGPAY"
 	},
 	{
 		id: "pureland-project",
-		s: "pld"
+		s: "PLD"
 	},
 	{
 		id: "puriever",
-		s: "pure"
+		s: "PURE"
 	},
 	{
 		id: "purple-butterfly-trading",
-		s: "pbtt"
+		s: "PBTT"
 	},
 	{
 		id: "putincoin",
-		s: "put"
+		s: "PUT"
 	},
 	{
 		id: "pway",
-		s: "pway"
+		s: "PWAY"
 	},
 	{
 		id: "pxgold-synthetic-gold-31-may-2021",
-		s: "pxGOLD-MAY2021"
+		s: "PXGOLD-MAY2021"
+	},
+	{
+		id: "pxgold-synthetic-gold-expiring-31-mar-2022",
+		s: "PXGOLD-MAR2022"
 	},
 	{
 		id: "pxusd",
-		s: "pxusd-oct2020"
+		s: "PXUSD-OCT2020"
 	},
 	{
 		id: "pxusd-synthetic-usd-expiring-1-april-2021",
-		s: "pxusd-mar2021"
+		s: "PXUSD-MAR2021"
 	},
 	{
 		id: "pylon-finance",
-		s: "pylon"
+		s: "PYLON"
 	},
 	{
 		id: "pylon-network",
-		s: "pylnt"
+		s: "PYLNT"
 	},
 	{
 		id: "pyrexcoin",
-		s: "gpyx"
+		s: "GPYX"
 	},
 	{
 		id: "pyrk",
-		s: "pyrk"
+		s: "PYRK"
 	},
 	{
 		id: "pyro-network",
-		s: "pyro"
+		s: "PYRO"
 	},
 	{
 		id: "q8e20-token",
-		s: "q8e20"
+		s: "Q8E20"
 	},
 	{
 		id: "qanplatform",
-		s: "qark"
+		s: "QARK"
 	},
 	{
 		id: "qash",
-		s: "qash"
+		s: "QASH"
 	},
 	{
 		id: "qbao",
-		s: "qbt"
+		s: "QBT"
 	},
 	{
 		id: "qcad",
-		s: "qcad"
+		s: "QCAD"
 	},
 	{
 		id: "qcash",
-		s: "qc"
+		s: "QC"
 	},
 	{
 		id: "qchi",
-		s: "qch"
+		s: "QCH"
 	},
 	{
 		id: "qchi-chain",
-		s: "qhc"
+		s: "QHC"
 	},
 	{
 		id: "qcore-finance",
-		s: "qcore"
+		s: "QCORE"
 	},
 	{
 		id: "q-dao-governance-token-v1-0",
-		s: "qdao"
+		s: "QDAO"
 	},
 	{
 		id: "qdefi-rating-governance-token-v2",
-		s: "qdefi"
+		s: "QDEFI"
 	},
 	{
 		id: "qian-governance-token",
-		s: "kun"
+		s: "KUN"
 	},
 	{
 		id: "qiibee",
-		s: "qbx"
+		s: "QBX"
 	},
 	{
 		id: "qiswap",
-		s: "qi"
+		s: "QI"
 	},
 	{
 		id: "qitmeer",
-		s: "pmeer"
+		s: "PMEER"
 	},
 	{
 		id: "qlink",
-		s: "qlc"
+		s: "QLC"
 	},
 	{
 		id: "qmcoin",
-		s: "qmc"
+		s: "QMC"
 	},
 	{
 		id: "qnodecoin",
-		s: "qnc"
+		s: "QNC"
 	},
 	{
 		id: "qobit",
-		s: "qob"
+		s: "QOB"
 	},
 	{
 		id: "qoober",
-		s: "qoob"
+		s: "QOOB"
 	},
 	{
 		id: "qovar-coin",
-		s: "qc"
+		s: "QC"
 	},
 	{
 		id: "qpay",
-		s: "qpy"
+		s: "QPY"
 	},
 	{
 		id: "qqq-token",
-		s: "qqq"
+		s: "QQQ"
 	},
 	{
 		id: "qredit",
-		s: "xqr"
+		s: "XQR"
 	},
 	{
 		id: "qt",
-		s: "qt"
+		s: "QT"
 	},
 	{
 		id: "qtum",
-		s: "qtum"
+		s: "QTUM"
 	},
 	{
 		id: "quadrant-protocol",
-		s: "equad"
+		s: "EQUAD"
 	},
 	{
 		id: "quai-dao",
-		s: "quai"
+		s: "QUAI"
 	},
 	{
 		id: "quality-tracing-chain",
-		s: "qtc"
+		s: "QTC"
+	},
+	{
+		id: "quam-network",
+		s: "QUAM"
 	},
 	{
 		id: "quantfury",
-		s: "qtf"
+		s: "QTF"
 	},
 	{
 		id: "quantis",
-		s: "quan"
+		s: "QUAN"
 	},
 	{
 		id: "quant-network",
-		s: "qnt"
+		s: "QNT"
 	},
 	{
 		id: "quantstamp",
-		s: "qsp"
+		s: "QSP"
 	},
 	{
 		id: "quantum-resistant-ledger",
-		s: "qrl"
+		s: "QRL"
 	},
 	{
 		id: "quark",
-		s: "qrk"
+		s: "QRK"
 	},
 	{
 		id: "quark-chain",
-		s: "qkc"
+		s: "QKC"
 	},
 	{
 		id: "quasarcoin",
-		s: "qac"
+		s: "QAC"
 	},
 	{
 		id: "qube",
-		s: "qube"
+		s: "QUBE"
 	},
 	{
 		id: "qubicles",
-		s: "qbe"
+		s: "QBE"
 	},
 	{
 		id: "qubitica",
-		s: "qbit"
+		s: "QBIT"
 	},
 	{
 		id: "quebecoin",
-		s: "qbc"
+		s: "QBC"
 	},
 	{
 		id: "queenbee",
-		s: "qbz"
+		s: "QBZ"
 	},
 	{
 		id: "quick",
-		s: "quick"
+		s: "QUICK"
 	},
 	{
 		id: "quickx-protocol",
-		s: "qcx"
+		s: "QCX"
 	},
 	{
 		id: "quinads",
-		s: "quin"
+		s: "QUIN"
 	},
 	{
 		id: "quish-coin",
-		s: "qtv"
+		s: "QTV"
 	},
 	{
 		id: "quiverx",
-		s: "qrx"
+		s: "QRX"
 	},
 	{
 		id: "quiztok",
-		s: "qtcon"
+		s: "QTCON"
 	},
 	{
 		id: "qunqun",
-		s: "qun"
+		s: "QUN"
 	},
 	{
 		id: "quotation-coin",
-		s: "quot"
+		s: "QUOT"
 	},
 	{
 		id: "quotient",
-		s: "xqn"
+		s: "XQN"
 	},
 	{
 		id: "quras-token",
-		s: "xqc"
+		s: "XQC"
 	},
 	{
 		id: "qureno",
-		s: "qrn"
+		s: "QRN"
 	},
 	{
 		id: "qusd-stablecoin",
-		s: "qusd"
+		s: "QUSD"
 	},
 	{
 		id: "qwertycoin",
-		s: "qwc"
+		s: "QWC"
 	},
 	{
 		id: "r34p",
-		s: "r34p"
+		s: "R34P"
 	},
 	{
 		id: "r3fi-finance",
-		s: "r3fi"
+		s: "R3FI"
 	},
 	{
 		id: "rabbit",
-		s: "rabbit"
+		s: "RABBIT"
 	},
 	{
 		id: "rabbit-coin",
-		s: "brb"
+		s: "BRB"
 	},
 	{
 		id: "rac",
-		s: "rac"
+		s: "RAC"
 	},
 	{
 		id: "racing-pigeon-chain",
-		s: "rpc"
+		s: "RPC"
 	},
 	{
 		id: "radicle",
-		s: "rad"
+		s: "RAD"
 	},
 	{
 		id: "radium",
-		s: "val"
+		s: "VAL"
 	},
 	{
 		id: "rae-token",
-		s: "rae"
+		s: "RAE"
 	},
 	{
 		id: "ragnarok",
-		s: "ragna"
+		s: "RAGNA"
 	},
 	{
 		id: "rai",
-		s: "rai"
+		s: "RAI"
 	},
 	{
 		id: "raicoin",
-		s: "rai"
+		s: "RAI"
 	},
 	{
 		id: "raiden-network",
-		s: "rdn"
+		s: "RDN"
 	},
 	{
 		id: "rain-network",
-		s: "rain"
+		s: "RAIN"
 	},
 	{
 		id: "rake-finance",
-		s: "rak"
+		s: "RAK"
 	},
 	{
 		id: "rakon",
-		s: "rkn"
+		s: "RKN"
 	},
 	{
 		id: "raksur",
-		s: "ras"
+		s: "RAS"
 	},
 	{
 		id: "rakun",
-		s: "raku"
+		s: "RAKU"
 	},
 	{
 		id: "rally-2",
-		s: "rly"
+		s: "RLY"
 	},
 	{
 		id: "ramenswap",
-		s: "ramen"
+		s: "RAMEN"
 	},
 	{
 		id: "ramp",
-		s: "ramp"
+		s: "RAMP"
 	},
 	{
 		id: "rank-token",
-		s: "rank"
+		s: "RANK"
 	},
 	{
 		id: "rapids",
-		s: "rpd"
+		s: "RPD"
 	},
 	{
 		id: "rapidz",
-		s: "rpzx"
+		s: "RPZX"
+	},
+	{
+		id: "raptoreum",
+		s: "RTM"
 	},
 	{
 		id: "rapture",
-		s: "rap"
+		s: "RAP"
 	},
 	{
 		id: "rare",
-		s: "rare"
+		s: "RARE"
 	},
 	{
 		id: "rare-pepe",
-		s: "rpepe"
+		s: "RPEPE"
 	},
 	{
 		id: "rarible",
-		s: "rari"
+		s: "RARI"
 	},
 	{
 		id: "rari-governance-token",
-		s: "rgt"
+		s: "RGT"
 	},
 	{
 		id: "rari-stable-pool-token",
-		s: "rspt"
-	},
-	{
-		id: "ratcoin",
-		s: "rat"
+		s: "RSPT"
 	},
 	{
 		id: "rate3",
-		s: "rte"
+		s: "RTE"
 	},
 	{
 		id: "ratecoin",
-		s: "xra"
+		s: "XRA"
 	},
 	{
 		id: "ravencoin",
-		s: "rvn"
+		s: "RVN"
 	},
 	{
 		id: "ravencoin-classic",
-		s: "rvc"
+		s: "RVC"
 	},
 	{
 		id: "raven-dark",
-		s: "xrd"
+		s: "XRD"
 	},
 	{
 		id: "raven-protocol",
-		s: "raven"
+		s: "RAVEN"
 	},
 	{
 		id: "raydium",
-		s: "ray"
+		s: "RAY"
 	},
 	{
 		id: "razor-network",
-		s: "razor"
+		s: "RAZOR"
 	},
 	{
 		id: "rbase-finance",
-		s: "rbase"
+		s: "RBASE"
 	},
 	{
 		id: "rccc",
-		s: "rccc"
+		s: "RCCC"
 	},
 	{
 		id: "rchain",
@@ -41908,31 +42030,31 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "rdctoken",
-		s: "rdct"
+		s: "RDCT"
 	},
 	{
 		id: "read-this-contract",
-		s: "rtc"
+		s: "RTC"
 	},
 	{
 		id: "real",
-		s: "real"
+		s: "REAL"
 	},
 	{
 		id: "realchain",
-		s: "rct"
+		s: "RCT"
 	},
 	{
 		id: "real-estate-sales-platform",
-		s: "rsp"
+		s: "RSP"
 	},
 	{
 		id: "realio-network",
-		s: "rio"
+		s: "RIO"
 	},
 	{
 		id: "real-land",
-		s: "rld"
+		s: "RLD"
 	},
 	{
 		id: "realtoken-10024-10028-appoline-st-detroit-mi",
@@ -41972,943 +42094,951 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "realtract",
-		s: "ret"
+		s: "RET"
 	},
 	{
 		id: "reapchain",
-		s: "reap"
+		s: "REAP"
 	},
 	{
 		id: "rebased",
-		s: "reb2"
+		s: "REB2"
 	},
 	{
 		id: "rebit",
-		s: "keyt"
+		s: "KEYT"
 	},
 	{
 		id: "rebitcoin",
-		s: "rbtc"
+		s: "RBTC"
 	},
 	{
 		id: "recovery-right-token",
-		s: "rrt"
+		s: "RRT"
 	},
 	{
 		id: "red",
-		s: "red"
+		s: "RED"
 	},
 	{
 		id: "redbux",
-		s: "redbux"
+		s: "REDBUX"
 	},
 	{
 		id: "reddcoin",
-		s: "rdd"
+		s: "RDD"
 	},
 	{
 		id: "redfox-labs-2",
-		s: "rfox"
+		s: "RFOX"
 	},
 	{
 		id: "redi",
-		s: "redi"
+		s: "REDI"
 	},
 	{
 		id: "red-pulse",
-		s: "phb"
+		s: "PHB"
 	},
 	{
 		id: "reecoin",
-		s: "ree"
+		s: "REE"
 	},
 	{
 		id: "reecore",
-		s: "reex"
+		s: "REEX"
 	},
 	{
 		id: "reed-elsevier",
-		s: "relx"
+		s: "RELX"
 	},
 	{
 		id: "reef-finance",
-		s: "reef"
+		s: "REEF"
 	},
 	{
 		id: "refereum",
-		s: "rfr"
+		s: "RFR"
 	},
 	{
 		id: "refine-medium",
-		s: "xrm"
+		s: "XRM"
 	},
 	{
 		id: "reflect-finance",
-		s: "rfi"
+		s: "RFI"
 	},
 	{
 		id: "reflector-finance",
-		s: "rfctr"
+		s: "RFCTR"
 	},
 	{
 		id: "reflex",
-		s: "rfx"
+		s: "RFX"
 	},
 	{
 		id: "reflexer-ungovernance-token",
-		s: "flx"
+		s: "FLX"
 	},
 	{
 		id: "refork",
-		s: "efk"
+		s: "EFK"
 	},
 	{
 		id: "refract",
-		s: "rfr"
+		s: "RFR"
 	},
 	{
 		id: "relax-protocol",
-		s: "rlx"
+		s: "RLX"
 	},
 	{
 		id: "relayer-network",
-		s: "rlr"
+		s: "RLR"
 	},
 	{
 		id: "relayer-network-2",
-		s: "rlr"
+		s: "RLR"
 	},
 	{
 		id: "release-ico-project",
-		s: "rel"
+		s: "REL"
 	},
 	{
 		id: "relevant",
-		s: "rel"
+		s: "REL"
 	},
 	{
 		id: "relex",
-		s: "rlx"
+		s: "RLX"
 	},
 	{
 		id: "relianz",
-		s: "rlz"
+		s: "RLZ"
 	},
 	{
 		id: "remita-coin",
-		s: "remit"
+		s: "REMIT"
 	},
 	{
 		id: "remme",
-		s: "rem"
+		s: "REM"
 	},
 	{
 		id: "renbch",
-		s: "renbch"
+		s: "RENBCH"
 	},
 	{
 		id: "renbtc",
-		s: "renbtc"
+		s: "RENBTC"
 	},
 	{
 		id: "render-token",
-		s: "rndr"
+		s: "RNDR"
 	},
 	{
 		id: "rendoge",
-		s: "rendoge"
+		s: "RENDOGE"
 	},
 	{
 		id: "renewableelectronicenergycoin",
-		s: "reec"
+		s: "REEC"
 	},
 	{
 		id: "renfil",
-		s: "renfil"
+		s: "RENFIL"
 	},
 	{
 		id: "renrenbit",
-		s: "rrb"
+		s: "RRB"
 	},
 	{
 		id: "rentberry",
-		s: "berry"
+		s: "BERRY"
 	},
 	{
 		id: "renzec",
-		s: "renzec"
+		s: "RENZEC"
 	},
 	{
 		id: "reosc-ecosystem",
-		s: "reosc"
+		s: "REOSC"
 	},
 	{
 		id: "repo",
-		s: "repo"
+		s: "REPO"
 	},
 	{
 		id: "republic-protocol",
-		s: "ren"
+		s: "REN"
 	},
 	{
 		id: "request-network",
-		s: "req"
+		s: "REQ"
 	},
 	{
 		id: "reserve",
-		s: "rsv"
+		s: "RSV"
 	},
 	{
 		id: "reserve-rights-token",
-		s: "rsr"
+		s: "RSR"
 	},
 	{
 		id: "resfinex-token",
-		s: "res"
+		s: "RES"
 	},
 	{
 		id: "restart-energy",
-		s: "mwat"
+		s: "MWAT"
+	},
+	{
+		id: "reth",
+		s: "RETH"
 	},
 	{
 		id: "revain",
-		s: "rev"
+		s: "REV"
 	},
 	{
 		id: "revelation-coin",
-		s: "rev"
+		s: "REV"
 	},
 	{
 		id: "reviewbase",
-		s: "rview"
+		s: "RVIEW"
 	},
 	{
 		id: "revv",
-		s: "revv"
+		s: "REVV"
 	},
 	{
 		id: "rewardiqa",
-		s: "rew"
+		s: "REW"
 	},
 	{
 		id: "rex",
-		s: "rex"
+		s: "REX"
 	},
 	{
 		id: "rfbtc",
-		s: "rfbtc"
+		s: "RFBTC"
+	},
+	{
+		id: "rfis",
+		s: "RFIS"
 	},
 	{
 		id: "rfyield-finance",
-		s: "rfy"
+		s: "RFY"
 	},
 	{
 		id: "rheaprotocol",
-		s: "rhea"
+		s: "RHEA"
 	},
 	{
 		id: "rhegic",
-		s: "rhegic"
+		s: "RHEGIC"
 	},
 	{
 		id: "rhegic2",
-		s: "rhegic2"
+		s: "RHEGIC2"
 	},
 	{
 		id: "riceswap",
-		s: "rice"
+		s: "RICE"
 	},
 	{
 		id: "rich-lab-token",
-		s: "rle"
+		s: "RLE"
 	},
 	{
 		id: "rich-maker",
-		s: "rich"
+		s: "RICH"
 	},
 	{
 		id: "richway-finance",
-		s: "rich"
+		s: "RICH"
 	},
 	{
 		id: "ride-my-car",
-		s: "ride"
+		s: "RIDE"
 	},
 	{
 		id: "riecoin",
-		s: "ric"
+		s: "RIC"
 	},
 	{
 		id: "rif-token",
-		s: "rif"
+		s: "RIF"
 	},
 	{
 		id: "rigel-finance",
-		s: "rigel"
+		s: "RIGEL"
 	},
 	{
 		id: "rigoblock",
-		s: "grg"
+		s: "GRG"
 	},
 	{
 		id: "rilcoin",
-		s: "ril"
+		s: "RIL"
 	},
 	{
 		id: "ring-x-platform",
-		s: "ringx"
+		s: "RINGX"
 	},
 	{
 		id: "rio-defi",
-		s: "rfuel"
+		s: "RFUEL"
 	},
 	{
 		id: "ripio-credit-network",
-		s: "rcn"
+		s: "RCN"
 	},
 	{
 		id: "ripple",
-		s: "xrp"
+		s: "XRP"
 	},
 	{
 		id: "ripple-alpha",
-		s: "xla"
+		s: "XLA"
 	},
 	{
 		id: "rise",
-		s: "rise"
+		s: "RISE"
 	},
 	{
 		id: "risecointoken",
-		s: "rsct"
+		s: "RSCT"
 	},
 	{
 		id: "rise-protocol",
-		s: "rise"
+		s: "RISE"
 	},
 	{
 		id: "rito",
-		s: "rito"
+		s: "RITO"
 	},
 	{
 		id: "ri-token",
-		s: "ri"
+		s: "RI"
 	},
 	{
 		id: "rivemont",
-		s: "rvmt"
-	},
-	{
-		id: "rivermount",
-		s: "rm"
+		s: "RVMT"
 	},
 	{
 		id: "rivetz",
-		s: "rvt"
+		s: "RVT"
 	},
 	{
 		id: "rivex-erc20",
-		s: "rvx"
+		s: "RVX"
 	},
 	{
 		id: "rizen-coin",
-		s: "rzn"
+		s: "RZN"
 	},
 	{
 		id: "rizubot",
-		s: "rzb"
+		s: "RZB"
 	},
 	{
 		id: "rmpl",
-		s: "rmpl"
+		s: "RMPL"
 	},
 	{
 		id: "road",
-		s: "road"
+		s: "ROAD"
 	},
 	{
 		id: "robbocoach",
-		s: "rbc"
+		s: "RBC"
 	},
 	{
 		id: "robet-coin",
-		s: "robet"
+		s: "ROBET"
 	},
 	{
 		id: "robocalls",
-		s: "rc20"
+		s: "RC20"
 	},
 	{
 		id: "robonomics-network",
-		s: "xrt"
+		s: "XRT"
 	},
 	{
 		id: "robonomics-web-services",
-		s: "rws"
+		s: "RWS"
 	},
 	{
 		id: "robot",
-		s: "robot"
+		s: "ROBOT"
 	},
 	{
 		id: "robotina",
-		s: "rox"
+		s: "ROX"
 	},
 	{
 		id: "rock3t",
-		s: "r3t"
+		s: "R3T"
 	},
 	{
 		id: "rocket-bunny",
-		s: "bunny"
+		s: "BUNNY"
 	},
 	{
 		id: "rocket-fund",
-		s: "rkt"
+		s: "RKT"
 	},
 	{
 		id: "rocketgame",
-		s: "rocket"
+		s: "ROCKET"
 	},
 	{
 		id: "rocket-pool",
-		s: "rpl"
+		s: "RPL"
 	},
 	{
 		id: "rocket-token",
-		s: "rckt"
+		s: "RCKT"
 	},
 	{
 		id: "rocki",
-		s: "rocks"
+		s: "ROCKS"
 	},
 	{
 		id: "rock-n-rain-coin",
-		s: "rnrc"
+		s: "RNRC"
 	},
 	{
 		id: "roiyal-coin",
-		s: "roco"
+		s: "ROCO"
 	},
 	{
 		id: "rom-token",
-		s: "rom"
+		s: "ROM"
 	},
 	{
 		id: "ronpaulcoin",
-		s: "rpc"
+		s: "RPC"
 	},
 	{
 		id: "roobee",
-		s: "roobee"
+		s: "ROOBEE"
 	},
 	{
 		id: "rook",
-		s: "rook"
+		s: "ROOK"
 	},
 	{
 		id: "roonex",
-		s: "rnx"
+		s: "RNX"
 	},
 	{
 		id: "rootkit",
-		s: "root"
+		s: "ROOT"
 	},
 	{
 		id: "rootstock",
-		s: "rbtc"
+		s: "RBTC"
 	},
 	{
 		id: "rope",
-		s: "$rope"
+		s: "$ROPE"
 	},
 	{
 		id: "ror-universe",
-		s: "ror"
+		s: "ROR"
 	},
 	{
 		id: "rotharium",
-		s: "rth"
+		s: "RTH"
 	},
 	{
 		id: "rotten",
-		s: "rot"
+		s: "ROT"
 	},
 	{
 		id: "route",
-		s: "route"
+		s: "ROUTE"
 	},
 	{
 		id: "rover-coin",
-		s: "roe"
+		s: "ROE"
 	},
 	{
 		id: "rowan-coin",
-		s: "rwn"
+		s: "RWN"
 	},
 	{
 		id: "roxe",
-		s: "roc"
+		s: "ROC"
 	},
 	{
 		id: "royale",
-		s: "roya"
+		s: "ROYA"
 	},
 	{
 		id: "rozeus",
-		s: "roz"
+		s: "ROZ"
 	},
 	{
 		id: "rrspace",
-		s: "rrc"
+		s: "RRC"
 	},
 	{
 		id: "rubic",
-		s: "rbc"
+		s: "RBC"
 	},
 	{
 		id: "rublix",
-		s: "rblx"
+		s: "RBLX"
 	},
 	{
 		id: "rubycoin",
-		s: "rby"
+		s: "RBY"
 	},
 	{
 		id: "ruff",
-		s: "ruff"
+		s: "RUFF"
 	},
 	{
 		id: "rug",
-		s: "rug"
+		s: "RUG"
 	},
 	{
 		id: "rug-proof",
-		s: "rpt"
+		s: "RPT"
 	},
 	{
 		id: "rugz",
-		s: "rugz"
+		s: "RUGZ"
 	},
 	{
 		id: "ruler-protocol",
-		s: "ruler"
+		s: "RULER"
 	},
 	{
 		id: "ruletka",
-		s: "rtk"
+		s: "RTK"
 	},
 	{
 		id: "runebase",
-		s: "runes"
+		s: "RUNES"
 	},
 	{
 		id: "rupaya",
-		s: "rupx"
+		s: "RUPX"
 	},
 	{
 		id: "rupee",
-		s: "rup"
+		s: "RUP"
 	},
 	{
 		id: "rupiah-token",
-		s: "idrt"
+		s: "IDRT"
 	},
 	{
 		id: "rush",
-		s: "ruc"
+		s: "RUC"
 	},
 	{
 		id: "russell-coin",
-		s: "rc"
+		s: "RC"
 	},
 	{
 		id: "russian-miner-coin",
-		s: "rmc"
+		s: "RMC"
 	},
 	{
 		id: "rutheneum",
-		s: "rth"
+		s: "RTH"
 	},
 	{
 		id: "rxc",
-		s: "rxc"
+		s: "RXC"
 	},
 	{
 		id: "ryi-platinum",
-		s: "ryip"
+		s: "RYIP"
 	},
 	{
 		id: "ryo",
-		s: "ryo"
+		s: "RYO"
 	},
 	{
 		id: "s4fe",
-		s: "s4f"
+		s: "S4F"
 	},
 	{
 		id: "saave",
-		s: "saave"
+		s: "SAAVE"
 	},
 	{
 		id: "sada",
-		s: "sada"
+		s: "SADA"
 	},
 	{
 		id: "sad-cat-token",
-		s: "scat"
+		s: "SCAT"
 	},
 	{
 		id: "safari",
-		s: "sfr"
+		s: "SFR"
 	},
 	{
 		id: "safe2",
-		s: "safe2"
+		s: "SAFE2"
 	},
 	{
 		id: "safecapital",
-		s: "scap"
+		s: "SCAP"
 	},
 	{
 		id: "safe-coin",
-		s: "safe"
+		s: "SAFE"
 	},
 	{
 		id: "safe-coin-2",
-		s: "safe"
+		s: "SAFE"
 	},
 	{
 		id: "safe-deal",
-		s: "sfd"
+		s: "SFD"
 	},
 	{
 		id: "safe-haven",
-		s: "sha"
+		s: "SHA"
 	},
 	{
 		id: "safeinsure",
-		s: "sins"
+		s: "SINS"
+	},
+	{
+		id: "safemars",
+		s: "SAFEMARS"
 	},
 	{
 		id: "safemoon",
-		s: "safemoon"
+		s: "SAFEMOON"
 	},
 	{
 		id: "safepal",
-		s: "sfp"
+		s: "SFP"
 	},
 	{
 		id: "safe-seafood-coin",
-		s: "ssf"
+		s: "SSF"
 	},
 	{
 		id: "saffron-finance",
-		s: "sfi"
+		s: "SFI"
 	},
 	{
 		id: "safron",
-		s: "sfn"
+		s: "SFN"
 	},
 	{
 		id: "saga",
-		s: "sgr"
+		s: "SGR"
 	},
 	{
 		id: "sagacoin",
-		s: "saga"
+		s: "SAGA"
 	},
 	{
 		id: "sai",
-		s: "sai"
+		s: "SAI"
 	},
 	{
 		id: "saint-fame",
-		s: "fame"
+		s: "FAME"
 	},
 	{
 		id: "sake-token",
-		s: "sake"
+		s: "SAKE"
 	},
 	{
 		id: "sakura-bloom",
-		s: "skb"
+		s: "SKB"
 	},
 	{
 		id: "salmon",
-		s: "slm"
+		s: "SLM"
 	},
 	{
 		id: "salt",
-		s: "salt"
+		s: "SALT"
 	},
 	{
 		id: "saltswap",
-		s: "salt"
+		s: "SALT"
 	},
 	{
 		id: "salus",
-		s: "sls"
+		s: "SLS"
 	},
 	{
 		id: "samurai",
-		s: "sam"
+		s: "SAM"
 	},
 	{
 		id: "sancoj",
-		s: "sanc"
+		s: "SANC"
 	},
 	{
 		id: "sandego",
-		s: "sdgo"
+		s: "SDGO"
 	},
 	{
 		id: "san-diego-coin",
-		s: "sand"
+		s: "SAND"
 	},
 	{
 		id: "santiment-network-token",
-		s: "san"
+		s: "SAN"
 	},
 	{
 		id: "sapchain",
-		s: "sap"
+		s: "SAP"
 	},
 	{
 		id: "sapien",
-		s: "spn"
+		s: "SPN"
 	},
 	{
 		id: "sappchain",
-		s: "sapp"
+		s: "SAPP"
 	},
 	{
 		id: "sapphire",
-		s: "sapp"
+		s: "SAPP"
 	},
 	{
 		id: "saros",
-		s: "saros"
+		s: "SAROS"
 	},
 	{
 		id: "sashimi",
-		s: "sashimi"
+		s: "SASHIMI"
 	},
 	{
 		id: "sativacoin",
-		s: "stv"
+		s: "STV"
 	},
 	{
 		id: "satoexchange-token",
-		s: "satx"
+		s: "SATX"
 	},
 	{
 		id: "satopay",
-		s: "stop"
+		s: "STOP"
 	},
 	{
 		id: "satopay-yield-token",
-		s: "spy"
+		s: "SPY"
 	},
 	{
 		id: "satoshivision-coin",
-		s: "svc"
+		s: "SVC"
 	},
 	{
 		id: "satt",
-		s: "satt"
+		s: "SATT"
 	},
 	{
 		id: "saturn-classic-dao-token",
-		s: "strn"
+		s: "STRN"
 	},
 	{
 		id: "saturn-network",
-		s: "saturn"
+		s: "SATURN"
 	},
 	{
 		id: "saud",
-		s: "saud"
+		s: "SAUD"
 	},
 	{
 		id: "sav3",
-		s: "sav3"
+		s: "SAV3"
 	},
 	{
 		id: "savedroid",
-		s: "svd"
+		s: "SVD"
 	},
 	{
 		id: "save-environment-token",
-		s: "set"
+		s: "SET"
 	},
 	{
 		id: "savenode",
-		s: "sno"
+		s: "SNO"
 	},
 	{
 		id: "save-token-us",
-		s: "save"
+		s: "SAVE"
 	},
 	{
 		id: "sbank",
-		s: "sts"
+		s: "STS"
 	},
 	{
 		id: "sbch",
-		s: "sbch"
+		s: "SBCH"
 	},
 	{
 		id: "sbet",
-		s: "sbet"
+		s: "SBET"
 	},
 	{
 		id: "sbnb",
-		s: "sbnb"
+		s: "SBNB"
 	},
 	{
 		id: "sbtc",
-		s: "sbtc"
+		s: "SBTC"
 	},
 	{
 		id: "scanetchain",
-		s: "swc"
+		s: "SWC"
 	},
 	{
 		id: "scatter-cx",
-		s: "stt"
+		s: "STT"
 	},
 	{
 		id: "scc",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "scex",
-		s: "scex"
+		s: "SCEX"
 	},
 	{
 		id: "schain-wallet",
-		s: "scha"
+		s: "SCHA"
 	},
 	{
 		id: "schillingcoin",
-		s: "sch"
+		s: "SCH"
 	},
 	{
 		id: "scholarship-coin",
-		s: "scho"
+		s: "SCHO"
 	},
 	{
 		id: "science_chain",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "scifi-finance",
-		s: "scifi"
+		s: "SCIFI"
 	},
 	{
 		id: "scolcoin",
-		s: "scol"
+		s: "SCOL"
 	},
 	{
 		id: "scopecoin",
-		s: "xscp"
+		s: "XSCP"
 	},
 	{
 		id: "score-milk",
-		s: "milk"
+		s: "MILK"
 	},
 	{
 		id: "scorum",
-		s: "scr"
+		s: "SCR"
 	},
 	{
 		id: "scribe",
-		s: "scribe"
+		s: "SCRIBE"
 	},
 	{
 		id: "scriv",
-		s: "scriv"
+		s: "SCRIV"
 	},
 	{
 		id: "scroll-token",
-		s: "xd"
+		s: "XD"
 	},
 	{
 		id: "scry-info",
-		s: "ddd"
+		s: "DDD"
 	},
 	{
 		id: "scrypta",
-		s: "lyra"
+		s: "LYRA"
 	},
 	{
 		id: "sdash",
-		s: "sdash"
+		s: "SDASH"
 	},
 	{
 		id: "sdefi",
-		s: "sdefi"
+		s: "SDEFI"
 	},
 	{
 		id: "sdusd",
-		s: "sdusd"
+		s: "SDUSD"
 	},
 	{
 		id: "sea-cucumber-chain",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "seadex",
-		s: "sead"
+		s: "SEAD"
 	},
 	{
 		id: "sealblock-token",
-		s: "skt"
+		s: "SKT"
 	},
 	{
 		id: "sealchain",
-		s: "seal"
+		s: "SEAL"
 	},
 	{
 		id: "seal-finance",
-		s: "seal"
+		s: "SEAL"
 	},
 	{
 		id: "sechain",
-		s: "snn"
+		s: "SNN"
 	},
 	{
 		id: "secret",
-		s: "scrt"
+		s: "SCRT"
 	},
 	{
 		id: "secret-erc20",
-		s: "wscrt"
+		s: "WSCRT"
 	},
 	{
 		id: "secure-cash",
-		s: "scsx"
+		s: "SCSX"
 	},
 	{
 		id: "secured-gold-coin",
-		s: "sgc"
+		s: "SGC"
 	},
 	{
 		id: "securus",
-		s: "xscr"
+		s: "XSCR"
 	},
 	{
 		id: "securypto",
-		s: "scu"
+		s: "SCU"
 	},
 	{
 		id: "sedo-pow-token",
-		s: "sedo"
+		s: "SEDO"
 	},
 	{
 		id: "seed2need",
-		s: "farm"
+		s: "FARM"
 	},
 	{
 		id: "seeder-network-token",
@@ -42916,279 +43046,287 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "seed-of-love",
-		s: "seol"
+		s: "SEOL"
 	},
 	{
 		id: "seeds",
-		s: "seeds"
+		s: "SEEDS"
 	},
 	{
 		id: "seed-venture",
-		s: "seed"
+		s: "SEED"
 	},
 	{
 		id: "seele",
-		s: "seele"
+		s: "SEELE"
 	},
 	{
 		id: "seen",
-		s: "seen"
+		s: "SEEN"
 	},
 	{
 		id: "seer",
-		s: "seer"
+		s: "SEER"
 	},
 	{
 		id: "seigniorage-shares",
-		s: "share"
+		s: "SHARE"
 	},
 	{
 		id: "sekopay",
-		s: "seko"
+		s: "SEKO"
 	},
 	{
 		id: "selenium",
-		s: "slc"
+		s: "SLC"
 	},
 	{
 		id: "selfkey",
-		s: "key"
+		s: "KEY"
 	},
 	{
 		id: "selfsell",
-		s: "ssc"
+		s: "SSC"
 	},
 	{
 		id: "self-storage-coin",
-		s: "stor"
+		s: "STOR"
 	},
 	{
 		id: "semitoken",
-		s: "semi"
+		s: "SEMI"
 	},
 	{
 		id: "semux",
-		s: "sem"
+		s: "SEM"
 	},
 	{
 		id: "sendvibe",
-		s: "svb"
+		s: "SVB"
 	},
 	{
 		id: "sense",
-		s: "sense"
+		s: "SENSE"
 	},
 	{
 		id: "senso",
-		s: "senso"
+		s: "SENSO"
 	},
 	{
 		id: "sentinel-chain",
-		s: "senc"
+		s: "SENC"
 	},
 	{
 		id: "sentinel-group",
-		s: "sent"
+		s: "SENT"
 	},
 	{
 		id: "sentinel-protocol",
-		s: "upp"
+		s: "UPP"
 	},
 	{
 		id: "sentivate",
-		s: "sntvt"
+		s: "SNTVT"
 	},
 	{
 		id: "seos",
-		s: "seos"
+		s: "SEOS"
 	},
 	{
 		id: "sequence",
-		s: "seq"
+		s: "SEQ"
 	},
 	{
 		id: "serenity",
-		s: "srnt"
+		s: "SRNT"
 	},
 	{
 		id: "sergey-save-link",
-		s: "ssl"
+		s: "SSL"
 	},
 	{
 		id: "sergs",
-		s: "sergs"
+		s: "SERGS"
 	},
 	{
 		id: "serum",
-		s: "srm"
+		s: "SRM"
 	},
 	{
 		id: "serum-ecosystem-token",
-		s: "seco"
+		s: "SECO"
 	},
 	{
 		id: "sessia",
-		s: "kicks"
+		s: "KICKS"
 	},
 	{
 		id: "setc",
-		s: "setc"
+		s: "SETC"
 	},
 	{
 		id: "seth",
-		s: "seth"
+		s: "SETH"
 	},
 	{
 		id: "sether",
-		s: "seth"
+		s: "SETH"
 	},
 	{
 		id: "set-of-sets-trailblazer-fund",
-		s: "mqss"
+		s: "MQSS"
 	},
 	{
 		id: "seur",
-		s: "seur"
+		s: "SEUR"
 	},
 	{
 		id: "sexcoin",
-		s: "sxc"
+		s: "SXC"
 	},
 	{
 		id: "sf-capital",
-		s: "sfcp"
+		s: "SFCP"
 	},
 	{
 		id: "s-finance",
-		s: "sfg"
+		s: "SFG"
+	},
+	{
+		id: "sfmoney",
+		s: "SFM"
+	},
+	{
+		id: "sg20",
+		s: "SG20"
 	},
 	{
 		id: "shabu-shabu",
-		s: "kobe"
+		s: "KOBE"
 	},
 	{
 		id: "shadetech",
-		s: "shd"
+		s: "SHD"
 	},
 	{
 		id: "shadows",
-		s: "dows"
+		s: "DOWS"
 	},
 	{
 		id: "shadow-token",
-		s: "shdw"
+		s: "SHDW"
 	},
 	{
 		id: "shake",
-		s: "shake"
+		s: "SHAKE"
 	},
 	{
 		id: "shard",
-		s: "shard"
+		s: "SHARD"
 	},
 	{
 		id: "sharder-protocol",
-		s: "ss"
+		s: "SS"
 	},
 	{
 		id: "shardus",
-		s: "ult"
+		s: "ULT"
 	},
 	{
 		id: "shareat",
-		s: "xat"
+		s: "XAT"
 	},
 	{
 		id: "sharedstake-governance-token",
-		s: "sgt"
+		s: "SGT"
 	},
 	{
 		id: "sharering",
-		s: "shr"
+		s: "SHR"
 	},
 	{
 		id: "sharkcoin",
-		s: "skn"
+		s: "SKN"
 	},
 	{
 		id: "sharkyield",
-		s: "shark"
+		s: "SHARK"
 	},
 	{
 		id: "sharpay",
-		s: "s"
+		s: "S"
 	},
 	{
 		id: "shd-cash",
-		s: "shdc"
+		s: "SHDC"
 	},
 	{
 		id: "sheng",
-		s: "sheng"
+		s: "SHENG"
 	},
 	{
 		id: "shiba-inu",
-		s: "shib"
+		s: "SHIB"
 	},
 	{
 		id: "shield",
-		s: "xsh"
+		s: "XSH"
 	},
 	{
 		id: "shield-protocol",
-		s: "shield"
+		s: "SHIELD"
 	},
 	{
 		id: "shift",
-		s: "shift"
+		s: "SHIFT"
 	},
 	{
 		id: "shill",
-		s: "posh"
+		s: "POSH"
 	},
 	{
 		id: "shilling",
-		s: "sh"
+		s: "SH"
 	},
 	{
 		id: "shinechain",
-		s: "she"
+		s: "SHE"
 	},
 	{
 		id: "shipchain",
-		s: "ship"
+		s: "SHIP"
 	},
 	{
 		id: "shitcoin",
-		s: "shit"
+		s: "SHIT"
 	},
 	{
 		id: "shitcoin-token",
-		s: "shit"
+		s: "SHIT"
 	},
 	{
 		id: "shivers",
-		s: "shvr"
+		s: "SHVR"
 	},
 	{
 		id: "shopping-io",
-		s: "spi"
+		s: "SPI"
 	},
 	{
 		id: "shorty",
-		s: "shorty"
+		s: "SHORTY"
 	},
 	{
 		id: "showhand",
-		s: "hand"
+		s: "HAND"
 	},
 	{
 		id: "shrimp-capital",
-		s: "shrmp"
+		s: "SHRMP"
 	},
 	{
 		id: "shrimp-finance",
-		s: "shrimp"
+		s: "SHRIMP"
 	},
 	{
 		id: "shrine-cloud-storage-network",
@@ -43196,159 +43334,159 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "shroom-finance",
-		s: "shroom"
+		s: "SHROOM"
 	},
 	{
 		id: "shrooms",
-		s: "shrm"
+		s: "SHRM"
 	},
 	{
 		id: "shroud-protocol",
-		s: "shroud"
+		s: "SHROUD"
 	},
 	{
 		id: "shuffle-monster",
-		s: "shuf"
+		s: "SHUF"
 	},
 	{
 		id: "shuttleone",
-		s: "szo"
+		s: "SZO"
 	},
 	{
 		id: "siacashcoin",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "siaclassic",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "siacoin",
-		s: "sc"
+		s: "SC"
 	},
 	{
 		id: "siambitcoin",
-		s: "sbtc"
+		s: "SBTC"
 	},
 	{
 		id: "siaprime-coin",
-		s: "scp"
+		s: "SCP"
 	},
 	{
 		id: "sibcoin",
-		s: "sib"
+		s: "SIB"
 	},
 	{
 		id: "sicash",
-		s: "sic"
+		s: "SIC"
 	},
 	{
 		id: "sideshift-ai",
-		s: "sai"
+		s: "SAI"
 	},
 	{
 		id: "sierracoin",
-		s: "sierra"
+		s: "SIERRA"
 	},
 	{
 		id: "sifchain",
-		s: "erowan"
+		s: "EROWAN"
 	},
 	{
 		id: "signal-token",
-		s: "sig"
+		s: "SIG"
 	},
 	{
 		id: "signaturechain",
-		s: "sign"
+		s: "SIGN"
 	},
 	{
 		id: "silkchain",
-		s: "silk"
+		s: "SILK"
 	},
 	{
 		id: "silvercashs",
-		s: "svc"
+		s: "SVC"
 	},
 	{
 		id: "silver-coin",
-		s: "scn"
+		s: "SCN"
 	},
 	{
 		id: "silver-fabric-coin",
-		s: "sfc"
+		s: "SFC"
 	},
 	{
 		id: "silverway",
-		s: "slv"
+		s: "SLV"
 	},
 	{
 		id: "simba-storage-token",
-		s: "sst"
+		s: "SST"
 	},
 	{
 		id: "simplechain",
-		s: "sipc"
+		s: "SIPC"
 	},
 	{
 		id: "simple-masternode-coin",
-		s: "smnc"
+		s: "SMNC"
 	},
 	{
 		id: "simple-software-solutions",
-		s: "sss"
+		s: "SSS"
 	},
 	{
 		id: "simple-token",
-		s: "ost"
+		s: "OST"
 	},
 	{
 		id: "simplexchain",
-		s: "sxc"
+		s: "SXC"
 	},
 	{
 		id: "simplicity-coin",
-		s: "spl"
+		s: "SPL"
 	},
 	{
 		id: "simracer-coin",
-		s: "src"
+		s: "SRC"
 	},
 	{
 		id: "simulacrum",
-		s: "scm"
+		s: "SCM"
 	},
 	{
 		id: "sinelock",
-		s: "sine"
+		s: "SINE"
 	},
 	{
 		id: "sinergia",
-		s: "sng"
+		s: "SNG"
 	},
 	{
 		id: "singulardtv",
-		s: "sngls"
+		s: "SNGLS"
 	},
 	{
 		id: "singularitynet",
-		s: "agi"
+		s: "AGI"
 	},
 	{
 		id: "sinoc",
-		s: "sinoc"
+		s: "SINOC"
 	},
 	{
 		id: "sint-truidense-voetbalvereniging",
-		s: "stv"
+		s: "STV"
 	},
 	{
 		id: "siren",
-		s: "si"
+		s: "SI"
 	},
 	{
 		id: "sirin-labs-token",
-		s: "srn"
+		s: "SRN"
 	},
 	{
 		id: "sixeleven",
@@ -43356,195 +43494,195 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "six-network",
-		s: "six"
+		s: "SIX"
 	},
 	{
 		id: "sjwcoin",
-		s: "sjw"
+		s: "SJW"
 	},
 	{
 		id: "skale",
-		s: "skl"
+		s: "SKL"
 	},
 	{
 		id: "skillchain",
-		s: "ski"
+		s: "SKI"
 	},
 	{
 		id: "skinchain",
-		s: "skc"
+		s: "SKC"
 	},
 	{
 		id: "skincoin",
-		s: "skin"
+		s: "SKIN"
 	},
 	{
 		id: "skin-rich",
-		s: "skin"
+		s: "SKIN"
 	},
 	{
 		id: "sklay",
-		s: "sklay"
+		s: "SKLAY"
 	},
 	{
 		id: "skraps",
-		s: "skrp"
+		s: "SKRP"
 	},
 	{
 		id: "skrumble-network",
-		s: "skm"
+		s: "SKM"
 	},
 	{
 		id: "skull",
-		s: "skull"
+		s: "SKULL"
 	},
 	{
 		id: "skull-candy-shards",
-		s: "candy"
+		s: "CANDY"
 	},
 	{
 		id: "skycoin",
-		s: "sky"
+		s: "SKY"
 	},
 	{
 		id: "skyhub",
-		s: "shb"
+		s: "SHB"
 	},
 	{
 		id: "slate",
-		s: "bytz"
+		s: "BYTZ"
 	},
 	{
 		id: "slimcoin",
-		s: "slm"
+		s: "SLM"
 	},
 	{
 		id: "slime-finance",
-		s: "slme"
+		s: "SLME"
 	},
 	{
 		id: "slink",
-		s: "slink"
+		s: "SLINK"
 	},
 	{
 		id: "slnv2",
-		s: "slnv2"
+		s: "SLNV2"
 	},
 	{
 		id: "slothcoin",
-		s: "sloth"
+		s: "SLOTH"
 	},
 	{
 		id: "slt",
-		s: "slt"
+		s: "SLT"
 	},
 	{
 		id: "sltc",
-		s: "sltc"
+		s: "SLTC"
 	},
 	{
 		id: "small-love-potion",
-		s: "slp"
+		s: "SLP"
 	},
 	{
 		id: "smart-application-chain",
-		s: "sac"
+		s: "SAC"
 	},
 	{
 		id: "smartcash",
-		s: "smart"
+		s: "SMART"
 	},
 	{
 		id: "smartcoin",
-		s: "smc"
+		s: "SMC"
 	},
 	{
 		id: "smartcredit-token",
-		s: "smartcredit"
+		s: "SMARTCREDIT"
 	},
 	{
 		id: "smart-dollar",
-		s: "sd"
+		s: "SD"
 	},
 	{
 		id: "smartkey",
-		s: "skey"
+		s: "SKEY"
 	},
 	{
 		id: "smartlands",
-		s: "slt"
+		s: "SLT"
 	},
 	{
 		id: "smartmesh",
-		s: "smt"
+		s: "SMT"
 	},
 	{
 		id: "smartofgiving",
-		s: "aog"
+		s: "AOG"
 	},
 	{
 		id: "smartshare",
-		s: "ssp"
+		s: "SSP"
 	},
 	{
 		id: "smart-valor",
-		s: "valor"
+		s: "VALOR"
 	},
 	{
 		id: "smartway-finance",
-		s: "smart"
+		s: "SMART"
 	},
 	{
 		id: "smartx",
-		s: "sat"
+		s: "SAT"
 	},
 	{
 		id: "smileycoin",
-		s: "smly"
+		s: "SMLY"
 	},
 	{
 		id: "smol",
-		s: "smol"
+		s: "SMOL"
 	},
 	{
 		id: "smpl-foundation",
-		s: "smpl"
+		s: "SMPL"
 	},
 	{
 		id: "snapparazzi",
-		s: "rno"
+		s: "RNO"
 	},
 	{
 		id: "snetwork",
-		s: "snet"
+		s: "SNET"
 	},
 	{
 		id: "snglsdao-governance-token",
-		s: "sgt"
+		s: "SGT"
 	},
 	{
 		id: "snodecoin",
-		s: "snd"
+		s: "SND"
 	},
 	{
 		id: "snovio",
-		s: "snov"
+		s: "SNOV"
 	},
 	{
 		id: "snowball",
-		s: "snbl"
+		s: "SNBL"
 	},
 	{
 		id: "snowball-token",
-		s: "snob"
+		s: "SNOB"
 	},
 	{
 		id: "snowblossom",
-		s: "snow"
+		s: "SNOW"
 	},
 	{
 		id: "snowgem",
-		s: "tent"
+		s: "TENT"
 	},
 	{
 		id: "snowswap",
@@ -43552,255 +43690,255 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "soak-token",
-		s: "soak"
+		s: "SOAK"
 	},
 	{
 		id: "soar",
-		s: "skym"
+		s: "SKYM"
 	},
 	{
 		id: "soar-2",
-		s: "soar"
+		s: "SOAR"
 	},
 	{
 		id: "social-finance",
-		s: "sofi"
+		s: "SOFI"
 	},
 	{
 		id: "social-good-project",
-		s: "sg"
+		s: "SG"
 	},
 	{
 		id: "sociall",
-		s: "scl"
+		s: "SCL"
 	},
 	{
 		id: "social-lending-token",
-		s: "slt"
+		s: "SLT"
 	},
 	{
 		id: "social-rocket",
-		s: "rocks"
+		s: "ROCKS"
 	},
 	{
 		id: "social-send",
-		s: "send"
+		s: "SEND"
 	},
 	{
 		id: "socketfinance",
-		s: "sfi"
+		s: "SFI"
 	},
 	{
 		id: "soda-coin",
-		s: "soc"
+		s: "SOC"
 	},
 	{
 		id: "soda-token",
-		s: "soda"
+		s: "SODA"
 	},
 	{
 		id: "soft-bitcoin",
-		s: "sbtc"
+		s: "SBTC"
 	},
 	{
 		id: "softchain",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "softlink",
-		s: "slink"
+		s: "SLINK"
 	},
 	{
 		id: "soft-yearn",
-		s: "syfi"
+		s: "SYFI"
 	},
 	{
 		id: "soga-project",
-		s: "soga"
+		s: "SOGA"
 	},
 	{
 		id: "solace-coin",
-		s: "solace"
+		s: "SOLACE"
 	},
 	{
 		id: "solana",
-		s: "sol"
+		s: "SOL"
 	},
 	{
 		id: "solarcoin",
-		s: "slr"
+		s: "SLR"
 	},
 	{
 		id: "solar-dao",
-		s: "sdao"
+		s: "SDAO"
 	},
 	{
 		id: "solareum",
-		s: "slrm"
+		s: "SLRM"
 	},
 	{
 		id: "solaris",
-		s: "xlr"
+		s: "XLR"
 	},
 	{
 		id: "solarite",
-		s: "solarite"
+		s: "SOLARITE"
 	},
 	{
 		id: "solbit",
-		s: "sbt"
+		s: "SBT"
 	},
 	{
 		id: "soldo",
-		s: "sld"
+		s: "SLD"
 	},
 	{
 		id: "solo-coin",
-		s: "solo"
+		s: "SOLO"
 	},
 	{
 		id: "solomon-defi",
-		s: "slm"
+		s: "SLM"
 	},
 	{
 		id: "solve-care",
-		s: "solve"
+		s: "SOLVE"
 	},
 	{
 		id: "sombe",
-		s: "sbe"
+		s: "SBE"
 	},
 	{
 		id: "somesing",
-		s: "ssx"
+		s: "SSX"
 	},
 	{
 		id: "somidax",
-		s: "smdx"
+		s: "SMDX"
 	},
 	{
 		id: "somnium-space-cubes",
-		s: "cube"
+		s: "CUBE"
 	},
 	{
 		id: "songcoin",
-		s: "song"
+		s: "SONG"
 	},
 	{
 		id: "sonm",
-		s: "snm"
+		s: "SNM"
 	},
 	{
 		id: "sono",
-		s: "sono"
+		s: "SONO"
 	},
 	{
 		id: "sonocoin",
-		s: "sono"
+		s: "SONO"
 	},
 	{
 		id: "sopay",
-		s: "sop"
+		s: "SOP"
 	},
 	{
 		id: "sophiatx",
-		s: "sphtx"
+		s: "SPHTX"
 	},
 	{
 		id: "sophon-capital-token",
-		s: "sait"
+		s: "SAIT"
 	},
 	{
 		id: "sora",
-		s: "xor"
+		s: "XOR"
 	},
 	{
 		id: "sorachancoin",
-		s: "sora"
+		s: "SORA"
 	},
 	{
 		id: "sora-validator-token",
-		s: "val"
+		s: "VAL"
 	},
 	{
 		id: "sota-finance",
-		s: "sota"
+		s: "SOTA"
 	},
 	{
 		id: "soteria",
-		s: "wsote"
+		s: "WSOTE"
 	},
 	{
 		id: "soul-token",
-		s: "soul"
+		s: "SOUL"
 	},
 	{
 		id: "sound-blockchain-protocol",
-		s: "Berry"
+		s: "BERRY"
 	},
 	{
 		id: "southxchange-coin",
-		s: "sxcc"
+		s: "SXCC"
 	},
 	{
 		id: "sov",
-		s: "sov"
+		s: "SOV"
 	},
 	{
 		id: "soverain",
-		s: "sove"
+		s: "SOVE"
 	},
 	{
 		id: "sovereign-coin",
-		s: "sov"
+		s: "SOV"
 	},
 	{
 		id: "sovi-token",
-		s: "sovi"
+		s: "SOVI"
 	},
 	{
 		id: "sovranocoin",
-		s: "svr"
+		s: "SVR"
 	},
 	{
 		id: "sowing-network",
-		s: "zseed"
+		s: "ZSEED"
 	},
 	{
 		id: "sp8de",
-		s: "spx"
+		s: "SPX"
 	},
 	{
 		id: "spacechain",
-		s: "spc"
+		s: "SPC"
 	},
 	{
 		id: "spacechain-erc-20",
-		s: "spc"
+		s: "SPC"
 	},
 	{
 		id: "spacecoin",
-		s: "space"
+		s: "SPACE"
 	},
 	{
 		id: "spacecowboy",
-		s: "scb"
+		s: "SCB"
 	},
 	{
 		id: "space-iz",
-		s: "spiz"
+		s: "SPIZ"
 	},
 	{
 		id: "spaghetti",
-		s: "pasta"
+		s: "PASTA"
 	},
 	{
 		id: "spankchain",
-		s: "spank"
+		s: "SPANK"
 	},
 	{
 		id: "sparkle",
-		s: "sprkl"
+		s: "SPRKL"
 	},
 	{
 		id: "sparkleswap-rewards",
@@ -43808,19 +43946,19 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "sparkpoint",
-		s: "srk"
+		s: "SRK"
 	},
 	{
 		id: "sparkpoint-fuel",
-		s: "sfuel"
+		s: "SFUEL"
 	},
 	{
 		id: "sparks",
-		s: "spk"
+		s: "SPK"
 	},
 	{
 		id: "sparkster",
-		s: "sprk"
+		s: "SPRK"
 	},
 	{
 		id: "spartan",
@@ -43828,171 +43966,167 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "spartancoin",
-		s: "spn"
+		s: "SPN"
 	},
 	{
 		id: "spartan-protocol-token",
-		s: "sparta"
+		s: "SPARTA"
 	},
 	{
 		id: "sparta-startups",
-		s: "sparta"
+		s: "SPARTA"
 	},
 	{
 		id: "spectrecoin",
-		s: "alias"
+		s: "ALIAS"
 	},
 	{
 		id: "spectre-dividend-token",
-		s: "sxdt"
+		s: "SXDT"
 	},
 	{
 		id: "spectresecuritycoin",
-		s: "xspc"
+		s: "XSPC"
 	},
 	{
 		id: "spectre-utility-token",
-		s: "sxut"
+		s: "SXUT"
 	},
 	{
 		id: "spectrum",
-		s: "spt"
+		s: "SPT"
 	},
 	{
 		id: "spectrum-cash",
-		s: "xsm"
+		s: "XSM"
 	},
 	{
 		id: "speedcash",
-		s: "scs"
+		s: "SCS"
 	},
 	{
 		id: "speed-coin",
-		s: "speed"
+		s: "SPEED"
 	},
 	{
 		id: "speed-mining-service",
-		s: "sms"
+		s: "SMS"
 	},
 	{
 		id: "spendcoin",
-		s: "spnd"
+		s: "SPND"
 	},
 	{
 		id: "spender-x",
-		s: "spdx"
+		s: "SPDX"
 	},
 	{
 		id: "sperax",
-		s: "spa"
+		s: "SPA"
 	},
 	{
 		id: "sphere",
-		s: "sphr"
+		s: "SPHR"
 	},
 	{
 		id: "sphere-social",
-		s: "sat"
+		s: "SAT"
 	},
 	{
 		id: "spheroid-universe",
-		s: "sph"
+		s: "SPH"
 	},
 	{
 		id: "spice",
-		s: "spice"
+		s: "SPICE"
 	},
 	{
 		id: "spice-finance",
-		s: "spice"
+		s: "SPICE"
 	},
 	{
 		id: "spiderdao",
-		s: "spdr"
+		s: "SPDR"
 	},
 	{
 		id: "spider-ecology",
-		s: "espi"
+		s: "ESPI"
 	},
 	{
 		id: "spiking",
-		s: "spike"
+		s: "SPIKE"
 	},
 	{
 		id: "spindle",
-		s: "spd"
-	},
-	{
-		id: "spin-token",
-		s: "spin"
+		s: "SPD"
 	},
 	{
 		id: "spock",
-		s: "spok"
+		s: "SPOK"
 	},
 	{
 		id: "spoklottery",
-		s: "spkl"
+		s: "SPKL"
 	},
 	{
 		id: "sponb",
-		s: "spo"
+		s: "SPO"
 	},
 	{
 		id: "sponge",
-		s: "spg"
+		s: "SPG"
 	},
 	{
 		id: "spore-engineering",
-		s: "spore"
+		s: "SPORE"
 	},
 	{
 		id: "sport-and-leisure",
-		s: "snl"
+		s: "SNL"
 	},
 	{
 		id: "sportsplex",
-		s: "spx"
+		s: "SPX"
 	},
 	{
 		id: "sportx",
-		s: "sx"
+		s: "SX"
 	},
 	{
 		id: "spots",
-		s: "spt"
+		s: "SPT"
 	},
 	{
 		id: "springrole",
-		s: "spring"
+		s: "SPRING"
 	},
 	{
 		id: "sprink",
-		s: "sprink"
+		s: "SPRINK"
 	},
 	{
 		id: "sprint-coin",
-		s: "sprx"
+		s: "SPRX"
 	},
 	{
 		id: "spritzcoin",
-		s: "sprtz"
+		s: "SPRTZ"
 	},
 	{
 		id: "sprouts",
-		s: "sprts"
+		s: "SPRTS"
 	},
 	{
 		id: "sproutsextreme",
-		s: "spex"
+		s: "SPEX"
 	},
 	{
 		id: "squirrel-finance",
-		s: "nuts"
+		s: "NUTS"
 	},
 	{
 		id: "srcoin",
-		s: "srh"
+		s: "SRH"
 	},
 	{
 		id: "sss-finance",
@@ -44000,15 +44134,15 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "stabilize",
-		s: "stbz"
+		s: "STBZ"
 	},
 	{
 		id: "stabinol",
-		s: "stol"
+		s: "STOL"
 	},
 	{
 		id: "stable-asset",
-		s: "sta"
+		s: "STA"
 	},
 	{
 		id: "stableusd",
@@ -44016,139 +44150,139 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "stablexswap",
-		s: "stax"
+		s: "STAX"
 	},
 	{
 		id: "stacker-ventures",
-		s: "stack"
+		s: "STACK"
 	},
 	{
 		id: "stacktical",
-		s: "dsla"
+		s: "DSLA"
 	},
 	{
 		id: "stacy",
-		s: "stacy"
+		s: "STACY"
 	},
 	{
 		id: "stafi",
-		s: "fis"
+		s: "FIS"
 	},
 	{
 		id: "stakd-finance",
-		s: "stakd"
+		s: "STAKD"
 	},
 	{
 		id: "stake-coin-2",
-		s: "coin"
+		s: "COIN"
 	},
 	{
 		id: "stakecube",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "stake-dao",
-		s: "sdt"
+		s: "SDT"
 	},
 	{
 		id: "staked-ether",
-		s: "steth"
+		s: "STETH"
 	},
 	{
 		id: "stakedxem",
-		s: "stxem"
+		s: "STXEM"
 	},
 	{
 		id: "staked-yaxis",
-		s: "syax"
+		s: "SYAX"
 	},
 	{
 		id: "stakehound",
-		s: "stfiro"
+		s: "STFIRO"
 	},
 	{
 		id: "stakehound-staked-ether",
-		s: "steth"
+		s: "STETH"
 	},
 	{
 		id: "stakenet",
-		s: "xsn"
+		s: "XSN"
 	},
 	{
 		id: "staker",
-		s: "str"
+		s: "STR"
 	},
 	{
 		id: "stakeshare",
-		s: "ssx"
+		s: "SSX"
 	},
 	{
 		id: "stakinglab",
-		s: "labx"
+		s: "LABX"
 	},
 	{
 		id: "stamp",
-		s: "stamp"
+		s: "STAMP"
 	},
 	{
 		id: "stand-cash",
-		s: "sac"
+		s: "SAC"
 	},
 	{
 		id: "stand-share",
-		s: "sas"
+		s: "SAS"
 	},
 	{
 		id: "starbase",
-		s: "star"
+		s: "STAR"
 	},
 	{
 		id: "starblock",
-		s: "stb"
+		s: "STB"
 	},
 	{
 		id: "starbugs-shards",
-		s: "bugs"
+		s: "BUGS"
 	},
 	{
 		id: "starchain",
-		s: "stc"
+		s: "STC"
 	},
 	{
 		id: "starcurve",
-		s: "xstar"
+		s: "XSTAR"
 	},
 	{
 		id: "stargaze-protocol",
-		s: "stgz"
+		s: "STGZ"
 	},
 	{
 		id: "stark-chain",
-		s: "stark"
+		s: "STARK"
 	},
 	{
 		id: "starname",
-		s: "iov"
+		s: "IOV"
 	},
 	{
 		id: "star-pacific-coin",
-		s: "spc"
+		s: "SPC"
 	},
 	{
 		id: "starplay",
-		s: "stpc"
+		s: "STPC"
 	},
 	{
 		id: "startcoin",
-		s: "start"
+		s: "START"
 	},
 	{
 		id: "stasis-eurs",
-		s: "eurs"
+		s: "EURS"
 	},
 	{
 		id: "statera",
-		s: "sta"
+		s: "STA"
 	},
 	{
 		id: "status",
@@ -44156,215 +44290,211 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "staysbase",
-		s: "sbs"
+		s: "SBS"
 	},
 	{
 		id: "stb-chain",
-		s: "stb"
+		s: "STB"
 	},
 	{
 		id: "steaks-finance",
-		s: "steak"
+		s: "STEAK"
 	},
 	{
 		id: "stealthcoin",
-		s: "xst"
+		s: "XST"
 	},
 	{
 		id: "steem",
-		s: "steem"
+		s: "STEEM"
 	},
 	{
 		id: "steem-dollars",
-		s: "sbd"
+		s: "SBD"
 	},
 	{
 		id: "steepcoin",
-		s: "steep"
+		s: "STEEP"
 	},
 	{
 		id: "stellar",
-		s: "xlm"
+		s: "XLM"
 	},
 	{
 		id: "stellar-classic",
-		s: "xlmx"
+		s: "XLMX"
 	},
 	{
 		id: "stellar-gold",
-		s: "xlmg"
+		s: "XLMG"
 	},
 	{
 		id: "stellarpayglobal",
-		s: "xlpg"
+		s: "XLPG"
 	},
 	{
 		id: "stellite",
-		s: "xla"
+		s: "XLA"
 	},
 	{
 		id: "stib-token",
-		s: "sti"
+		s: "STI"
 	},
 	{
 		id: "sting",
-		s: "stn"
+		s: "STN"
 	},
 	{
 		id: "stipend",
-		s: "spd"
+		s: "SPD"
 	},
 	{
 		id: "stk",
-		s: "stk"
+		s: "STK"
 	},
 	{
 		id: "stk-coin",
-		s: "stk"
+		s: "STK"
 	},
 	{
 		id: "stobox-token",
-		s: "stbu"
+		s: "STBU"
 	},
 	{
 		id: "stockchain",
-		s: "scc"
+		s: "SCC"
 	},
 	{
 		id: "ston",
-		s: "ston"
+		s: "STON"
 	},
 	{
 		id: "stonk",
-		s: "stonk"
+		s: "STONK"
 	},
 	{
 		id: "stonks",
-		s: "stonk"
+		s: "STONK"
 	},
 	{
 		id: "storeum",
-		s: "sto"
+		s: "STO"
 	},
 	{
 		id: "storichain-token",
-		s: "tori"
+		s: "TORI"
 	},
 	{
 		id: "storiqa",
-		s: "stq"
+		s: "STQ"
 	},
 	{
 		id: "storj",
-		s: "storj"
+		s: "STORJ"
 	},
 	{
 		id: "storm",
-		s: "stmx"
+		s: "STMX"
 	},
 	{
 		id: "stox",
-		s: "stx"
+		s: "STX"
 	},
 	{
 		id: "stp-network",
-		s: "stpt"
+		s: "STPT"
 	},
 	{
 		id: "st-project",
-		s: "ist"
+		s: "IST"
 	},
 	{
 		id: "strain",
-		s: "strn"
+		s: "STRN"
 	},
 	{
 		id: "straks",
-		s: "stak"
+		s: "STAK"
 	},
 	{
 		id: "stratis",
-		s: "strax"
+		s: "STRAX"
 	},
 	{
 		id: "strayacoin",
-		s: "nah"
+		s: "NAH"
 	},
 	{
 		id: "stream",
-		s: "stm"
+		s: "STM"
 	},
 	{
 		id: "streamit-coin",
-		s: "stream"
+		s: "STREAM"
 	},
 	{
 		id: "streamix",
-		s: "mixs"
+		s: "MIXS"
 	},
 	{
 		id: "stream-protocol",
-		s: "stpl"
+		s: "STPL"
 	},
 	{
 		id: "streamr-datacoin",
-		s: "data"
+		s: "DATA"
 	},
 	{
 		id: "street-cred",
-		s: "cred"
+		s: "CRED"
 	},
 	{
 		id: "street-credit",
-		s: "cred"
+		s: "CRED"
 	},
 	{
 		id: "strong",
-		s: "strong"
+		s: "STRONG"
 	},
 	{
 		id: "stronghands",
-		s: "shnd"
+		s: "SHND"
 	},
 	{
 		id: "stronghands-masternode",
-		s: "shmn"
+		s: "SHMN"
 	},
 	{
 		id: "stronghold",
-		s: "strng"
+		s: "STRNG"
 	},
 	{
 		id: "stronghold-token",
-		s: "shx"
+		s: "SHX"
 	},
 	{
 		id: "strudel-finance",
-		s: "trdl"
+		s: "TRDL"
 	},
 	{
 		id: "stsla",
-		s: "stsla"
-	},
-	{
-		id: "student-coin",
-		s: "stc"
+		s: "STSLA"
 	},
 	{
 		id: "stvke-network",
-		s: "stv"
+		s: "STV"
 	},
 	{
 		id: "substratum",
-		s: "sub"
+		s: "SUB"
 	},
 	{
 		id: "sucrecoin",
-		s: "xsr"
+		s: "XSR"
 	},
 	{
 		id: "sugarchain",
-		s: "sugar"
+		s: "SUGAR"
 	},
 	{
 		id: "suku",
@@ -44372,207 +44502,207 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "sumcoin",
-		s: "sum"
+		s: "SUM"
 	},
 	{
 		id: "sumokoin",
-		s: "sumo"
+		s: "SUMO"
 	},
 	{
 		id: "sun",
-		s: "sun"
+		s: "SUN"
 	},
 	{
 		id: "suncontract",
-		s: "snc"
+		s: "SNC"
 	},
 	{
 		id: "sun-token",
-		s: "sun"
+		s: "SUN"
 	},
 	{
 		id: "sup8eme",
-		s: "sup8eme"
+		s: "SUP8EME"
 	},
 	{
 		id: "super8",
-		s: "s8"
+		s: "S8"
 	},
 	{
 		id: "superbid",
-		s: "superbid"
+		s: "SUPERBID"
 	},
 	{
 		id: "super-black-hole",
-		s: "hole"
+		s: "HOLE"
 	},
 	{
 		id: "supercoin",
-		s: "super"
+		s: "SUPER"
 	},
 	{
 		id: "super-coinview-token",
-		s: "scv"
+		s: "SCV"
 	},
 	{
 		id: "superedge",
-		s: "ect"
+		s: "ECT"
 	},
 	{
 		id: "superfarm",
-		s: "super"
+		s: "SUPER"
 	},
 	{
 		id: "super-gold",
-		s: "spg"
+		s: "SPG"
 	},
 	{
 		id: "super-running-coin",
-		s: "src"
+		s: "SRC"
 	},
 	{
 		id: "super-saiya-jin",
-		s: "ssj"
+		s: "SSJ"
 	},
 	{
 		id: "superskynet",
-		s: "ssn"
+		s: "SSN"
 	},
 	{
 		id: "super-trip-chain",
-		s: "supt"
+		s: "SUPT"
 	},
 	{
 		id: "supertron",
-		s: "stro"
+		s: "STRO"
 	},
 	{
 		id: "supertx-governance-token",
-		s: "sup"
+		s: "SUP"
 	},
 	{
 		id: "super-zero",
-		s: "sero"
+		s: "SERO"
 	},
 	{
 		id: "support-listing-coin",
-		s: "slc"
+		s: "SLC"
 	},
 	{
 		id: "supra-token",
-		s: "supra"
+		s: "SUPRA"
 	},
 	{
 		id: "suqa",
-		s: "sin"
+		s: "SIN"
 	},
 	{
 		id: "sureremit",
-		s: "rmt"
+		s: "RMT"
 	},
 	{
 		id: "suretly",
-		s: "sur"
+		s: "SUR"
 	},
 	{
 		id: "surfexutilitytoken",
-		s: "surf"
+		s: "SURF"
 	},
 	{
 		id: "surf-finance",
-		s: "surf"
+		s: "SURF"
 	},
 	{
 		id: "sushi",
-		s: "sushi"
+		s: "SUSHI"
 	},
 	{
 		id: "suterusu",
-		s: "suter"
+		s: "SUTER"
 	},
 	{
 		id: "swaap-stablecoin",
-		s: "sap"
+		s: "SAP"
 	},
 	{
 		id: "swace",
-		s: "swace"
+		s: "SWACE"
 	},
 	{
 		id: "swagbucks",
-		s: "bucks"
+		s: "BUCKS"
 	},
 	{
 		id: "swag-finance",
-		s: "swag"
+		s: "SWAG"
 	},
 	{
 		id: "swagg-network",
-		s: "swagg"
+		s: "SWAGG"
 	},
 	{
 		id: "swamp-coin",
-		s: "swamp"
+		s: "SWAMP"
 	},
 	{
 		id: "swap",
-		s: "xwp"
+		s: "XWP"
 	},
 	{
 		id: "swapall",
-		s: "sap"
+		s: "SAP"
 	},
 	{
 		id: "swapcoinz",
-		s: "spaz"
+		s: "SPAZ"
 	},
 	{
 		id: "swapdex",
-		s: "sdx"
+		s: "SDX"
 	},
 	{
 		id: "swapfolio",
-		s: "swfl"
+		s: "SWFL"
 	},
 	{
 		id: "swapship",
-		s: "swsh"
+		s: "SWSH"
 	},
 	{
 		id: "swaptoken",
-		s: "token"
+		s: "TOKEN"
 	},
 	{
 		id: "swarm",
-		s: "swm"
+		s: "SWM"
 	},
 	{
 		id: "swarm-city",
-		s: "swt"
+		s: "SWT"
 	},
 	{
 		id: "swerve-dao",
-		s: "swrv"
+		s: "SWRV"
 	},
 	{
 		id: "swe-token",
-		s: "swet"
+		s: "SWET"
 	},
 	{
 		id: "swftcoin",
-		s: "swftc"
+		s: "SWFTC"
 	},
 	{
 		id: "swiftcash",
-		s: "swift"
+		s: "SWIFT"
 	},
 	{
 		id: "swiftlance-token",
-		s: "swl"
+		s: "SWL"
 	},
 	{
 		id: "swing",
-		s: "swing"
+		s: "SWING"
 	},
 	{
 		id: "swingby",
@@ -44580,427 +44710,435 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "swipe",
-		s: "sxp"
+		s: "SXP"
 	},
 	{
 		id: "swipe-network",
-		s: "swipe"
+		s: "SWIPE"
 	},
 	{
 		id: "swipp",
-		s: "swipp"
+		s: "SWIPP"
 	},
 	{
 		id: "swirge",
-		s: "swg"
+		s: "SWG"
 	},
 	{
 		id: "swissborg",
-		s: "chsb"
+		s: "CHSB"
 	},
 	{
 		id: "swisscoin-classic",
-		s: "sicc"
+		s: "SICC"
 	},
 	{
 		id: "swiss-finance",
-		s: "swiss"
+		s: "SWISS"
 	},
 	{
 		id: "switch",
-		s: "esh"
+		s: "ESH"
 	},
 	{
 		id: "switcheo",
-		s: "swth"
+		s: "SWTH"
 	},
 	{
 		id: "swop",
-		s: "swop"
+		s: "SWOP"
 	},
 	{
 		id: "swtcoin",
-		s: "swat"
+		s: "SWAT"
 	},
 	{
 		id: "swusd",
-		s: "swusd"
+		s: "SWUSD"
 	},
 	{
 		id: "swyft",
-		s: "swyftt"
+		s: "SWYFTT"
 	},
 	{
 		id: "sxag",
-		s: "sxag"
+		s: "SXAG"
 	},
 	{
 		id: "sxau",
-		s: "sxau"
+		s: "SXAU"
 	},
 	{
 		id: "sxc",
-		s: "sxc"
+		s: "SXC"
 	},
 	{
 		id: "sxmr",
-		s: "sxmr"
+		s: "SXMR"
 	},
 	{
 		id: "sxrp",
-		s: "sxrp"
+		s: "SXRP"
 	},
 	{
 		id: "sxtz",
-		s: "sxtz"
+		s: "SXTZ"
 	},
 	{
 		id: "sybc-coin",
-		s: "sybc"
+		s: "SYBC"
 	},
 	{
 		id: "sylo",
-		s: "sylo"
+		s: "SYLO"
+	},
+	{
+		id: "symbol",
+		s: "XYM"
 	},
 	{
 		id: "symverse",
-		s: "sym"
+		s: "SYM"
 	},
 	{
 		id: "syncfab",
-		s: "mfg"
+		s: "MFG"
 	},
 	{
 		id: "synchrobitcoin",
-		s: "snb"
+		s: "SNB"
 	},
 	{
 		id: "sync-network",
-		s: "sync"
+		s: "SYNC"
 	},
 	{
 		id: "syndicate",
-		s: "synx"
+		s: "SYNX"
 	},
 	{
 		id: "synergy",
-		s: "snrg"
+		s: "SNRG"
 	},
 	{
 		id: "synlev",
-		s: "syn"
+		s: "SYN"
 	},
 	{
 		id: "synth-soil",
-		s: "soil"
+		s: "SOIL"
 	},
 	{
 		id: "syscoin",
-		s: "sys"
+		s: "SYS"
 	},
 	{
 		id: "taco-finance",
-		s: "taco"
+		s: "TACO"
 	},
 	{
 		id: "tacos",
-		s: "taco"
+		s: "TACO"
 	},
 	{
 		id: "tadpole-finance",
-		s: "tad"
+		s: "TAD"
 	},
 	{
 		id: "tagcoin",
-		s: "tag"
+		s: "TAG"
 	},
 	{
 		id: "tagcoin-erc20",
-		s: "tag"
+		s: "TAG"
 	},
 	{
 		id: "tagrcoin",
-		s: "tagr"
+		s: "TAGR"
 	},
 	{
 		id: "tai",
-		s: "tai"
+		s: "TAI"
 	},
 	{
 		id: "tajcoin",
-		s: "taj"
+		s: "TAJ"
 	},
 	{
 		id: "taklimakan-network",
-		s: "tan"
+		s: "TAN"
 	},
 	{
 		id: "talent-coin",
-		s: "tlnt"
+		s: "TLNT"
 	},
 	{
 		id: "talent-token",
-		s: "ttx"
+		s: "TTX"
 	},
 	{
 		id: "taler",
-		s: "tlr"
+		s: "TLR"
 	},
 	{
 		id: "taleshcoin",
-		s: "talc"
+		s: "TALC"
 	},
 	{
 		id: "talleo",
-		s: "tlo"
+		s: "TLO"
 	},
 	{
 		id: "tama-egg-niftygotchi",
-		s: "tme"
+		s: "TME"
 	},
 	{
 		id: "tamy-token",
-		s: "tmt"
+		s: "TMT"
 	},
 	{
 		id: "tao-network",
-		s: "tao"
+		s: "TAO"
 	},
 	{
 		id: "tap",
-		s: "xtp"
+		s: "XTP"
 	},
 	{
 		id: "tapmydata",
-		s: "tap"
+		s: "TAP"
 	},
 	{
 		id: "tap-project",
-		s: "ttt"
+		s: "TTT"
 	},
 	{
 		id: "tardigrades-finance",
-		s: "trdg"
+		s: "TRDG"
 	},
 	{
 		id: "tartarus",
-		s: "tar"
+		s: "TAR"
 	},
 	{
 		id: "tatcoin",
-		s: "tat"
+		s: "TAT"
 	},
 	{
 		id: "taurus-chain",
-		s: "trt"
+		s: "TRT"
 	},
 	{
 		id: "tavittcoin",
-		s: "tavitt"
+		s: "TAVITT"
 	},
 	{
 		id: "taxi",
-		s: "taxi"
+		s: "TAXI"
 	},
 	{
 		id: "tbcc-wallet",
-		s: "tbcc"
+		s: "TBCC"
 	},
 	{
 		id: "tbc-mart-token",
-		s: "tmt"
+		s: "TMT"
 	},
 	{
 		id: "tbtc",
-		s: "tbtc"
+		s: "TBTC"
 	},
 	{
 		id: "tcash",
-		s: "tcash"
+		s: "TCASH"
 	},
 	{
 		id: "tcbcoin",
-		s: "tcfx"
+		s: "TCFX"
 	},
 	{
 		id: "tchain",
-		s: "tch"
+		s: "TCH"
 	},
 	{
 		id: "tcoin-fun",
-		s: "tco"
+		s: "TCO"
 	},
 	{
 		id: "teal",
-		s: "teat"
+		s: "TEAT"
 	},
 	{
 		id: "team-finance",
-		s: "team"
+		s: "TEAM"
 	},
 	{
 		id: "team-heretics-fan-token",
-		s: "th"
+		s: "TH"
+	},
+	{
+		id: "tea-token",
+		s: "TEA"
 	},
 	{
 		id: "technology-innovation-project",
-		s: "tip"
+		s: "TIP"
 	},
 	{
 		id: "tecracoin",
-		s: "tcr"
+		s: "TCR"
 	},
 	{
 		id: "ted",
-		s: "ted"
+		s: "TED"
 	},
 	{
 		id: "tedesis",
-		s: "tdi"
+		s: "TDI"
 	},
 	{
 		id: "te-food",
-		s: "tone"
+		s: "TONE"
 	},
 	{
 		id: "tekcoin",
-		s: "tek"
+		s: "TEK"
 	},
 	{
 		id: "telcoin",
-		s: "tel"
+		s: "TEL"
 	},
 	{
 		id: "tellor",
-		s: "trb"
+		s: "TRB"
 	},
 	{
 		id: "telokanda",
-		s: "kanda"
+		s: "KANDA"
 	},
 	{
 		id: "telos",
-		s: "tlos"
+		s: "TLOS"
 	},
 	{
 		id: "telos-coin",
-		s: "telos"
+		s: "TELOS"
 	},
 	{
 		id: "temco",
-		s: "temco"
+		s: "TEMCO"
 	},
 	{
 		id: "temtem",
-		s: "tem"
+		s: "TEM"
 	},
 	{
 		id: "tena",
-		s: "tena"
+		s: "TENA"
 	},
 	{
 		id: "tendies",
-		s: "tend"
+		s: "TEND"
 	},
 	{
 		id: "tenet",
-		s: "ten"
+		s: "TEN"
 	},
 	{
 		id: "tenspeed-finance",
-		s: "tens"
+		s: "TENS"
 	},
 	{
 		id: "tenup",
-		s: "tup"
+		s: "TUP"
 	},
 	{
 		id: "tenx",
-		s: "pay"
+		s: "PAY"
 	},
 	{
 		id: "tenxcoin",
-		s: "txc"
+		s: "TXC"
 	},
 	{
 		id: "tepleton",
-		s: "tep"
+		s: "TEP"
 	},
 	{
 		id: "tera-smart-money",
-		s: "tera"
+		s: "TERA"
 	},
 	{
 		id: "tercet-network",
-		s: "tcnx"
+		s: "TCNX"
 	},
 	{
 		id: "ternio",
-		s: "tern"
+		s: "TERN"
 	},
 	{
 		id: "terracoin",
-		s: "trc"
+		s: "TRC"
 	},
 	{
 		id: "terragreen",
-		s: "tgn"
+		s: "TGN"
 	},
 	{
 		id: "terra-krw",
-		s: "krt"
+		s: "KRT"
 	},
 	{
 		id: "terra-luna",
-		s: "luna"
+		s: "LUNA"
 	},
 	{
 		id: "terra-sdt",
-		s: "sdt"
+		s: "SDT"
 	},
 	{
 		id: "terrausd",
-		s: "ust"
+		s: "UST"
 	},
 	{
 		id: "terra-virtua-kolect",
-		s: "tvk"
+		s: "TVK"
 	},
 	{
 		id: "teslafunds",
-		s: "tsf"
+		s: "TSF"
 	},
 	{
 		id: "tesra",
-		s: "tsr"
+		s: "TSR"
 	},
 	{
 		id: "tessla-coin",
-		s: "tsla"
+		s: "TSLA"
 	},
 	{
 		id: "tether",
-		s: "usdt"
+		s: "USDT"
 	},
 	{
 		id: "tether-gold",
-		s: "xaut"
+		s: "XAUT"
 	},
 	{
 		id: "tetris",
-		s: "ttr"
+		s: "TTR"
 	},
 	{
 		id: "tewken",
-		s: "tewken"
+		s: "TEWKEN"
 	},
 	{
 		id: "tezos",
-		s: "xtz"
+		s: "XTZ"
 	},
 	{
 		id: "thaler",
-		s: "tgco"
+		s: "TGCO"
 	},
 	{
 		id: "thar-token",
@@ -45008,551 +45146,551 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "thc",
-		s: "thc"
+		s: "THC"
 	},
 	{
 		id: "the-4th-pillar",
-		s: "four"
+		s: "FOUR"
 	},
 	{
 		id: "the-abyss",
-		s: "abyss"
+		s: "ABYSS"
 	},
 	{
 		id: "the-apis",
-		s: "api"
+		s: "API"
 	},
 	{
 		id: "thebigcoin",
-		s: "big"
+		s: "BIG"
 	},
 	{
 		id: "the-bitcoin-family",
-		s: "family"
+		s: "FAMILY"
 	},
 	{
 		id: "thecash",
-		s: "tch"
+		s: "TCH"
 	},
 	{
 		id: "the-champcoin",
-		s: "tcc"
+		s: "TCC"
 	},
 	{
 		id: "the-currency-analytics",
-		s: "tcat"
+		s: "TCAT"
 	},
 	{
 		id: "the-famous-token",
-		s: "tft"
+		s: "TFT"
 	},
 	{
 		id: "the-forbidden-forest",
-		s: "forestplus"
+		s: "FORESTPLUS"
 	},
 	{
 		id: "thefutbolcoin",
-		s: "tfc"
+		s: "TFC"
 	},
 	{
 		id: "thegcccoin",
-		s: "gcc"
+		s: "GCC"
 	},
 	{
 		id: "the-global-index-chain",
-		s: "tgic"
+		s: "TGIC"
 	},
 	{
 		id: "the-graph",
-		s: "grt"
+		s: "GRT"
 	},
 	{
 		id: "the-hash-speed",
-		s: "ths"
+		s: "THS"
 	},
 	{
 		id: "theholyrogercoin",
-		s: "roger"
+		s: "ROGER"
 	},
 	{
 		id: "thekey",
-		s: "tky"
+		s: "TKY"
 	},
 	{
 		id: "the-luxury-coin",
-		s: "tlb"
+		s: "TLB"
 	},
 	{
 		id: "the-metaonez",
-		s: "meta"
+		s: "META"
 	},
 	{
 		id: "the-midas-touch-gold",
-		s: "tmtg"
+		s: "TMTG"
 	},
 	{
 		id: "themis",
-		s: "get"
+		s: "GET"
 	},
 	{
 		id: "themis-2",
-		s: "mis"
+		s: "MIS"
 	},
 	{
 		id: "the-movement",
-		s: "mvt"
+		s: "MVT"
 	},
 	{
 		id: "the-nifty-onez",
-		s: "onez"
+		s: "ONEZ"
 	},
 	{
 		id: "the-node",
-		s: "the"
+		s: "THE"
 	},
 	{
 		id: "the-other-deadness",
-		s: "ded"
+		s: "DED"
 	},
 	{
 		id: "theresa-may-coin",
-		s: "may"
+		s: "MAY"
 	},
 	{
 		id: "the-sandbox",
-		s: "sand"
+		s: "SAND"
 	},
 	{
 		id: "the-smokehouse-finance",
-		s: "smoke"
+		s: "SMOKE"
 	},
 	{
 		id: "theta-fuel",
-		s: "tfuel"
+		s: "TFUEL"
 	},
 	{
 		id: "theta-token",
-		s: "theta"
+		s: "THETA"
 	},
 	{
 		id: "thetimeschaincoin",
-		s: "ttc"
+		s: "TTC"
 	},
 	{
 		id: "the-tokenized-bitcoin",
-		s: "imbtc"
+		s: "IMBTC"
 	},
 	{
 		id: "the-transfer-token",
-		s: "ttt"
+		s: "TTT"
 	},
 	{
 		id: "the-whale-of-blockchain",
-		s: "twob"
+		s: "TWOB"
 	},
 	{
 		id: "theworldsamine",
-		s: "wrld"
+		s: "WRLD"
 	},
 	{
 		id: "thingschain",
-		s: "tic"
+		s: "TIC"
 	},
 	{
 		id: "thingsoperatingsystem",
-		s: "tos"
+		s: "TOS"
 	},
 	{
 		id: "thinkcoin",
-		s: "tco"
+		s: "TCO"
 	},
 	{
 		id: "thinkium",
-		s: "tkm"
+		s: "TKM"
 	},
 	{
 		id: "thirm-protocol",
-		s: "thirm"
+		s: "THIRM"
 	},
 	{
 		id: "thisoption",
-		s: "tons"
+		s: "TONS"
 	},
 	{
 		id: "thorchain",
-		s: "rune"
+		s: "RUNE"
 	},
 	{
 		id: "thorchain-erc20",
-		s: "rune"
+		s: "RUNE"
 	},
 	{
 		id: "thorecash",
-		s: "tch"
+		s: "TCH"
 	},
 	{
 		id: "thorecoin",
-		s: "thr"
+		s: "THR"
 	},
 	{
 		id: "thore-exchange",
-		s: "thex"
+		s: "THEX"
 	},
 	{
 		id: "thorenext",
-		s: "thx"
+		s: "THX"
 	},
 	{
 		id: "thorium",
-		s: "torm"
+		s: "TORM"
 	},
 	{
 		id: "thorncoin",
-		s: "thrn"
+		s: "THRN"
 	},
 	{
 		id: "threefold-token",
-		s: "tft"
+		s: "TFT"
 	},
 	{
 		id: "thrive",
-		s: "thrt"
+		s: "THRT"
 	},
 	{
 		id: "thrivechain",
-		s: "trvc"
+		s: "TRVC"
 	},
 	{
 		id: "thugs-finance",
-		s: "thugs"
+		s: "THUGS"
 	},
 	{
 		id: "thunder-token",
-		s: "tt"
+		s: "TT"
 	},
 	{
 		id: "thx",
-		s: "thx"
+		s: "THX"
 	},
 	{
 		id: "tianya-token",
-		s: "tyt"
+		s: "TYT"
 	},
 	{
 		id: "tictalk",
-		s: "tic"
+		s: "TIC"
 	},
 	{
 		id: "tidex-token",
-		s: "tdx"
+		s: "TDX"
 	},
 	{
 		id: "tierion",
-		s: "tnt"
+		s: "TNT"
 	},
 	{
 		id: "ties-network",
-		s: "tie"
+		s: "TIE"
 	},
 	{
 		id: "tigercash",
-		s: "tch"
+		s: "TCH"
 	},
 	{
 		id: "tigereum",
-		s: "tig"
+		s: "TIG"
 	},
 	{
 		id: "tilwiki",
-		s: "tlw"
+		s: "TLW"
 	},
 	{
 		id: "time-coin",
-		s: "timec"
+		s: "TIMEC"
 	},
 	{
 		id: "timecoin-protocol",
-		s: "tmcn"
+		s: "TMCN"
 	},
 	{
 		id: "timelockcoin",
-		s: "tym"
+		s: "TYM"
 	},
 	{
 		id: "timeminer",
-		s: "time"
+		s: "TIME"
 	},
 	{
 		id: "time-new-bank",
-		s: "tnb"
+		s: "TNB"
 	},
 	{
 		id: "timers",
-		s: "ipm"
+		s: "IPM"
 	},
 	{
 		id: "time-space-chain",
-		s: "tsc"
+		s: "TSC"
 	},
 	{
 		id: "timvi",
-		s: "tmv"
+		s: "TMV"
 	},
 	{
 		id: "tinfoil-finance",
-		s: "tin"
+		s: "TIN"
 	},
 	{
 		id: "titan-coin",
-		s: "ttn"
+		s: "TTN"
 	},
 	{
 		id: "titanswap",
-		s: "titan"
+		s: "TITAN"
 	},
 	{
 		id: "titcoin",
-		s: "tit"
+		s: "TIT"
 	},
 	{
 		id: "title-network",
-		s: "tnet"
+		s: "TNET"
 	},
 	{
 		id: "ti-value",
-		s: "tv"
+		s: "TV"
 	},
 	{
 		id: "tixl",
-		s: "mtxlt"
+		s: "MTXLT"
 	},
 	{
 		id: "tixl-new",
-		s: "txl"
+		s: "TXL"
 	},
 	{
 		id: "tkn-token",
-		s: "tknt"
+		s: "TKNT"
 	},
 	{
 		id: "tl-coin",
-		s: "tlc"
+		s: "TLC"
 	},
 	{
 		id: "tls-token",
-		s: "tls"
+		s: "TLS"
 	},
 	{
 		id: "tmc",
-		s: "tmc"
+		s: "TMC"
 	},
 	{
 		id: "tmc-niftygotchi",
-		s: "tmc"
+		s: "TMC"
 	},
 	{
 		id: "tnc-coin",
-		s: "tnc"
+		s: "TNC"
 	},
 	{
 		id: "toacoin",
-		s: "toa"
+		s: "TOA"
 	},
 	{
 		id: "toast-finance",
-		s: "house"
+		s: "HOUSE"
 	},
 	{
 		id: "tokamak-network",
-		s: "ton"
+		s: "TON"
 	},
 	{
 		id: "tokemon",
-		s: "tkmn"
+		s: "TKMN"
 	},
 	{
 		id: "tokenasset",
-		s: "ntb"
+		s: "NTB"
 	},
 	{
 		id: "tokenbox",
-		s: "tbx"
+		s: "TBX"
 	},
 	{
 		id: "tokencard",
-		s: "tkn"
+		s: "TKN"
 	},
 	{
 		id: "token-cashpay",
-		s: "tcp"
+		s: "TCP"
 	},
 	{
 		id: "tokenclub",
-		s: "tct"
+		s: "TCT"
 	},
 	{
 		id: "tokendesk",
-		s: "tds"
+		s: "TDS"
 	},
 	{
 		id: "tokengo",
-		s: "gpt"
+		s: "GPT"
 	},
 	{
 		id: "tokenize-xchange",
-		s: "tkx"
+		s: "TKX"
 	},
 	{
 		id: "tokenlon",
-		s: "lon"
+		s: "LON"
 	},
 	{
 		id: "tokenomy",
-		s: "ten"
+		s: "TEN"
 	},
 	{
 		id: "tokenpay",
-		s: "tpay"
+		s: "TPAY"
 	},
 	{
 		id: "token-planets",
-		s: "tkc"
+		s: "TKC"
 	},
 	{
 		id: "token-pocket",
-		s: "tpt"
+		s: "TPT"
 	},
 	{
 		id: "tokens-of-babel",
-		s: "tob"
+		s: "TOB"
 	},
 	{
 		id: "tokenstars-ace",
-		s: "ace"
+		s: "ACE"
 	},
 	{
 		id: "tokenstars-team",
-		s: "team"
+		s: "TEAM"
 	},
 	{
 		id: "tokenswap",
-		s: "top"
+		s: "TOP"
 	},
 	{
 		id: "tokentuber",
-		s: "tuber"
+		s: "TUBER"
 	},
 	{
 		id: "tokes",
-		s: "tks"
+		s: "TKS"
 	},
 	{
 		id: "toko",
-		s: "toko"
+		s: "TOKO"
 	},
 	{
 		id: "tokok",
-		s: "tok"
+		s: "TOK"
 	},
 	{
 		id: "tokpie",
-		s: "tkp"
+		s: "TKP"
 	},
 	{
 		id: "tokyo",
-		s: "tokc"
+		s: "TOKC"
 	},
 	{
 		id: "tolar",
-		s: "tol"
+		s: "TOL"
 	},
 	{
 		id: "tom-finance",
-		s: "tom"
+		s: "TOM"
 	},
 	{
 		id: "tomochain",
-		s: "tomo"
+		s: "TOMO"
 	},
 	{
 		id: "tomoe",
-		s: "tomoe"
+		s: "TOMOE"
 	},
 	{
 		id: "ton-crystal",
-		s: "ton"
+		s: "TON"
 	},
 	{
 		id: "tonestra",
-		s: "tnr"
+		s: "TNR"
 	},
 	{
 		id: "tontoken",
-		s: "ton"
+		s: "TON"
 	},
 	{
 		id: "tools",
-		s: "tools"
+		s: "TOOLS"
 	},
 	{
 		id: "topb",
-		s: "topb"
+		s: "TOPB"
 	},
 	{
 		id: "topchain",
-		s: "topc"
+		s: "TOPC"
 	},
 	{
 		id: "topcoinfx",
-		s: "tcfx"
+		s: "TCFX"
 	},
 	{
 		id: "topia",
-		s: "topia"
+		s: "TOPIA"
 	},
 	{
 		id: "topinvestmentcoin",
-		s: "tico"
+		s: "TICO"
 	},
 	{
 		id: "top-network",
-		s: "top"
+		s: "TOP"
 	},
 	{
 		id: "torchain",
-		s: "tor"
+		s: "TOR"
 	},
 	{
 		id: "torcorp",
-		s: "torr"
+		s: "TORR"
 	},
 	{
 		id: "torex",
-		s: "tor"
+		s: "TOR"
 	},
 	{
 		id: "tornado-cash",
-		s: "torn"
+		s: "TORN"
 	},
 	{
 		id: "tornadocore",
-		s: "tcore"
+		s: "TCORE"
 	},
 	{
 		id: "torocus-token",
-		s: "torocus"
+		s: "TOROCUS"
 	},
 	{
 		id: "torq-coin",
-		s: "torq"
+		s: "TORQ"
 	},
 	{
 		id: "t-os",
-		s: "tosc"
+		s: "TOSC"
 	},
 	{
 		id: "tosdis",
-		s: "dis"
+		s: "DIS"
 	},
 	{
 		id: "toshify-finance",
@@ -45560,79 +45698,79 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "toshi-token",
-		s: "toshi"
+		s: "TOSHI"
 	},
 	{
 		id: "tothe-moon",
-		s: "ttm"
+		s: "TTM"
 	},
 	{
 		id: "touchcon",
-		s: "toc"
+		s: "TOC"
 	},
 	{
 		id: "touch-social",
-		s: "tst"
+		s: "TST"
 	},
 	{
 		id: "tourist-review-token",
-		s: "tret"
+		s: "TRET"
 	},
 	{
 		id: "tourist-token",
-		s: "toto"
+		s: "TOTO"
 	},
 	{
 		id: "touriva",
-		s: "tour"
+		s: "TOUR"
 	},
 	{
 		id: "tower",
-		s: "tower"
+		s: "TOWER"
 	},
 	{
 		id: "tozex",
-		s: "toz"
+		s: "TOZ"
 	},
 	{
 		id: "traaittplatform",
-		s: "etrx"
+		s: "ETRX"
 	},
 	{
 		id: "trabzonspor-fan-token",
-		s: "tra"
+		s: "TRA"
 	},
 	{
 		id: "traceability-chain",
-		s: "tac"
+		s: "TAC"
 	},
 	{
 		id: "tradcoin",
-		s: "trad"
+		s: "TRAD"
 	},
 	{
 		id: "trade-butler-bot",
-		s: "tbb"
+		s: "TBB"
 	},
 	{
 		id: "tradeplus",
-		s: "tdps"
+		s: "TDPS"
 	},
 	{
 		id: "trade-token",
-		s: "tiox"
+		s: "TIOX"
 	},
 	{
 		id: "trade-win",
-		s: "twi"
+		s: "TWI"
 	},
 	{
 		id: "trading-pool-coin",
-		s: "tpc"
+		s: "TPC"
 	},
 	{
 		id: "tradove",
-		s: "bbc"
+		s: "BBC"
 	},
 	{
 		id: "tranche-finance",
@@ -45640,123 +45778,127 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "tranium",
-		s: "trm"
+		s: "TRM"
 	},
 	{
 		id: "transaction-ongoing-system",
-		s: "tos"
+		s: "TOS"
 	},
 	{
 		id: "transcodium",
-		s: "tns"
+		s: "TNS"
 	},
 	{
 		id: "transfast",
-		s: "fastx"
+		s: "FASTX"
 	},
 	{
 		id: "transfercoin",
-		s: "tx"
+		s: "TX"
 	},
 	{
 		id: "transfer-coin",
-		s: "tfc"
+		s: "TFC"
 	},
 	{
 		id: "transmute",
-		s: "XPb"
+		s: "XPB"
 	},
 	{
 		id: "tratok",
-		s: "trat"
+		s: "TRAT"
 	},
 	{
 		id: "travelnote",
-		s: "tvnt"
+		s: "TVNT"
 	},
 	{
 		id: "traxia",
-		s: "tmt"
+		s: "TMT"
 	},
 	{
 		id: "trcb-chain",
-		s: "trcb"
+		s: "TRCB"
 	},
 	{
 		id: "treasure-financial-coin",
-		s: "tfc"
+		s: "TFC"
 	},
 	{
 		id: "treasure-sl",
-		s: "tsl"
+		s: "TSL"
+	},
+	{
+		id: "treatdao",
+		s: "TREAT"
 	},
 	{
 		id: "treecle",
-		s: "trcl"
+		s: "TRCL"
 	},
 	{
 		id: "treelion",
-		s: "trn"
+		s: "TRN"
 	},
 	{
 		id: "treep-token",
-		s: "treep"
+		s: "TREEP"
 	},
 	{
 		id: "trees-finance",
-		s: "ganja"
+		s: "GANJA"
 	},
 	{
 		id: "trendering",
-		s: "trnd"
+		s: "TRND"
 	},
 	{
 		id: "trexcoin",
-		s: "trex"
+		s: "TREX"
 	},
 	{
 		id: "trezarcoin",
-		s: "tzc"
+		s: "TZC"
 	},
 	{
 		id: "triaconta",
-		s: "tria"
+		s: "TRIA"
 	},
 	{
 		id: "trias",
-		s: "try"
+		s: "TRY"
 	},
 	{
 		id: "trias-token",
-		s: "trias"
+		s: "TRIAS"
 	},
 	{
 		id: "tribute",
-		s: "trbt"
+		s: "TRBT"
 	},
 	{
 		id: "trich",
-		s: "trc"
+		s: "TRC"
 	},
 	{
 		id: "triffic",
-		s: "gps"
+		s: "GPS"
 	},
 	{
 		id: "triipmiles",
-		s: "tiim"
+		s: "TIIM"
 	},
 	{
 		id: "trinity",
-		s: "tty"
+		s: "TTY"
 	},
 	{
 		id: "trinity-bsc",
-		s: "btri"
+		s: "BTRI"
 	},
 	{
 		id: "trinity-network-credit",
-		s: "tnc"
+		s: "TNC"
 	},
 	{
 		id: "trinity-protocol",
@@ -45764,219 +45906,219 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "tripio",
-		s: "trio"
+		s: "TRIO"
 	},
 	{
 		id: "trism",
-		s: "trism"
+		s: "TRISM"
 	},
 	{
 		id: "triton",
-		s: "xeq"
+		s: "XEQ"
 	},
 	{
 		id: "trittium",
-		s: "trtt"
+		s: "TRTT"
 	},
 	{
 		id: "triumphx",
-		s: "trix"
+		s: "TRIX"
+	},
+	{
+		id: "trodex",
+		s: "TRDX"
 	},
 	{
 		id: "trolite",
-		s: "trl"
+		s: "TRL"
 	},
 	{
 		id: "trollcoin",
-		s: "troll"
+		s: "TROLL"
 	},
 	{
 		id: "tron",
-		s: "trx"
+		s: "TRX"
 	},
 	{
 		id: "tron-atm",
-		s: "tatm"
+		s: "TATM"
 	},
 	{
 		id: "tronbetdice",
-		s: "dice"
+		s: "DICE"
 	},
 	{
 		id: "tronbetlive",
-		s: "live"
+		s: "LIVE"
 	},
 	{
 		id: "tronclassic",
-		s: "trxc"
+		s: "TRXC"
 	},
 	{
 		id: "trondice",
-		s: "dice"
+		s: "DICE"
 	},
 	{
 		id: "tro-network",
-		s: "tro"
+		s: "TRO"
 	},
 	{
 		id: "troneuroperewardcoin",
-		s: "terc"
+		s: "TERC"
 	},
 	{
 		id: "tronfamily",
-		s: "fat"
+		s: "FAT"
 	},
 	{
 		id: "trongamecenterdiamonds",
-		s: "tgcd"
+		s: "TGCD"
 	},
 	{
 		id: "tron-game-center-token",
-		s: "tgct"
+		s: "TGCT"
 	},
 	{
 		id: "tron-go",
-		s: "go"
+		s: "GO"
 	},
 	{
 		id: "tronipay",
-		s: "trp"
+		s: "TRP"
 	},
 	{
 		id: "tronnodes",
-		s: "trn"
+		s: "TRN"
 	},
 	{
 		id: "tronsecurehybrid",
-		s: "tschybrid"
+		s: "TSCHYBRID"
 	},
 	{
 		id: "tronvegascoin",
-		s: "vcoin"
+		s: "VCOIN"
 	},
 	{
 		id: "tronweeklyjournal",
-		s: "twj"
+		s: "TWJ"
 	},
 	{
 		id: "tronx-coin",
-		s: "tronx"
+		s: "TRONX"
 	},
 	{
 		id: "troy",
-		s: "troy"
-	},
-	{
-		id: "trrxitte",
-		s: "trrxte"
+		s: "TROY"
 	},
 	{
 		id: "truckcoin",
-		s: "trk"
+		s: "TRK"
 	},
 	{
 		id: "trueaud",
-		s: "taud"
+		s: "TAUD"
 	},
 	{
 		id: "truecad",
-		s: "tcad"
+		s: "TCAD"
 	},
 	{
 		id: "true-chain",
-		s: "true"
+		s: "TRUE"
 	},
 	{
 		id: "truedeck",
-		s: "tdp"
+		s: "TDP"
 	},
 	{
 		id: "truefeedbackchain",
-		s: "tfb"
+		s: "TFB"
 	},
 	{
 		id: "truefi",
-		s: "tru"
+		s: "TRU"
 	},
 	{
 		id: "trueflip",
-		s: "tfl"
+		s: "TFL"
 	},
 	{
 		id: "truegame",
-		s: "tgame"
+		s: "TGAME"
 	},
 	{
 		id: "truegbp",
-		s: "tgbp"
+		s: "TGBP"
 	},
 	{
 		id: "truehkd",
-		s: "thkd"
+		s: "THKD"
 	},
 	{
 		id: "true-seigniorage-dollar",
-		s: "tsd"
+		s: "TSD"
 	},
 	{
 		id: "true-usd",
-		s: "tusd"
+		s: "TUSD"
 	},
 	{
 		id: "trumpcoin",
-		s: "trump"
+		s: "TRUMP"
 	},
 	{
 		id: "trust",
-		s: "trust"
+		s: "TRUST"
 	},
 	{
 		id: "trust-ether-reorigin",
-		s: "teo"
+		s: "TEO"
 	},
 	{
 		id: "trustline-network",
-		s: "tln"
+		s: "TLN"
 	},
 	{
 		id: "trustmarkethub-token",
-		s: "tmh"
+		s: "TMH"
 	},
 	{
 		id: "trustswap",
-		s: "swap"
+		s: "SWAP"
 	},
 	{
 		id: "trust-union",
-		s: "tut"
+		s: "TUT"
 	},
 	{
 		id: "trustusd",
-		s: "trusd"
+		s: "TRUSD"
 	},
 	{
 		id: "trustverse",
-		s: "trv"
+		s: "TRV"
 	},
 	{
 		id: "trust-wallet-token",
-		s: "twt"
+		s: "TWT"
 	},
 	{
 		id: "trybe",
-		s: "trybe"
+		s: "TRYBE"
 	},
 	{
 		id: "try-finance",
-		s: "try"
+		s: "TRY"
 	},
 	{
 		id: "tsingzou-tokyo-medical-cooperation",
-		s: "ttmc"
+		s: "TTMC"
 	},
 	{
 		id: "tsuki-dao",
-		s: "tsuki"
+		s: "TSUKI"
 	},
 	{
 		id: "ttanslateme-network-token",
@@ -45984,67 +46126,75 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "ttc-protocol",
-		s: "maro"
+		s: "MARO"
 	},
 	{
 		id: "ttcrypto",
-		s: "ttc"
+		s: "TTC"
 	},
 	{
 		id: "tt-token",
-		s: "ttt"
+		s: "TTT"
 	},
 	{
 		id: "tulip-seed",
-		s: "stlp"
+		s: "STLP"
 	},
 	{
 		id: "tunacoin",
-		s: "tuna"
+		s: "TUNA"
 	},
 	{
 		id: "tune",
-		s: "tun"
+		s: "TUN"
 	},
 	{
 		id: "tune-token",
-		s: "tune"
+		s: "TUNE"
 	},
 	{
 		id: "tunnel-protocol",
-		s: "tni"
+		s: "TNI"
 	},
 	{
 		id: "turbostake",
-		s: "trbo"
+		s: "TRBO"
 	},
 	{
 		id: "turkeychain",
-		s: "tkc"
+		s: "TKC"
 	},
 	{
 		id: "turret",
-		s: "tur"
+		s: "TUR"
 	},
 	{
 		id: "turtlecoin",
-		s: "trtl"
+		s: "TRTL"
 	},
 	{
 		id: "tutors-diary",
-		s: "tuda"
+		s: "TUDA"
+	},
+	{
+		id: "tutti-frutti-finance",
+		s: "TFF"
 	},
 	{
 		id: "tuxcoin",
-		s: "tux"
+		s: "TUX"
 	},
 	{
 		id: "tvt",
-		s: "tvt"
+		s: "TVT"
+	},
+	{
+		id: "tweebaa",
+		s: "TWEE"
 	},
 	{
 		id: "twinkle-2",
-		s: "tkt"
+		s: "TKT"
 	},
 	{
 		id: "twist",
@@ -46052,323 +46202,327 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "two-prime-ff1-token",
-		s: "ff1"
+		s: "FF1"
 	},
 	{
 		id: "txt",
-		s: "txt"
+		s: "TXT"
 	},
 	{
 		id: "tycoon-global",
-		s: "tct"
+		s: "TCT"
 	},
 	{
 		id: "tyercoin",
-		s: "trc"
+		s: "TRC"
 	},
 	{
 		id: "typerium",
-		s: "type"
+		s: "TYPE"
 	},
 	{
 		id: "typhoon-cash",
-		s: "phoon"
+		s: "PHOON"
 	},
 	{
 		id: "ubex",
-		s: "ubex"
+		s: "UBEX"
 	},
 	{
 		id: "ubiner",
-		s: "ubin"
+		s: "UBIN"
 	},
 	{
 		id: "ubiq",
-		s: "ubq"
+		s: "UBQ"
 	},
 	{
 		id: "ubiquitous-social-network-service",
-		s: "usns"
+		s: "USNS"
 	},
 	{
 		id: "ubix-network",
-		s: "ubx"
+		s: "UBX"
 	},
 	{
 		id: "ubricoin",
-		s: "ubn"
+		s: "UBN"
 	},
 	{
 		id: "ubu",
-		s: "ubu"
+		s: "UBU"
 	},
 	{
 		id: "ubu-finance",
-		s: "ubu"
+		s: "UBU"
 	},
 	{
 		id: "uca",
-		s: "uca"
+		s: "UCA"
 	},
 	{
 		id: "ucash",
-		s: "ucash"
+		s: "UCASH"
 	},
 	{
 		id: "uchain",
-		s: "ucn"
+		s: "UCN"
 	},
 	{
 		id: "ucoin",
-		s: "u"
+		s: "U"
 	},
 	{
 		id: "ucos-token",
-		s: "ucos"
+		s: "UCOS"
 	},
 	{
 		id: "ucot",
-		s: "uct"
+		s: "UCT"
 	},
 	{
 		id: "ucrowdme",
-		s: "ucm"
+		s: "UCM"
 	},
 	{
 		id: "ucx",
-		s: "ucx"
+		s: "UCX"
 	},
 	{
 		id: "ucx-foundation",
-		s: "ucx"
+		s: "UCX"
 	},
 	{
 		id: "udap",
-		s: "upx"
+		s: "UPX"
 	},
 	{
 		id: "ufocoin",
-		s: "ufo"
+		s: "UFO"
+	},
+	{
+		id: "ugas-jun21",
+		s: "UGAS-JUN21"
 	},
 	{
 		id: "ugchain",
-		s: "ugc"
+		s: "UGC"
 	},
 	{
 		id: "uk-investments",
-		s: "uki"
+		s: "UKI"
 	},
 	{
 		id: "ulabs-synthetic-gas-futures-expiring-1-jan-2021",
-		s: "ugas-jan21"
+		s: "UGAS-JAN21"
 	},
 	{
 		id: "ulgen-hash-power",
-		s: "uhp"
+		s: "UHP"
 	},
 	{
 		id: "ulord",
-		s: "ut"
+		s: "UT"
 	},
 	{
 		id: "ultiledger",
-		s: "ult"
+		s: "ULT"
 	},
 	{
 		id: "ultimate-secure-cash",
-		s: "usc"
+		s: "USC"
 	},
 	{
 		id: "ultra",
-		s: "uos"
+		s: "UOS"
 	},
 	{
 		id: "ultra-clear",
-		s: "ucr"
+		s: "UCR"
 	},
 	{
 		id: "ultragate",
-		s: "ulg"
+		s: "ULG"
 	},
 	{
 		id: "ultrain",
-		s: "ugas"
+		s: "UGAS"
 	},
 	{
 		id: "ultralpha",
-		s: "uat"
+		s: "UAT"
 	},
 	{
 		id: "ultranote-infinity",
-		s: "xuni"
+		s: "XUNI"
 	},
 	{
 		id: "uma",
-		s: "uma"
+		s: "UMA"
 	},
 	{
 		id: "umbrellacoin",
-		s: "umc"
+		s: "UMC"
 	},
 	{
 		id: "umbrella-network",
-		s: "umb"
+		s: "UMB"
 	},
 	{
 		id: "ume-token",
-		s: "ume"
+		s: "UME"
 	},
 	{
 		id: "unagii-dai",
-		s: "udai"
+		s: "UDAI"
 	},
 	{
 		id: "unagii-tether-usd",
-		s: "uusdt"
+		s: "UUSDT"
 	},
 	{
 		id: "unagii-usd-coin",
-		s: "uusdc"
+		s: "UUSDC"
 	},
 	{
 		id: "uncl",
-		s: "uncl"
+		s: "UNCL"
 	},
 	{
 		id: "u-network",
-		s: "uuu"
+		s: "UUU"
 	},
 	{
 		id: "unfederalreserve",
-		s: "ersdl"
+		s: "ERSDL"
 	},
 	{
 		id: "unibomb",
-		s: "ubomb"
+		s: "UBOMB"
 	},
 	{
 		id: "unibot-cash",
-		s: "undb"
+		s: "UNDB"
 	},
 	{
 		id: "unibright",
-		s: "ubt"
+		s: "UBT"
 	},
 	{
 		id: "unicap-finance",
-		s: "ucap"
+		s: "UCAP"
 	},
 	{
 		id: "unicorn-token",
-		s: "uni"
+		s: "UNI"
 	},
 	{
 		id: "unicrap",
-		s: "unicrap"
+		s: "UNICRAP"
 	},
 	{
 		id: "unicrypt",
-		s: "unc"
+		s: "UNC"
 	},
 	{
 		id: "unicrypt-2",
-		s: "uncx"
+		s: "UNCX"
 	},
 	{
 		id: "unidex",
-		s: "unidx"
+		s: "UNIDX"
 	},
 	{
 		id: "unidexbot-bsc",
-		s: "bundb"
+		s: "BUNDB"
 	},
 	{
 		id: "unidexgas",
-		s: "undg"
+		s: "UNDG"
 	},
 	{
 		id: "unido-ep",
-		s: "udo"
+		s: "UDO"
 	},
 	{
 		id: "unidollar",
-		s: "uniusd"
+		s: "UNIUSD"
 	},
 	{
 		id: "unifi",
-		s: "unifi"
+		s: "UNIFI"
 	},
 	{
 		id: "unification",
-		s: "fund"
+		s: "FUND"
 	},
 	{
 		id: "unifi-defi",
-		s: "unifi"
+		s: "UNIFI"
 	},
 	{
 		id: "unifi-protocol",
-		s: "up"
+		s: "UP"
 	},
 	{
 		id: "unifi-protocol-dao",
-		s: "unfi"
+		s: "UNFI"
 	},
 	{
 		id: "unifty",
-		s: "nif"
+		s: "NIF"
 	},
 	{
 		id: "unifund",
-		s: "ifund"
+		s: "IFUND"
 	},
 	{
 		id: "unify",
-		s: "unify"
+		s: "UNIFY"
 	},
 	{
 		id: "unigame",
-		s: "unc"
+		s: "UNC"
 	},
 	{
 		id: "unigraph",
-		s: "graph"
+		s: "GRAPH"
 	},
 	{
 		id: "unigrid",
-		s: "ugd"
+		s: "UGD"
 	},
 	{
 		id: "unii-finance",
-		s: "unii"
+		s: "UNII"
 	},
 	{
 		id: "unikoin-gold",
-		s: "ukg"
+		s: "UKG"
 	},
 	{
 		id: "unilayer",
-		s: "layer"
+		s: "LAYER"
 	},
 	{
 		id: "unilock-network",
-		s: "unl"
+		s: "UNL"
 	},
 	{
 		id: "unimex-network",
-		s: "umx"
+		s: "UMX"
 	},
 	{
 		id: "union-fair-coin",
-		s: "ufc"
+		s: "UFC"
 	},
 	{
 		id: "union-protocol-governance-token",
-		s: "unn"
+		s: "UNN"
 	},
 	{
 		id: "unipower",
-		s: "power"
+		s: "POWER"
 	},
 	{
 		id: "unipump",
@@ -46376,1807 +46530,1815 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "unique-one",
-		s: "rare"
+		s: "RARE"
 	},
 	{
 		id: "unique-photo",
-		s: "foto"
+		s: "FOTO"
 	},
 	{
 		id: "uniris",
-		s: "uco"
+		s: "UCO"
 	},
 	{
 		id: "unisocks",
-		s: "socks"
+		s: "SOCKS"
 	},
 	{
 		id: "unistake",
-		s: "unistake"
+		s: "UNISTAKE"
 	},
 	{
 		id: "uniswap",
-		s: "uni"
+		s: "UNI"
 	},
 	{
 		id: "uniswap-state-dollar",
-		s: "usd"
+		s: "USD"
 	},
 	{
 		id: "united-bitcoin",
-		s: "ubtc"
+		s: "UBTC"
 	},
 	{
 		id: "united-token",
-		s: "uted"
+		s: "UTED"
 	},
 	{
 		id: "united-traders-token",
-		s: "utt"
+		s: "UTT"
 	},
 	{
 		id: "unitopia-token",
-		s: "uto"
+		s: "UTO"
 	},
 	{
 		id: "unit-protocol",
-		s: "col"
+		s: "COL"
 	},
 	{
 		id: "unit-protocol-duck",
-		s: "duck"
+		s: "DUCK"
 	},
 	{
 		id: "unitrade",
-		s: "trade"
+		s: "TRADE"
 	},
 	{
 		id: "unitus",
-		s: "uis"
+		s: "UIS"
 	},
 	{
 		id: "unitydao",
-		s: "uty"
+		s: "UTY"
 	},
 	{
 		id: "universa",
-		s: "utnp"
+		s: "UTNP"
 	},
 	{
 		id: "universalcoin",
-		s: "uvc"
+		s: "UVC"
 	},
 	{
 		id: "universal-coin",
-		s: "ucoin"
+		s: "UCOIN"
 	},
 	{
 		id: "universal-currency",
-		s: "unit"
+		s: "UNIT"
 	},
 	{
 		id: "universal-dollar",
-		s: "u8d"
+		s: "U8D"
 	},
 	{
 		id: "universalenergychain",
-		s: "uenc"
+		s: "UENC"
 	},
 	{
 		id: "universal-euro",
-		s: "upeur"
+		s: "UPEUR"
 	},
 	{
 		id: "universal-gold",
-		s: "upxau"
+		s: "UPXAU"
 	},
 	{
 		id: "universal-liquidity-union",
-		s: "ulu"
+		s: "ULU"
 	},
 	{
 		id: "universal-marketing-coin",
-		s: "umc"
+		s: "UMC"
 	},
 	{
 		id: "universal-protocol-token",
-		s: "upt"
+		s: "UPT"
 	},
 	{
 		id: "universal-us-dollar",
-		s: "upusd"
+		s: "UPUSD"
 	},
 	{
 		id: "universe-token",
-		s: "uni"
+		s: "UNI"
 	},
 	{
 		id: "uniwhales",
-		s: "uwl"
+		s: "UWL"
 	},
 	{
 		id: "unknown-fair-object",
-		s: "ufo"
+		s: "UFO"
 	},
 	{
 		id: "unlend-finance",
-		s: "uft"
+		s: "UFT"
 	},
 	{
 		id: "unlimited-fiscusfyi",
-		s: "uffyi"
+		s: "UFFYI"
 	},
 	{
 		id: "unlimitedip",
-		s: "uip"
+		s: "UIP"
 	},
 	{
 		id: "unobtanium",
-		s: "uno"
+		s: "UNO"
 	},
 	{
 		id: "unoswap",
-		s: "unos"
+		s: "UNOS"
 	},
 	{
 		id: "unslashed-finance",
-		s: "usf"
+		s: "USF"
 	},
 	{
 		id: "upbots",
-		s: "ubxt"
+		s: "UBXT"
 	},
 	{
 		id: "upbtc-token",
-		s: "upb"
+		s: "UPB"
 	},
 	{
 		id: "upfiring",
-		s: "ufr"
+		s: "UFR"
 	},
 	{
 		id: "uplexa",
-		s: "upx"
+		s: "UPX"
 	},
 	{
 		id: "upper-dollar",
-		s: "usdu"
+		s: "USDU"
 	},
 	{
 		id: "upper-euro",
-		s: "euru"
+		s: "EURU"
 	},
 	{
 		id: "upper-pound",
-		s: "gbpu"
+		s: "GBPU"
 	},
 	{
 		id: "uptoken",
-		s: "up"
+		s: "UP"
 	},
 	{
 		id: "up-token",
-		s: "up"
+		s: "UP"
 	},
 	{
 		id: "uptrennd",
-		s: "1up"
+		s: "1UP"
 	},
 	{
 		id: "uquid-coin",
-		s: "uqc"
+		s: "UQC"
 	},
 	{
 		id: "uranus",
-		s: "urac"
+		s: "URAC"
 	},
 	{
 		id: "urus-token",
-		s: "urus"
+		s: "URUS"
 	},
 	{
 		id: "usda",
-		s: "usda"
+		s: "USDA"
 	},
 	{
 		id: "usd-bancor",
-		s: "usdb"
+		s: "USDB"
 	},
 	{
 		id: "usd-coin",
-		s: "usdc"
+		s: "USDC"
 	},
 	{
 		id: "usdex-2",
-		s: "usdex"
+		s: "USDEX"
 	},
 	{
 		id: "usdfreeliquidity",
-		s: "usdfl"
+		s: "USDFL"
 	},
 	{
 		id: "usdk",
-		s: "usdk"
+		s: "USDK"
 	},
 	{
 		id: "usdl",
-		s: "usdl"
+		s: "USDL"
 	},
 	{
 		id: "usdp",
-		s: "usdp"
+		s: "USDP"
 	},
 	{
 		id: "usdq",
-		s: "usdq"
+		s: "USDQ"
 	},
 	{
 		id: "usdx",
-		s: "usdx"
+		s: "USDX"
 	},
 	{
 		id: "usdx-stablecoin",
-		s: "usdx"
+		s: "USDX"
 	},
 	{
 		id: "usdx-wallet",
-		s: "usdx"
+		s: "USDX"
 	},
 	{
 		id: "usechain",
-		s: "use"
+		s: "USE"
 	},
 	{
 		id: "uselink-chain",
-		s: "ul"
+		s: "UL"
 	},
 	{
 		id: "uservice",
-		s: "ust"
+		s: "UST"
 	},
 	{
 		id: "usgold",
-		s: "usg"
+		s: "USG"
+	},
+	{
+		id: "ustonks-apr21",
+		s: "USTONKS-APR21"
 	},
 	{
 		id: "utile-network",
-		s: "utl"
+		s: "UTL"
 	},
 	{
 		id: "utip",
-		s: "utip"
+		s: "UTIP"
 	},
 	{
 		id: "utopia",
-		s: "crp"
+		s: "CRP"
 	},
 	{
 		id: "utopia-genesis-foundation",
-		s: "uop"
+		s: "UOP"
 	},
 	{
 		id: "utrin",
-		s: "utrin"
+		s: "UTRIN"
 	},
 	{
 		id: "utrum",
-		s: "oot"
+		s: "OOT"
 	},
 	{
 		id: "utrust",
-		s: "utk"
+		s: "UTK"
 	},
 	{
 		id: "utu-coin",
-		s: "utu"
+		s: "UTU"
 	},
 	{
 		id: "uusdrbtc-synthetic-token-expiring-1-october-2020",
-		s: "uUSDrBTC-OCT"
+		s: "UUSDRBTC-OCT"
 	},
 	{
 		id: "uusdrbtc-synthetic-token-expiring-31-december-2020",
-		s: "uUSDrBTC-DEC"
+		s: "UUSDRBTC-DEC"
 	},
 	{
 		id: "uze-token",
-		s: "uze"
+		s: "UZE"
 	},
 	{
 		id: "v2x-token",
-		s: "v2xt"
+		s: "V2XT"
 	},
 	{
 		id: "vai",
-		s: "vai"
+		s: "VAI"
 	},
 	{
 		id: "vaiot",
-		s: "vai"
+		s: "VAI"
 	},
 	{
 		id: "valid",
-		s: "vld"
+		s: "VLD"
 	},
 	{
 		id: "valireum",
-		s: "vlm"
+		s: "VLM"
 	},
 	{
 		id: "valix",
-		s: "vlx"
+		s: "VLX"
 	},
 	{
 		id: "valobit",
-		s: "vbit"
+		s: "VBIT"
 	},
 	{
 		id: "valorbit",
-		s: "val"
+		s: "VAL"
 	},
 	{
 		id: "valuechain",
-		s: "vlc"
+		s: "VLC"
 	},
 	{
 		id: "valuecybertoken",
-		s: "vct"
+		s: "VCT"
 	},
 	{
 		id: "value-liquidity",
-		s: "value"
+		s: "VALUE"
 	},
 	{
 		id: "value-set-dollar",
-		s: "vsd"
+		s: "VSD"
 	},
 	{
 		id: "value-usd",
-		s: "vusd"
+		s: "VUSD"
 	},
 	{
 		id: "valuto",
-		s: "vlu"
+		s: "VLU"
 	},
 	{
 		id: "vampire-protocol",
-		s: "vamp"
+		s: "VAMP"
 	},
 	{
 		id: "va-na-su",
-		s: "vns"
+		s: "VNS"
 	},
 	{
 		id: "vanci-finance",
-		s: "vancii"
+		s: "VANCII"
 	},
 	{
 		id: "vanilla-network",
-		s: "vnla"
+		s: "VNLA"
 	},
 	{
 		id: "vankia-chain",
-		s: "vkt"
+		s: "VKT"
 	},
 	{
 		id: "vantaur",
-		s: "vtar"
+		s: "VTAR"
 	},
 	{
 		id: "vanywhere",
-		s: "vany"
+		s: "VANY"
 	},
 	{
 		id: "vaperscoin",
-		s: "vprc"
+		s: "VPRC"
 	},
 	{
 		id: "variable-time-dollar",
-		s: "vtd"
+		s: "VTD"
 	},
 	{
 		id: "varius",
-		s: "varius"
+		s: "VARIUS"
 	},
 	{
 		id: "vault",
-		s: "vault"
+		s: "VAULT"
 	},
 	{
 		id: "vault12",
-		s: "vgt"
+		s: "VGT"
 	},
 	{
 		id: "vaultz",
-		s: "vaultz"
+		s: "VAULTZ"
 	},
 	{
 		id: "vbswap",
-		s: "vbswap"
+		s: "VBSWAP"
 	},
 	{
 		id: "vbt",
-		s: "vbt"
+		s: "VBT"
 	},
 	{
 		id: "vbzrx",
-		s: "vbzrx"
+		s: "VBZRX"
 	},
 	{
 		id: "vcash-token",
-		s: "vcash"
+		s: "VCASH"
 	},
 	{
 		id: "vechain",
-		s: "vet"
+		s: "VET"
 	},
 	{
 		id: "veco",
-		s: "veco"
+		s: "VECO"
 	},
 	{
 		id: "vecrv-dao-yvault",
-		s: "yve-crvdao"
+		s: "YVE-CRVDAO"
 	},
 	{
 		id: "vectoraic",
-		s: "vt"
+		s: "VT"
 	},
 	{
 		id: "vectorium",
-		s: "vect"
+		s: "VECT"
 	},
 	{
 		id: "vectorspace",
-		s: "vxv"
+		s: "VXV"
 	},
 	{
 		id: "vega-coin",
-		s: "vega"
+		s: "VEGA"
 	},
 	{
 		id: "vegawallet-token",
-		s: "vgw"
+		s: "VGW"
 	},
 	{
 		id: "veggiecoin",
-		s: "vegi"
+		s: "VEGI"
 	},
 	{
 		id: "veil",
-		s: "veil"
+		s: "VEIL"
 	},
 	{
 		id: "vela",
-		s: "vela"
+		s: "VELA"
 	},
 	{
 		id: "velas",
-		s: "vlx"
+		s: "VLX"
 	},
 	{
 		id: "veles",
-		s: "vls"
+		s: "VLS"
 	},
 	{
 		id: "velo",
-		s: "velo"
+		s: "VELO"
 	},
 	{
 		id: "velo-token",
-		s: "vlo"
+		s: "VLO"
 	},
 	{
 		id: "vena-network",
-		s: "vena"
+		s: "VENA"
 	},
 	{
 		id: "venjocoin",
-		s: "vjc"
+		s: "VJC"
 	},
 	{
 		id: "venom-shards",
-		s: "vnm"
+		s: "VNM"
 	},
 	{
 		id: "venox",
-		s: "vnx"
+		s: "VNX"
 	},
 	{
 		id: "venus",
-		s: "xvs"
+		s: "XVS"
 	},
 	{
 		id: "venus-bch",
-		s: "vbch"
+		s: "VBCH"
 	},
 	{
 		id: "venus-beth",
-		s: "vbeth"
+		s: "VBETH"
 	},
 	{
 		id: "venus-btc",
-		s: "vbtc"
+		s: "VBTC"
 	},
 	{
 		id: "venus-busd",
-		s: "vbusd"
+		s: "VBUSD"
 	},
 	{
 		id: "venus-dai",
-		s: "vdai"
+		s: "VDAI"
 	},
 	{
 		id: "venus-dot",
-		s: "vdot"
+		s: "VDOT"
 	},
 	{
 		id: "venus-eth",
-		s: "veth"
+		s: "VETH"
 	},
 	{
 		id: "venus-fil",
-		s: "vfil"
+		s: "VFIL"
 	},
 	{
 		id: "venus-link",
-		s: "vlink"
+		s: "VLINK"
 	},
 	{
 		id: "venus-ltc",
-		s: "vltc"
+		s: "VLTC"
 	},
 	{
 		id: "venus-sxp",
-		s: "vsxp"
+		s: "VSXP"
 	},
 	{
 		id: "venus-usdc",
-		s: "vusdc"
+		s: "VUSDC"
 	},
 	{
 		id: "venus-usdt",
-		s: "vusdt"
+		s: "VUSDT"
 	},
 	{
 		id: "venus-xrp",
-		s: "vxrp"
+		s: "VXRP"
 	},
 	{
 		id: "venus-xvs",
-		s: "vxvs"
+		s: "VXVS"
 	},
 	{
 		id: "vera",
-		s: "vera"
+		s: "VERA"
 	},
 	{
 		id: "vera-cruz-coin",
-		s: "vcco"
+		s: "VCCO"
 	},
 	{
 		id: "veraone",
-		s: "vro"
+		s: "VRO"
 	},
 	{
 		id: "verasity",
-		s: "vra"
+		s: "VRA"
 	},
 	{
 		id: "veraswap",
-		s: "vrap"
+		s: "VRAP"
 	},
 	{
 		id: "verge",
-		s: "xvg"
+		s: "XVG"
 	},
 	{
 		id: "veriblock",
-		s: "vbk"
+		s: "VBK"
 	},
 	{
 		id: "vericoin",
-		s: "vrc"
+		s: "VRC"
 	},
 	{
 		id: "veridocglobal",
-		s: "vdg"
+		s: "VDG"
 	},
 	{
 		id: "verify",
-		s: "cred"
+		s: "CRED"
 	},
 	{
 		id: "verisafe",
-		s: "vsf"
+		s: "VSF"
 	},
 	{
 		id: "veritaseum",
-		s: "veri"
+		s: "VERI"
 	},
 	{
 		id: "veros",
-		s: "vrs"
+		s: "VRS"
 	},
 	{
 		id: "verox",
-		s: "vrx"
+		s: "VRX"
+	},
+	{
+		id: "versacoin",
+		s: "VCN"
 	},
 	{
 		id: "versess-coin",
-		s: "vers"
+		s: "VERS"
 	},
 	{
 		id: "version",
-		s: "v"
+		s: "V"
 	},
 	{
 		id: "versoview",
-		s: "vvt"
+		s: "VVT"
 	},
 	{
 		id: "vertcoin",
-		s: "vtc"
+		s: "VTC"
 	},
 	{
 		id: "verus-coin",
-		s: "vrsc"
+		s: "VRSC"
 	},
 	{
 		id: "vesper-finance",
-		s: "vsp"
+		s: "VSP"
 	},
 	{
 		id: "vesta",
-		s: "vesta"
+		s: "VESTA"
 	},
 	{
 		id: "vestchain",
-		s: "vest"
+		s: "VEST"
 	},
 	{
 		id: "vestxcoin",
-		s: "vestx"
+		s: "VESTX"
 	},
 	{
 		id: "vether",
-		s: "veth"
+		s: "VETH"
 	},
 	{
 		id: "vethor-token",
-		s: "vtho"
+		s: "VTHO"
 	},
 	{
 		id: "vexanium",
-		s: "vex"
+		s: "VEX"
 	},
 	{
 		id: "vey",
-		s: "vey"
+		s: "VEY"
 	},
 	{
 		id: "vgtgtoken",
-		s: "vgtg"
+		s: "VGTG"
 	},
 	{
 		id: "viacoin",
-		s: "via"
+		s: "VIA"
 	},
 	{
 		id: "vibe",
-		s: "vibe"
+		s: "VIBE"
 	},
 	{
 		id: "viberate",
-		s: "vib"
+		s: "VIB"
 	},
 	{
 		id: "vice-industry-token",
-		s: "vit"
+		s: "VIT"
 	},
 	{
 		id: "vice-network",
-		s: "vn"
+		s: "VN"
 	},
 	{
 		id: "vid",
-		s: "vi"
+		s: "VI"
 	},
 	{
 		id: "v-id-blockchain",
-		s: "vidt"
+		s: "VIDT"
 	},
 	{
 		id: "videocoin",
-		s: "vid"
+		s: "VID"
 	},
 	{
 		id: "videogamestoken",
-		s: "vgtn"
+		s: "VGTN"
 	},
 	{
 		id: "vidiachange",
-		s: "vida"
+		s: "VIDA"
 	},
 	{
 		id: "vidulum",
-		s: "vdl"
+		s: "VDL"
 	},
 	{
 		id: "vidy",
-		s: "vidy"
+		s: "VIDY"
 	},
 	{
 		id: "vidya",
-		s: "vidya"
+		s: "VIDYA"
 	},
 	{
 		id: "vidyx",
-		s: "vidyx"
+		s: "VIDYX"
 	},
 	{
 		id: "vig",
-		s: "vig"
+		s: "VIG"
 	},
 	{
 		id: "viking-swap",
-		s: "viking"
+		s: "VIKING"
 	},
 	{
 		id: "vikkytoken",
-		s: "vikky"
+		s: "VIKKY"
 	},
 	{
 		id: "vinci",
-		s: "vinci"
+		s: "VINCI"
 	},
 	{
 		id: "vindax-coin",
-		s: "vd"
+		s: "VD"
 	},
 	{
 		id: "vinx-coin",
-		s: "vxc"
+		s: "VXC"
 	},
 	{
 		id: "vinx-coin-sto",
-		s: "vinx"
+		s: "VINX"
 	},
 	{
 		id: "vip-coin",
-		s: "vip"
+		s: "VIP"
 	},
 	{
 		id: "vipcoin-gold",
-		s: "vcg"
+		s: "VCG"
 	},
 	{
 		id: "vipo-vps",
-		s: "vps"
+		s: "VPS"
 	},
 	{
 		id: "vipstarcoin",
-		s: "vips"
+		s: "VIPS"
 	},
 	{
 		id: "virgox-token",
-		s: "vxt"
+		s: "VXT"
 	},
 	{
 		id: "virtual-goods-token",
-		s: "vgo"
+		s: "VGO"
 	},
 	{
 		id: "visio",
-		s: "visio"
+		s: "VISIO"
 	},
 	{
 		id: "vision",
-		s: "vsn"
+		s: "VSN"
 	},
 	{
 		id: "vision-network",
-		s: "vsn"
+		s: "VSN"
 	},
 	{
 		id: "visor",
-		s: "visr"
+		s: "VISR"
 	},
 	{
 		id: "vitae",
-		s: "vitae"
+		s: "VITAE"
 	},
 	{
 		id: "vite",
-		s: "vite"
+		s: "VITE"
 	},
 	{
 		id: "vites",
-		s: "vites"
+		s: "VITES"
 	},
 	{
 		id: "vitex",
-		s: "vx"
+		s: "VX"
 	},
 	{
 		id: "vivid",
-		s: "vivid"
+		s: "VIVID"
 	},
 	{
 		id: "vivo",
-		s: "vivo"
+		s: "VIVO"
 	},
 	{
 		id: "vlad-finance",
-		s: "vlad"
+		s: "VLAD"
 	},
 	{
 		id: "vndc",
-		s: "vndc"
+		s: "VNDC"
 	},
 	{
 		id: "vn-finance",
-		s: "vfi"
+		s: "VFI"
 	},
 	{
 		id: "vns-coin",
-		s: "vns"
+		s: "VNS"
 	},
 	{
 		id: "vntchain",
-		s: "vnt"
+		s: "VNT"
 	},
 	{
 		id: "vn-token",
-		s: "vn"
+		s: "VN"
 	},
 	{
 		id: "vnx-exchange",
-		s: "vnxlu"
+		s: "VNXLU"
 	},
 	{
 		id: "voda-token",
-		s: "wdt"
+		s: "WDT"
 	},
 	{
 		id: "vodi-x",
-		s: "vdx"
+		s: "VDX"
 	},
 	{
 		id: "voise",
-		s: "voise"
+		s: "VOISE"
 	},
 	{
 		id: "volentix-vtx",
-		s: "vtx"
+		s: "VTX"
 	},
 	{
 		id: "vollar",
-		s: "vollar"
+		s: "VOLLAR"
 	},
 	{
 		id: "volt",
-		s: "acdc"
+		s: "ACDC"
 	},
 	{
 		id: "volts-finance",
-		s: "volts"
+		s: "VOLTS"
 	},
 	{
 		id: "voltz",
-		s: "voltz"
+		s: "VOLTZ"
 	},
 	{
 		id: "volume-network-token",
-		s: "vol"
+		s: "VOL"
 	},
 	{
 		id: "vomer",
-		s: "vmr"
+		s: "VMR"
 	},
 	{
 		id: "vortex-defi",
-		s: "vtx"
+		s: "VTX"
 	},
 	{
 		id: "vortex-network",
-		s: "vtx"
+		s: "VTX"
 	},
 	{
 		id: "voucher-coin",
-		s: "vco"
+		s: "VCO"
 	},
 	{
 		id: "vox-finance",
-		s: "vox"
+		s: "VOX"
 	},
 	{
 		id: "voyager",
-		s: "vgr"
+		s: "VGR"
 	},
 	{
 		id: "voytek-bear-coin",
-		s: "bear"
+		s: "BEAR"
 	},
 	{
 		id: "vpncoin",
-		s: "vash"
+		s: "VASH"
 	},
 	{
 		id: "vslice",
-		s: "vsl"
+		s: "VSL"
 	},
 	{
 		id: "vsportcoin",
-		s: "vsc"
+		s: "VSC"
 	},
 	{
 		id: "vspy",
-		s: "vspy"
+		s: "VSPY"
 	},
 	{
 		id: "vsync",
-		s: "vsx"
+		s: "VSX"
 	},
 	{
 		id: "v-systems",
-		s: "vsys"
+		s: "VSYS"
 	},
 	{
 		id: "vulcano",
-		s: "quo"
+		s: "QUO"
 	},
 	{
 		id: "vybe",
-		s: "vybe"
+		s: "VYBE"
 	},
 	{
 		id: "wabi",
-		s: "wabi"
+		s: "WABI"
 	},
 	{
 		id: "wab-network",
-		s: "baw"
+		s: "BAW"
 	},
 	{
 		id: "wadzpay-token",
-		s: "wtk"
+		s: "WTK"
 	},
 	{
 		id: "wagerr",
-		s: "wgr"
+		s: "WGR"
 	},
 	{
 		id: "waifu-token",
-		s: "waif"
+		s: "WAIF"
 	},
 	{
 		id: "wal",
-		s: "wal"
+		s: "WAL"
 	},
 	{
 		id: "waletoken",
-		s: "wtn"
+		s: "WTN"
 	},
 	{
 		id: "wallet-plus-x",
-		s: "wpx"
+		s: "WPX"
 	},
 	{
 		id: "walnut-finance",
-		s: "wtf"
+		s: "WTF"
 	},
 	{
 		id: "waltonchain",
-		s: "wtc"
+		s: "WTC"
 	},
 	{
 		id: "wanchain",
-		s: "wan"
+		s: "WAN"
 	},
 	{
 		id: "wandx",
-		s: "wand"
+		s: "WAND"
 	},
 	{
 		id: "warlord-token",
-		s: "wlt"
+		s: "WLT"
 	},
 	{
 		id: "warp-finance",
-		s: "warp"
+		s: "WARP"
 	},
 	{
 		id: "warranty-chain",
-		s: "wac"
+		s: "WAC"
 	},
 	{
 		id: "warrior-token",
-		s: "war"
+		s: "WAR"
 	},
 	{
 		id: "waterdrop",
-		s: "wdp"
+		s: "WDP"
 	},
 	{
 		id: "water-token-2",
-		s: "wtr"
+		s: "WTR"
 	},
 	{
 		id: "wault-finance",
-		s: "wault"
+		s: "WAULT"
 	},
 	{
 		id: "wav3",
-		s: "wav3"
+		s: "WAV3"
 	},
 	{
 		id: "wave-edu-coin",
-		s: "wec"
+		s: "WEC"
 	},
 	{
 		id: "waves",
-		s: "waves"
+		s: "WAVES"
 	},
 	{
 		id: "waves-community-token",
-		s: "wct"
+		s: "WCT"
 	},
 	{
 		id: "waves-enterprise",
-		s: "west"
+		s: "WEST"
 	},
 	{
 		id: "wavesgo",
-		s: "wgo"
+		s: "WGO"
 	},
 	{
 		id: "wax",
-		s: "waxp"
+		s: "WAXP"
 	},
 	{
 		id: "waxe",
-		s: "waxe"
+		s: "WAXE"
 	},
 	{
 		id: "wayawolfcoin",
-		s: "ww"
+		s: "WW"
 	},
 	{
 		id: "waykichain",
-		s: "wicc"
+		s: "WICC"
 	},
 	{
 		id: "waykichain-governance-coin",
-		s: "wgrt"
+		s: "WGRT"
 	},
 	{
 		id: "wazirx",
-		s: "wrx"
+		s: "WRX"
 	},
 	{
 		id: "wbnb",
-		s: "wbnb"
+		s: "WBNB"
 	},
 	{
 		id: "wealth-locks",
-		s: "wlt"
+		s: "WLT"
 	},
 	{
 		id: "weather-finance",
-		s: "weather"
+		s: "WEATHER"
 	},
 	{
 		id: "webchain",
-		s: "mintme"
+		s: "MINTME"
 	},
 	{
 		id: "webcoin",
-		s: "web"
+		s: "WEB"
 	},
 	{
 		id: "web-coin-pay",
-		s: "wec"
+		s: "WEC"
 	},
 	{
 		id: "webdollar",
-		s: "webd"
+		s: "WEBD"
 	},
 	{
 		id: "webflix",
-		s: "wfx"
+		s: "WFX"
 	},
 	{
 		id: "web-innovation-ph",
-		s: "webn"
+		s: "WEBN"
 	},
 	{
 		id: "webloc",
-		s: "wok"
+		s: "WOK"
 	},
 	{
 		id: "weblock",
-		s: "won"
+		s: "WON"
 	},
 	{
 		id: "web-token-pay",
-		s: "wtp"
+		s: "WTP"
 	},
 	{
 		id: "wechain-coin",
-		s: "wxtc"
+		s: "WXTC"
 	},
 	{
 		id: "weedcash",
-		s: "weed"
+		s: "WEED"
 	},
 	{
 		id: "wellness-token-economy",
-		s: "well"
+		s: "WELL"
 	},
 	{
 		id: "welltrado",
-		s: "wtl"
+		s: "WTL"
 	},
 	{
 		id: "wemix-token",
-		s: "wemix"
+		s: "WEMIX"
 	},
 	{
 		id: "wenburn",
-		s: "wenb"
+		s: "WENB"
 	},
 	{
 		id: "wepower",
-		s: "wpr"
+		s: "WPR"
 	},
 	{
 		id: "weshow",
-		s: "wet"
+		s: "WET"
 	},
 	{
 		id: "wesing-coin",
-		s: "wsc"
+		s: "WSC"
 	},
 	{
 		id: "weth",
-		s: "weth"
+		s: "WETH"
 	},
 	{
 		id: "wetrust",
-		s: "trst"
+		s: "TRST"
 	},
 	{
 		id: "w-green-pay",
-		s: "wgp"
+		s: "WGP"
 	},
 	{
 		id: "whale",
-		s: "whale"
+		s: "WHALE"
 	},
 	{
 		id: "whale-coin",
-		s: "whale"
+		s: "WHALE"
 	},
 	{
 		id: "whaleroom",
-		s: "whl"
+		s: "WHL"
 	},
 	{
 		id: "whalesburg",
-		s: "wbt"
+		s: "WBT"
 	},
 	{
 		id: "when-token",
-		s: "when"
+		s: "WHEN"
 	},
 	{
 		id: "whirl-finance",
-		s: "whirl"
+		s: "WHIRL"
 	},
 	{
 		id: "whitecoin",
-		s: "xwc"
+		s: "XWC"
 	},
 	{
 		id: "whiteheart",
-		s: "white"
+		s: "WHITE"
 	},
 	{
 		id: "whitehole-bsc",
-		s: "whole"
+		s: "WHOLE"
 	},
 	{
 		id: "whiterockcasino",
-		s: "wrc"
+		s: "WRC"
 	},
 	{
 		id: "whole-network",
-		s: "node"
+		s: "NODE"
 	},
 	{
 		id: "wibx",
-		s: "wbx"
+		s: "WBX"
 	},
 	{
 		id: "wifi-coin",
-		s: "wifi"
+		s: "WIFI"
 	},
 	{
 		id: "wiix-coin",
-		s: "wxc"
+		s: "WXC"
 	},
 	{
 		id: "wiki-token",
-		s: "wiki"
+		s: "WIKI"
 	},
 	{
 		id: "wild-beast-block",
-		s: "wbb"
+		s: "WBB"
 	},
 	{
 		id: "wild-crypto",
-		s: "wild"
+		s: "WILD"
 	},
 	{
 		id: "wildfire",
-		s: "wdf"
+		s: "WDF"
 	},
 	{
 		id: "willowcoin",
-		s: "wllo"
+		s: "WLLO"
 	},
 	{
 		id: "wincash-coin",
-		s: "wcc"
+		s: "WCC"
 	},
 	{
 		id: "winco",
-		s: "wco"
+		s: "WCO"
 	},
 	{
 		id: "winding-tree",
-		s: "lif"
+		s: "LIF"
 	},
 	{
 		id: "wing-finance",
-		s: "wing"
+		s: "WING"
 	},
 	{
 		id: "wings",
-		s: "wings"
+		s: "WINGS"
 	},
 	{
 		id: "wing-shop",
-		s: "wing"
+		s: "WING"
 	},
 	{
 		id: "wink",
-		s: "win"
+		s: "WIN"
 	},
 	{
 		id: "winners-group-token",
-		s: "wnt"
+		s: "WNT"
 	},
 	{
 		id: "winplay",
-		s: "wnrz"
+		s: "WNRZ"
 	},
 	{
 		id: "winsor-token",
-		s: "wst"
+		s: "WST"
 	},
 	{
 		id: "winstars",
-		s: "wnl"
+		s: "WNL"
 	},
 	{
 		id: "winstex",
-		s: "win"
+		s: "WIN"
 	},
 	{
 		id: "wire",
-		s: "wire"
+		s: "WIRE"
 	},
 	{
 		id: "wirex",
-		s: "wxt"
+		s: "WXT"
 	},
 	{
 		id: "wisdom-chain",
-		s: "wdc"
+		s: "WDC"
 	},
 	{
 		id: "wise-token11",
-		s: "wise"
+		s: "WISE"
 	},
 	{
 		id: "wishchain",
-		s: "wish"
+		s: "WISH"
 	},
 	{
 		id: "wish-coin",
-		s: "wis"
+		s: "WIS"
 	},
 	{
 		id: "witchain",
-		s: "wit"
+		s: "WIT"
 	},
 	{
 		id: "wixlar",
-		s: "wix"
+		s: "WIX"
 	},
 	{
 		id: "wizard",
-		s: "wiz"
+		s: "WIZ"
 	},
 	{
 		id: "wiz-coin",
-		s: "wiz1"
+		s: "WIZ1"
 	},
 	{
 		id: "wmatic",
-		s: "wmatic"
+		s: "WMATIC"
 	},
 	{
 		id: "wm-professional",
-		s: "wmpro"
+		s: "WMPRO"
 	},
 	{
 		id: "wolfage-finance-governance-token",
-		s: "wefi"
+		s: "WEFI"
 	},
 	{
 		id: "wolves-of-wall-street",
-		s: "wows"
+		s: "WOWS"
 	},
 	{
 		id: "womencoin",
-		s: "women"
+		s: "WOMEN"
 	},
 	{
 		id: "wom-token",
-		s: "wom"
+		s: "WOM"
 	},
 	{
 		id: "woodcoin",
-		s: "log"
+		s: "LOG"
 	},
 	{
 		id: "wooshcoin-io",
-		s: "xwo"
+		s: "XWO"
 	},
 	{
 		id: "wootrade-network",
-		s: "woo"
+		s: "WOO"
 	},
 	{
 		id: "worktips",
-		s: "wtip"
+		s: "WTIP"
 	},
 	{
 		id: "worldcoin",
-		s: "wdc"
+		s: "WDC"
 	},
 	{
 		id: "worldcore",
-		s: "wrc"
+		s: "WRC"
 	},
 	{
 		id: "world-credit-diamond-coin",
-		s: "wcdc"
+		s: "WCDC"
 	},
 	{
 		id: "worldpet",
-		s: "wpt"
+		s: "WPT"
 	},
 	{
 		id: "world-token",
-		s: "world"
+		s: "WORLD"
 	},
 	{
 		id: "wownero",
-		s: "wow"
+		s: "WOW"
 	},
 	{
 		id: "wowswap",
-		s: "wow"
+		s: "WOW"
 	},
 	{
 		id: "woyager",
-		s: "wyx"
+		s: "WYX"
 	},
 	{
 		id: "wozx",
-		s: "wozx"
+		s: "WOZX"
 	},
 	{
 		id: "wpp-token",
-		s: "wpp"
+		s: "WPP"
 	},
 	{
 		id: "wrapped-anatha",
-		s: "wanatha"
+		s: "WANATHA"
 	},
 	{
 		id: "wrapped-bind",
-		s: "wbind"
+		s: "WBIND"
 	},
 	{
 		id: "wrapped-bitcoin",
-		s: "wbtc"
+		s: "WBTC"
 	},
 	{
 		id: "wrapped-bitcoin-diamond",
-		s: "wbcd"
+		s: "WBCD"
 	},
 	{
 		id: "wrapped-celo",
-		s: "wcelo"
+		s: "WCELO"
 	},
 	{
 		id: "wrapped-celo-dollar",
-		s: "wcusd"
+		s: "WCUSD"
 	},
 	{
 		id: "wrapped-conceal",
-		s: "wccx"
+		s: "WCCX"
 	},
 	{
 		id: "wrapped-crescofin",
-		s: "wcres"
+		s: "WCRES"
 	},
 	{
 		id: "wrapped-cryptokitties",
-		s: "wck"
+		s: "WCK"
 	},
 	{
 		id: "wrapped-dgld",
-		s: "wdgld"
+		s: "WDGLD"
 	},
 	{
 		id: "wrapped-filecoin",
-		s: "wfil"
+		s: "WFIL"
 	},
 	{
 		id: "wrapped-gen-0-cryptokitties",
-		s: "wg0"
+		s: "WG0"
 	},
 	{
 		id: "wrapped-huobi-token",
-		s: "wht"
+		s: "WHT"
 	},
 	{
 		id: "wrapped-leo",
-		s: "wleo"
+		s: "WLEO"
 	},
 	{
 		id: "wrapped-marblecards",
-		s: "wmc"
+		s: "WMC"
 	},
 	{
 		id: "wrapped-moon-cats",
-		s: "mcat20"
+		s: "MCAT20"
 	},
 	{
 		id: "wrapped-nxm",
-		s: "wnxm"
+		s: "WNXM"
 	},
 	{
 		id: "wrapped-origin-axie",
-		s: "woa"
+		s: "WOA"
 	},
 	{
 		id: "wrapped-polis",
-		s: "polis"
+		s: "POLIS"
 	},
 	{
 		id: "wrapped-shuttleone",
-		s: "wszo"
+		s: "WSZO"
 	},
 	{
 		id: "wrapped-statera",
-		s: "wsta"
+		s: "WSTA"
 	},
 	{
 		id: "wrapped-terra",
-		s: "luna"
+		s: "LUNA"
 	},
 	{
 		id: "wrapped-virgin-gen-0-cryptokitties",
-		s: "wvg0"
+		s: "WVG0"
 	},
 	{
 		id: "wrapped-xmr-btse",
-		s: "wxmr"
+		s: "WXMR"
 	},
 	{
 		id: "wrapped-zcash",
-		s: "wzec"
+		s: "WZEC"
 	},
 	{
 		id: "wxcoin",
-		s: "wxc"
+		s: "WXC"
 	},
 	{
 		id: "wynaut",
-		s: "wynaut"
+		s: "WYNAUT"
 	},
 	{
 		id: "x42-protocol",
-		s: "x42"
+		s: "X42"
 	},
 	{
 		id: "x8-project",
-		s: "x8x"
+		s: "X8X"
 	},
 	{
 		id: "xaavea",
-		s: "xaavea"
+		s: "XAAVEA"
 	},
 	{
 		id: "xaaveb",
-		s: "xaaveb"
+		s: "XAAVEB"
 	},
 	{
 		id: "xank",
-		s: "xank"
+		s: "XANK"
 	},
 	{
 		id: "xaurum",
-		s: "xaur"
+		s: "XAUR"
 	},
 	{
 		id: "xavander-coin",
-		s: "xczm"
+		s: "XCZM"
 	},
 	{
 		id: "xaviera-tech",
-		s: "xts"
+		s: "XTS"
 	},
 	{
 		id: "xazab",
-		s: "xazab"
+		s: "XAZAB"
 	},
 	{
 		id: "x-block",
-		s: "ix"
+		s: "IX"
 	},
 	{
 		id: "xbtc",
-		s: "xbtc"
+		s: "XBTC"
 	},
 	{
 		id: "x-cash",
-		s: "xcash"
+		s: "XCASH"
 	},
 	{
 		id: "xceltoken-plus",
-		s: "xlab"
+		s: "XLAB"
 	},
 	{
 		id: "xchain-token",
-		s: "nxct"
+		s: "NXCT"
 	},
 	{
 		id: "xchainz",
-		s: "xcz"
+		s: "XCZ"
 	},
 	{
 		id: "xcoin",
-		s: "xco"
+		s: "XCO"
 	},
 	{
 		id: "xcoinpay",
-		s: "dyx"
+		s: "DYX"
 	},
 	{
 		id: "xcredit",
-		s: "xfyi"
+		s: "XFYI"
 	},
 	{
 		id: "xdai",
-		s: "xdai"
+		s: "XDAI"
 	},
 	{
 		id: "xdai-stake",
-		s: "stake"
+		s: "STAKE"
 	},
 	{
 		id: "xdce-crowd-sale",
-		s: "xdc"
+		s: "XDC"
 	},
 	{
 		id: "xdef-finance",
-		s: "xdef2"
+		s: "XDEF2"
 	},
 	{
 		id: "xdna",
-		s: "xdna"
+		s: "XDNA"
 	},
 	{
 		id: "xenios",
-		s: "xnc"
+		s: "XNC"
 	},
 	{
 		id: "xeniumx",
-		s: "xemx"
+		s: "XEMX"
 	},
 	{
 		id: "xenon-2",
-		s: "xen"
+		s: "XEN"
 	},
 	{
 		id: "xeno-token",
-		s: "xno"
+		s: "XNO"
 	},
 	{
 		id: "xensor",
-		s: "xsr"
+		s: "XSR"
 	},
 	{
 		id: "xeonbit",
-		s: "xnb"
+		s: "XNB"
 	},
 	{
 		id: "xeonbit-token",
-		s: "xns"
+		s: "XNS"
 	},
 	{
 		id: "xeuro",
-		s: "xeuro"
+		s: "XEURO"
 	},
 	{
 		id: "xfii",
-		s: "xfii"
+		s: "XFII"
 	},
 	{
 		id: "xfinance",
-		s: "xfi"
+		s: "XFI"
 	},
 	{
 		id: "xfoc",
-		s: "xfoc"
+		s: "XFOC"
 	},
 	{
 		id: "xfuel",
-		s: "xfuel"
+		s: "XFUEL"
 	},
 	{
 		id: "xfund",
-		s: "xfund"
+		s: "XFUND"
 	},
 	{
 		id: "xgalaxy",
-		s: "xgcs"
+		s: "XGCS"
 	},
 	{
 		id: "xgox",
-		s: "xgox"
+		s: "XGOX"
 	},
 	{
 		id: "xincha",
-		s: "xINCHa"
+		s: "XINCHA"
 	},
 	{
 		id: "xinchb",
-		s: "xINCHb"
+		s: "XINCHB"
 	},
 	{
 		id: "xio",
-		s: "xio"
+		s: "XIO"
 	},
 	{
 		id: "xion-global-token",
-		s: "xgt"
+		s: "XGT"
 	},
 	{
 		id: "xiotri",
-		s: "xiot"
+		s: "XIOT"
 	},
 	{
 		id: "xiropht",
-		s: "xiro"
+		s: "XIRO"
 	},
 	{
 		id: "xknca",
-		s: "xknca"
+		s: "XKNCA"
 	},
 	{
 		id: "xkncb",
-		s: "xkncb"
+		s: "XKNCB"
 	},
 	{
 		id: "xmark",
-		s: "xmark"
+		s: "XMARK"
 	},
 	{
 		id: "xmax",
-		s: "xmx"
+		s: "XMX"
 	},
 	{
 		id: "xmon",
-		s: "xmon"
+		s: "XMON"
 	},
 	{
 		id: "xnode",
-		s: "xnode"
+		s: "XNODE"
 	},
 	{
 		id: "xov",
-		s: "xov"
+		s: "XOV"
 	},
 	{
 		id: "xp",
-		s: "xp"
+		s: "XP"
 	},
 	{
 		id: "xpet-coin",
-		s: "xpc"
+		s: "XPC"
 	},
 	{
 		id: "x-power-chain",
-		s: "xpo"
+		s: "XPO"
 	},
 	{
 		id: "xptoken-io",
-		s: "xpt"
+		s: "XPT"
 	},
 	{
 		id: "xriba",
-		s: "xra"
+		s: "XRA"
 	},
 	{
 		id: "xrpalike-gene",
-		s: "xag"
+		s: "XAG"
 	},
 	{
 		id: "xrp-bep2",
-		s: "xrp-bf2"
+		s: "XRP-BF2"
 	},
 	{
 		id: "xrp-classic",
-		s: "xrpc"
+		s: "XRPC"
 	},
 	{
 		id: "xrphd",
-		s: "xhd"
+		s: "XHD"
 	},
 	{
 		id: "xscoin",
-		s: "xsc"
+		s: "XSC"
 	},
 	{
 		id: "xsgd",
-		s: "xsgd"
+		s: "XSGD"
 	},
 	{
 		id: "xsigma",
-		s: "sig"
+		s: "SIG"
 	},
 	{
 		id: "xsnx",
-		s: "xSNXa"
+		s: "XSNXA"
 	},
 	{
 		id: "xstable-protocol",
-		s: "xst"
+		s: "XST"
 	},
 	{
 		id: "xsushi",
-		s: "xsushi"
+		s: "XSUSHI"
 	},
 	{
 		id: "xswap",
-		s: "xsp"
+		s: "XSP"
 	},
 	{
 		id: "xtake",
-		s: "xtk"
+		s: "XTK"
 	},
 	{
 		id: "xtcom-token",
-		s: "xt"
+		s: "XT"
 	},
 	{
 		id: "xtendcash",
@@ -48184,207 +48346,207 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "xtock",
-		s: "xtx"
+		s: "XTX"
 	},
 	{
 		id: "xtoken",
-		s: "xtk"
+		s: "XTK"
 	},
 	{
 		id: "xtrabytes",
-		s: "xby"
+		s: "XBY"
 	},
 	{
 		id: "xtrade",
-		s: "xtrd"
+		s: "XTRD"
 	},
 	{
 		id: "xtrm",
-		s: "xtrm"
+		s: "XTRM"
 	},
 	{
 		id: "xuedaocoin",
-		s: "xdc"
+		s: "XDC"
 	},
 	{
 		id: "xuez",
-		s: "xuez"
+		s: "XUEZ"
 	},
 	{
 		id: "xvix",
-		s: "xvix"
+		s: "XVIX"
 	},
 	{
 		id: "xwc-dice-token",
-		s: "xdt"
+		s: "XDT"
 	},
 	{
 		id: "xyo-network",
-		s: "xyo"
+		s: "XYO"
 	},
 	{
 		id: "yacoin",
-		s: "yac"
+		s: "YAC"
 	},
 	{
 		id: "yadacoin",
-		s: "yda"
+		s: "YDA"
 	},
 	{
 		id: "yakuza-dao",
-		s: "ykz"
+		s: "YKZ"
 	},
 	{
 		id: "yam-2",
-		s: "yam"
+		s: "YAM"
 	},
 	{
 		id: "yam-v2",
-		s: "YAMv2"
+		s: "YAMV2"
 	},
 	{
 		id: "yap-stone",
-		s: "yap"
+		s: "YAP"
 	},
 	{
 		id: "yas",
-		s: "yas"
+		s: "YAS"
 	},
 	{
 		id: "yaxis",
-		s: "yax"
+		s: "YAX"
 	},
 	{
 		id: "ycash",
-		s: "yec"
+		s: "YEC"
 	},
 	{
 		id: "y-coin",
-		s: "yco"
+		s: "YCO"
 	},
 	{
 		id: "yd-btc-mar21",
-		s: "yd-btc-mar21"
+		s: "YD-BTC-MAR21"
 	},
 	{
 		id: "yd-eth-mar21",
-		s: "yd-eth-mar21"
+		s: "YD-ETH-MAR21"
 	},
 	{
 		id: "yeafinance",
-		s: "yea"
+		s: "YEA"
 	},
 	{
 		id: "yearn20moonfinance",
-		s: "ymf20"
+		s: "YMF20"
 	},
 	{
 		id: "yearn4-finance",
-		s: "yf4"
+		s: "YF4"
 	},
 	{
 		id: "yearn-classic-finance",
-		s: "earn"
+		s: "EARN"
 	},
 	{
 		id: "yearn-ecosystem-token-index",
-		s: "yeti"
+		s: "YETI"
 	},
 	{
 		id: "yearn-ethereum-finance",
-		s: "yefi"
+		s: "YEFI"
 	},
 	{
 		id: "yearn-finance",
-		s: "yfi"
+		s: "YFI"
 	},
 	{
 		id: "yearn-finance-bit",
-		s: "yfbt"
+		s: "YFBT"
 	},
 	{
 		id: "yearn-finance-bit2",
-		s: "yfb2"
+		s: "YFB2"
 	},
 	{
 		id: "yearn-finance-center",
-		s: "yfc"
+		s: "YFC"
 	},
 	{
 		id: "yearn-finance-diamond-token",
-		s: "yfdt"
+		s: "YFDT"
 	},
 	{
 		id: "yearn-finance-dot",
-		s: "yfdot"
+		s: "YFDOT"
 	},
 	{
 		id: "yearn-finance-ecosystem",
-		s: "yfiec"
+		s: "YFIEC"
 	},
 	{
 		id: "yearn-finance-infrastructure-labs",
-		s: "ylab"
+		s: "YLAB"
 	},
 	{
 		id: "yearn-finance-management",
-		s: "yefim"
+		s: "YEFIM"
 	},
 	{
 		id: "yearn-finance-network",
-		s: "yfn"
+		s: "YFN"
 	},
 	{
 		id: "yearn-finance-passive-income",
-		s: "yfpi"
+		s: "YFPI"
 	},
 	{
 		id: "yearn-finance-protocol",
-		s: "yfp"
+		s: "YFP"
 	},
 	{
 		id: "yearn-finance-red-moon",
-		s: "yfrm"
+		s: "YFRM"
 	},
 	{
 		id: "yearn-finance-value",
-		s: "yfiv"
+		s: "YFIV"
 	},
 	{
 		id: "yearn-global",
-		s: "yg"
+		s: "YG"
 	},
 	{
 		id: "yearn-hold-finance",
-		s: "yhfi"
+		s: "YHFI"
 	},
 	{
 		id: "yearn-land",
-		s: "yland"
+		s: "YLAND"
 	},
 	{
 		id: "yearn-secure",
-		s: "ysec"
+		s: "YSEC"
 	},
 	{
 		id: "yearn-shark-finance",
-		s: "yskf"
+		s: "YSKF"
 	},
 	{
 		id: "yee",
-		s: "yee"
+		s: "YEE"
 	},
 	{
 		id: "yefam-finance",
-		s: "fam"
+		s: "FAM"
 	},
 	{
 		id: "yeld-finance",
-		s: "yeld"
+		s: "YELD"
 	},
 	{
 		id: "yenten",
-		s: "ytn"
+		s: "YTN"
 	},
 	{
 		id: "yep-coin",
@@ -48392,39 +48554,39 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "yes",
-		s: "yes"
+		s: "YES"
 	},
 	{
 		id: "yes-trump-augur-prediction-token",
-		s: "yTrump"
+		s: "YTRUMP"
 	},
 	{
 		id: "yetiswap",
-		s: "yts"
+		s: "YTS"
 	},
 	{
 		id: "yfarmland-token",
-		s: "yfarmer"
+		s: "YFARMER"
 	},
 	{
 		id: "yfarm-token",
-		s: "yfarm"
+		s: "YFARM"
 	},
 	{
 		id: "yfbeta",
-		s: "yfbeta"
+		s: "YFBETA"
 	},
 	{
 		id: "yfdai-finance",
-		s: "yf-dai"
+		s: "YF-DAI"
 	},
 	{
 		id: "yfdfi-finance",
-		s: "yfd"
+		s: "YFD"
 	},
 	{
 		id: "yfedfinance",
-		s: "yfed"
+		s: "YFED"
 	},
 	{
 		id: "yfe-money",
@@ -48432,123 +48594,119 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "yfet",
-		s: "yfet"
+		s: "YFET"
 	},
 	{
 		id: "yffc-finance",
-		s: "yffc"
+		s: "YFFC"
 	},
 	{
 		id: "yff-finance",
-		s: "yff"
+		s: "YFF"
 	},
 	{
 		id: "yffi-finance",
-		s: "yffi"
+		s: "YFFI"
 	},
 	{
 		id: "yffii-finance",
-		s: "yffii"
+		s: "YFFII"
 	},
 	{
 		id: "yffs",
-		s: "yffs"
+		s: "YFFS"
 	},
 	{
 		id: "yfi3-money",
-		s: "yfi3"
+		s: "YFI3"
 	},
 	{
 		id: "yfia",
-		s: "yfia"
+		s: "YFIA"
 	},
 	{
 		id: "yfibalancer-finance",
-		s: "yfib"
+		s: "YFIB"
 	},
 	{
 		id: "yfi-business",
-		s: "yfib"
-	},
-	{
-		id: "yfi-credits",
-		s: "yfic"
+		s: "YFIB"
 	},
 	{
 		id: "yfi-credits-group",
-		s: "yficg"
+		s: "YFICG"
 	},
 	{
 		id: "yfidapp",
-		s: "yfid"
+		s: "YFID"
 	},
 	{
 		id: "yfiexchange-finance",
-		s: "yfie"
+		s: "YFIE"
 	},
 	{
 		id: "yfii-finance",
-		s: "yfii"
+		s: "YFII"
 	},
 	{
 		id: "yfii-gold",
-		s: "yfiig"
+		s: "YFIIG"
 	},
 	{
 		id: "yfiii",
-		s: "yfiii"
+		s: "YFIII"
 	},
 	{
 		id: "yfiking-finance",
-		s: "yfiking"
+		s: "YFIKING"
 	},
 	{
 		id: "yfilend-finance",
-		s: "yfild"
+		s: "YFILD"
 	},
 	{
 		id: "yfimobi",
-		s: "yfim"
+		s: "YFIM"
 	},
 	{
 		id: "yfione",
-		s: "yfo"
+		s: "YFO"
 	},
 	{
 		id: "yfi-paprika",
-		s: "yfip"
+		s: "YFIP"
 	},
 	{
 		id: "yfi-product-token",
-		s: "yfip"
+		s: "YFIP"
 	},
 	{
 		id: "yfiscurity",
-		s: "yfis"
+		s: "YFIS"
 	},
 	{
 		id: "yfive-finance",
-		s: "yfive"
+		s: "YFIVE"
 	},
 	{
 		id: "yfix-finance",
-		s: "yfix"
+		s: "YFIX"
 	},
 	{
 		id: "yflink",
-		s: "yfl"
+		s: "YFL"
 	},
 	{
 		id: "yflink-synthetic",
-		s: "syfl"
+		s: "SYFL"
 	},
 	{
 		id: "yfmoonbeam",
-		s: "yfmb"
+		s: "YFMB"
 	},
 	{
 		id: "yfmoonshot",
-		s: "yfms"
+		s: "YFMS"
 	},
 	{
 		id: "yfos-finance",
@@ -48556,63 +48714,63 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "yfox-finance",
-		s: "yfox"
+		s: "YFOX"
 	},
 	{
 		id: "yfpro-finance",
-		s: "yfpro"
+		s: "YFPRO"
 	},
 	{
 		id: "yfrb-finance",
-		s: "yfrb"
+		s: "YFRB"
 	},
 	{
 		id: "yfscience",
-		s: "yfsi"
+		s: "YFSI"
 	},
 	{
 		id: "yfst-protocol",
-		s: "yfst"
+		s: "YFST"
 	},
 	{
 		id: "yftether",
-		s: "yfte"
+		s: "YFTE"
 	},
 	{
 		id: "yfuel",
-		s: "yfuel"
+		s: "YFUEL"
 	},
 	{
 		id: "yggdrash",
-		s: "yeed"
+		s: "YEED"
 	},
 	{
 		id: "yi12-stfinance",
-		s: "yi12"
+		s: "YI12"
 	},
 	{
 		id: "yibitcoin",
-		s: "ytc"
+		s: "YTC"
 	},
 	{
 		id: "yield",
-		s: "yld"
+		s: "YLD"
 	},
 	{
 		id: "yield-app",
-		s: "yld"
+		s: "YLD"
 	},
 	{
 		id: "yield-breeder-dao",
-		s: "ybree"
+		s: "YBREE"
 	},
 	{
 		id: "yield-coin",
-		s: "yld"
+		s: "YLD"
 	},
 	{
 		id: "yield-farming-known-as-ash",
-		s: "yfka"
+		s: "YFKA"
 	},
 	{
 		id: "yield-farming-token",
@@ -48620,640 +48778,640 @@ var coingeckoSymbols = [
 	},
 	{
 		id: "yield-goat",
-		s: "ygoat"
+		s: "YGOAT"
 	},
 	{
 		id: "yieldnyan-token",
-		s: "nyan"
+		s: "NYAN"
 	},
 	{
 		id: "yield-optimization-platform",
-		s: "yop"
+		s: "YOP"
 	},
 	{
 		id: "yieldpanda",
-		s: "ypanda"
+		s: "YPANDA"
 	},
 	{
 		id: "yield-protocol",
-		s: "yield"
+		s: "YIELD"
 	},
 	{
 		id: "yieldwars-com",
-		s: "war"
+		s: "WAR"
 	},
 	{
 		id: "yieldwatch",
-		s: "watch"
+		s: "WATCH"
 	},
 	{
 		id: "yieldx",
-		s: "yieldx"
+		s: "YIELDX"
 	},
 	{
 		id: "ymax",
-		s: "ymax"
+		s: "YMAX"
 	},
 	{
 		id: "ymen-finance",
-		s: "ymen"
+		s: "YMEN"
 	},
 	{
 		id: "ympl",
-		s: "ympl"
+		s: "YMPL"
 	},
 	{
 		id: "yobit-token",
-		s: "yo"
+		s: "YO"
 	},
 	{
 		id: "yocoin",
-		s: "yoc"
+		s: "YOC"
 	},
 	{
 		id: "yoink",
-		s: "ynk"
+		s: "YNK"
 	},
 	{
 		id: "yokcoin",
-		s: "yok"
+		s: "YOK"
 	},
 	{
 		id: "yolo-cash",
-		s: "ylc"
+		s: "YLC"
 	},
 	{
 		id: "yoo-ecology",
-		s: "yoo"
+		s: "YOO"
 	},
 	{
 		id: "yottachainmena",
-		s: "mta"
+		s: "MTA"
 	},
 	{
 		id: "yottacoin",
-		s: "yta"
+		s: "YTA"
 	},
 	{
 		id: "youcash",
-		s: "youc"
+		s: "YOUC"
 	},
 	{
 		id: "you-chain",
-		s: "you"
+		s: "YOU"
 	},
 	{
 		id: "youforia",
-		s: "yfr"
+		s: "YFR"
 	},
 	{
 		id: "youlive-coin",
-		s: "uc"
+		s: "UC"
 	},
 	{
 		id: "young-boys-fan-token",
-		s: "ybo"
+		s: "YBO"
 	},
 	{
 		id: "yoyow",
-		s: "yoyow"
+		s: "YOYOW"
 	},
 	{
 		id: "yplutus",
-		s: "yplt"
+		s: "YPLT"
 	},
 	{
 		id: "yrise-finance",
-		s: "yrise"
+		s: "YRISE"
 	},
 	{
 		id: "ystar",
-		s: "ysr"
+		s: "YSR"
 	},
 	{
 		id: "ytho-online",
-		s: "ytho"
+		s: "YTHO"
 	},
 	{
 		id: "ytsla-finance",
-		s: "ytsla"
+		s: "YTSLA"
 	},
 	{
 		id: "yuan-chain-coin",
-		s: "ycc"
-	},
-	{
-		id: "yuge",
-		s: "trump"
+		s: "YCC"
 	},
 	{
 		id: "yui-hinata",
-		s: "yui"
+		s: "YUI"
 	},
 	{
 		id: "yuki-coin",
-		s: "yuki"
+		s: "YUKI"
 	},
 	{
 		id: "yunex",
-		s: "yun"
+		s: "YUN"
 	},
 	{
 		id: "yuno-finance",
-		s: "yuno"
+		s: "YUNO"
 	},
 	{
 		id: "yup",
-		s: "yup"
+		s: "YUP"
 	},
 	{
 		id: "yusd-synthetic-token-expiring-1-september-2020",
-		s: "yUSD-SEP20"
+		s: "YUSD-SEP20"
 	},
 	{
 		id: "yusd-synthetic-token-expiring-31-december-2020",
-		s: "uUSDwETH-DEC"
+		s: "UUSDWETH-DEC"
 	},
 	{
 		id: "yusra",
-		s: "yusra"
+		s: "YUSRA"
 	},
 	{
 		id: "yvault-lp-ycurve",
-		s: "yvault-lp-ycurve"
+		s: "YVAULT-LP-YCURVE"
 	},
 	{
 		id: "yvs-finance",
-		s: "yvs"
+		s: "YVS"
 	},
 	{
 		id: "yyfi-protocol",
-		s: "yyfi"
+		s: "YYFI"
 	},
 	{
 		id: "zac-finance",
-		s: "zac"
+		s: "ZAC"
 	},
 	{
 		id: "zaif-token",
-		s: "zaif"
+		s: "ZAIF"
 	},
 	{
 		id: "zano",
-		s: "zano"
+		s: "ZANO"
 	},
 	{
 		id: "zantepay",
-		s: "zpay"
+		s: "ZPAY"
 	},
 	{
 		id: "zap",
-		s: "zap"
+		s: "ZAP"
 	},
 	{
 		id: "zarcash",
-		s: "zarh"
+		s: "ZARH"
 	},
 	{
 		id: "zbank-token",
-		s: "zbk"
+		s: "ZBK"
 	},
 	{
 		id: "zb-token",
-		s: "zb"
+		s: "ZB"
 	},
 	{
 		id: "zcash",
-		s: "zec"
+		s: "ZEC"
 	},
 	{
 		id: "zccoin",
-		s: "zcc"
+		s: "ZCC"
 	},
 	{
 		id: "zclassic",
-		s: "zcl"
+		s: "ZCL"
 	},
 	{
 		id: "zcnox-coin",
-		s: "zcnox"
+		s: "ZCNOX"
 	},
 	{
 		id: "zcoin",
-		s: "firo"
+		s: "FIRO"
 	},
 	{
 		id: "zcore",
-		s: "zcr"
+		s: "ZCR"
 	},
 	{
 		id: "zcore-token",
-		s: "zcrt"
+		s: "ZCRT"
 	},
 	{
 		id: "zealium",
-		s: "nzl"
+		s: "NZL"
 	},
 	{
 		id: "zebi",
-		s: "zco"
+		s: "ZCO"
 	},
 	{
 		id: "zedxe",
-		s: "zfl"
+		s: "ZFL"
 	},
 	{
 		id: "zeedex",
-		s: "zdex"
+		s: "ZDEX"
 	},
 	{
 		id: "zeepin",
-		s: "zpt"
+		s: "ZPT"
 	},
 	{
 		id: "zeitcoin",
-		s: "zeit"
+		s: "ZEIT"
 	},
 	{
 		id: "zelaapayae",
-		s: "zpae"
+		s: "ZPAE"
 	},
 	{
 		id: "zelcash",
-		s: "zel"
+		s: "ZEL"
 	},
 	{
 		id: "zelda-elastic-cash",
-		s: "zelda elastic cash"
+		s: "ZELDA ELASTIC CASH"
 	},
 	{
 		id: "zelda-spring-nuts-cash",
-		s: "zelda spring nuts cash"
+		s: "ZELDA SPRING NUTS CASH"
 	},
 	{
 		id: "zelda-summer-nuts-cash",
-		s: "zelda summer nuts cash"
+		s: "ZELDA SUMMER NUTS CASH"
 	},
 	{
 		id: "zelwin",
-		s: "zlw"
+		s: "ZLW"
 	},
 	{
 		id: "zenad",
-		s: "znd"
+		s: "ZND"
 	},
 	{
 		id: "zencash",
-		s: "zen"
+		s: "ZEN"
 	},
 	{
 		id: "zenfuse",
-		s: "zefu"
+		s: "ZEFU"
 	},
 	{
 		id: "zenon",
-		s: "znn"
+		s: "ZNN"
 	},
 	{
 		id: "zen-protocol",
-		s: "zp"
+		s: "ZP"
 	},
 	{
 		id: "zensports",
-		s: "sports"
+		s: "SPORTS"
 	},
 	{
 		id: "zenswap-network-token",
-		s: "znt"
+		s: "ZNT"
 	},
 	{
 		id: "zent-cash",
-		s: "ztc"
+		s: "ZTC"
 	},
 	{
 		id: "zenzo",
-		s: "znz"
+		s: "ZNZ"
 	},
 	{
 		id: "zeon",
-		s: "zeon"
+		s: "ZEON"
 	},
 	{
 		id: "zeon-2",
-		s: "zeon"
+		s: "ZEON"
 	},
 	{
 		id: "zer-dex",
-		s: "zdx"
+		s: "ZDX"
 	},
 	{
 		id: "zero",
-		s: "zer"
+		s: "ZER"
 	},
 	{
 		id: "zero-carbon-project",
-		s: "zcc"
+		s: "ZCC"
 	},
 	{
 		id: "zeroclassic",
-		s: "zerc"
+		s: "ZERC"
 	},
 	{
 		id: "zero-collateral-dai",
-		s: "zai"
+		s: "ZAI"
 	},
 	{
 		id: "zero-exchange",
-		s: "zero"
+		s: "ZERO"
 	},
 	{
 		id: "zeroswap",
-		s: "zee"
+		s: "ZEE"
 	},
 	{
 		id: "zero-utility-token",
-		s: "zut"
+		s: "ZUT"
 	},
 	{
 		id: "zerozed",
-		s: "x0z"
+		s: "X0Z"
 	},
 	{
 		id: "zeto",
-		s: "ztc"
+		s: "ZTC"
 	},
 	{
 		id: "zettelkasten",
-		s: "zttl"
+		s: "ZTTL"
 	},
 	{
 		id: "zeusshield",
-		s: "zsc"
+		s: "ZSC"
 	},
 	{
 		id: "zeuxcoin",
-		s: "zuc"
+		s: "ZUC"
 	},
 	{
 		id: "zg",
-		s: "zg"
+		s: "ZG"
 	},
 	{
 		id: "zg-blockchain-token",
-		s: "zgt"
+		s: "ZGT"
 	},
 	{
 		id: "zhegic",
-		s: "zhegic"
+		s: "ZHEGIC"
 	},
 	{
 		id: "zigzag",
-		s: "zag"
+		s: "ZAG"
 	},
 	{
 		id: "zik-token",
-		s: "zik"
+		s: "ZIK"
 	},
 	{
 		id: "zilla",
-		s: "zla"
+		s: "ZLA"
 	},
 	{
 		id: "zillioncoin",
-		s: "zln"
+		s: "ZLN"
 	},
 	{
 		id: "zillionlife",
-		s: "zlf"
+		s: "ZLF"
 	},
 	{
 		id: "zilliqa",
-		s: "zil"
+		s: "ZIL"
 	},
 	{
 		id: "zimbocash",
-		s: "zash"
+		s: "ZASH"
 	},
 	{
 		id: "zin",
-		s: "Zin"
+		s: "ZIN"
 	},
 	{
 		id: "zinc",
-		s: "zinc"
+		s: "ZINC"
 	},
 	{
 		id: "zioncoin",
-		s: "znc"
+		s: "ZNC"
 	},
 	{
 		id: "zip",
-		s: "zip"
+		s: "ZIP"
 	},
 	{
 		id: "zipmex-token",
-		s: "zmt"
+		s: "ZMT"
 	},
 	{
 		id: "zippie",
-		s: "zipt"
+		s: "ZIPT"
 	},
 	{
 		id: "zjlt-distributed-factoring-network",
-		s: "zjlt"
+		s: "ZJLT"
 	},
 	{
 		id: "zkswap",
-		s: "zks"
+		s: "ZKS"
 	},
 	{
 		id: "zloadr",
-		s: "zdr"
+		s: "ZDR"
 	},
 	{
 		id: "zlot",
-		s: "zlot"
+		s: "ZLOT"
 	},
 	{
 		id: "zmine",
-		s: "zmn"
+		s: "ZMN"
 	},
 	{
 		id: "zodiac",
-		s: "zdc"
+		s: "ZDC"
 	},
 	{
 		id: "zom",
-		s: "zom"
+		s: "ZOM"
 	},
 	{
 		id: "zonecoin",
-		s: "zne"
+		s: "ZNE"
 	},
 	{
 		id: "zoom-protocol",
-		s: "zom"
+		s: "ZOM"
 	},
 	{
 		id: "zoracles",
-		s: "zora"
+		s: "ZORA"
 	},
 	{
 		id: "zos",
-		s: "zos"
+		s: "ZOS"
 	},
 	{
 		id: "zotova",
-		s: "zoa"
+		s: "ZOA"
 	},
 	{
 		id: "zper",
-		s: "zpr"
+		s: "ZPR"
 	},
 	{
 		id: "zrcoin",
-		s: "zrc"
+		s: "ZRC"
 	},
 	{
 		id: "zrocor",
-		s: "zcor"
+		s: "ZCOR"
 	},
 	{
 		id: "ztcoin",
-		s: "zt"
+		s: "ZT"
 	},
 	{
 		id: "ztranzit-coin",
-		s: "ztnz"
+		s: "ZTNZ"
 	},
 	{
 		id: "zuck-bucks",
-		s: "zbux"
+		s: "ZBUX"
 	},
 	{
 		id: "zucoinchain",
-		s: "zcc"
+		s: "ZCC"
 	},
 	{
 		id: "zuescrowdfunding",
-		s: "zeus"
+		s: "ZEUS"
 	},
 	{
 		id: "zugacoin",
-		s: "szc"
+		s: "SZC"
 	},
 	{
 		id: "zukacoin",
-		s: "zuka"
+		s: "ZUKA"
 	},
 	{
 		id: "zumcoin",
-		s: "zum"
+		s: "ZUM"
 	},
 	{
 		id: "zum-token",
-		s: "zum"
+		s: "ZUM"
 	},
 	{
 		id: "zupi-coin",
-		s: "zupi"
+		s: "ZUPI"
 	},
 	{
 		id: "zuplo",
-		s: "zlp"
+		s: "ZLP"
 	},
 	{
 		id: "zusd",
-		s: "zusd"
+		s: "ZUSD"
+	},
+	{
+		id: "zuz-protocol",
+		s: "ZUZ"
 	},
 	{
 		id: "zynecoin",
-		s: "zyn"
+		s: "ZYN"
 	},
 	{
 		id: "zyro",
-		s: "zyro"
+		s: "ZYRO"
 	},
 	{
 		id: "zytara-dollar",
-		s: "zusd"
+		s: "ZUSD"
 	},
 	{
 		id: "zyx",
-		s: "zyx"
+		s: "ZYX"
 	},
 	{
 		id: "zzz-finance",
-		s: "zzz"
+		s: "ZZZ"
 	},
 	{
 		id: "zzz-finance-v2",
-		s: "zzzv2"
+		s: "ZZZV2"
 	}
 ];
 
 var coingeckoQuotes = [
-	"btc",
-	"eth",
-	"ltc",
-	"bch",
-	"bnb",
-	"eos",
-	"xrp",
-	"xlm",
-	"link",
-	"dot",
-	"yfi",
-	"usd",
-	"aed",
-	"ars",
-	"aud",
-	"bdt",
-	"bhd",
-	"bmd",
-	"brl",
-	"cad",
-	"chf",
-	"clp",
-	"cny",
-	"czk",
-	"dkk",
-	"eur",
-	"gbp",
-	"hkd",
-	"huf",
-	"idr",
-	"ils",
-	"inr",
-	"jpy",
-	"krw",
-	"kwd",
-	"lkr",
-	"mmk",
-	"mxn",
-	"myr",
-	"ngn",
-	"nok",
-	"nzd",
-	"php",
-	"pkr",
-	"pln",
-	"rub",
-	"sar",
-	"sek",
-	"sgd",
-	"thb",
-	"try",
-	"twd",
-	"uah",
-	"vef",
-	"vnd",
-	"zar",
-	"xdr",
-	"xag",
-	"xau",
-	"bits",
-	"sats"
+	"BTC",
+	"ETH",
+	"LTC",
+	"BCH",
+	"BNB",
+	"EOS",
+	"XRP",
+	"XLM",
+	"LINK",
+	"DOT",
+	"YFI",
+	"USD",
+	"AED",
+	"ARS",
+	"AUD",
+	"BDT",
+	"BHD",
+	"BMD",
+	"BRL",
+	"CAD",
+	"CHF",
+	"CLP",
+	"CNY",
+	"CZK",
+	"DKK",
+	"EUR",
+	"GBP",
+	"HKD",
+	"HUF",
+	"IDR",
+	"ILS",
+	"INR",
+	"JPY",
+	"KRW",
+	"KWD",
+	"LKR",
+	"MMK",
+	"MXN",
+	"MYR",
+	"NGN",
+	"NOK",
+	"NZD",
+	"PHP",
+	"PKR",
+	"PLN",
+	"RUB",
+	"SAR",
+	"SEK",
+	"SGD",
+	"THB",
+	"TRY",
+	"TWD",
+	"UAH",
+	"VEF",
+	"VND",
+	"ZAR",
+	"XDR",
+	"XAG",
+	"XAU",
+	"BITS",
+	"SATS"
 ];
 
 class CoingeckoPairsManager extends PairsManager {
@@ -49265,23 +49423,18 @@ class CoingeckoPairsManager extends PairsManager {
         if (!coingeckoSymbols.some(a => a.s === symbol)) {
             return false;
         }
-        let lowercase = symbol.toLowerCase();
-        if (!coingeckoSymbols.some(a => a.s === lowercase)) {
-            return false;
-        }
-        lowercase = quote.toLowerCase();
-        if (!coingeckoQuotes.some(q => q === lowercase)) {
+        if (!coingeckoQuotes.some(q => q === quote)) {
             return false;
         }
         return true;
     }
-    async addPair(symbol, quote, updatePairs = true) {
-        return super.addPair(symbol, quote.toLowerCase(), updatePairs);
-    }
+    // async addPair(symbol: string, quote: string, updatePairs = true) {
+    //   return super.addPair(symbol, quote.toLowerCase(), updatePairs)
+    // }
     buildCoingeckoAPIArguments() {
         return {
             ids: [...new Set(this.pairs.map(p => coingeckoSymbols.find(a => a.s === p.symbol).id))].join(','),
-            vs_currencies: [...new Set(this.pairs.map(p => p.quote.toLowerCase()))].join(',')
+            vs_currencies: [...new Set(this.pairs.map(p => p.quote))].join(',')
         };
     }
     getIdFromSymbol(symbol) {
@@ -49333,6 +49486,14 @@ class ExchangesManager {
             manager.updatePairs();
         }
     }
+    static pairExists(symbol, quote) {
+        for (const exchange of Object.values(this.exchanges)) {
+            if (exchange.pairExists(symbol, quote)) {
+                return true;
+            }
+        }
+        return false;
+    }
     static getPrice(exchangeName, symbol, quote) {
         return this.exchanges[exchangeName].getPrice(symbol, quote);
     }
@@ -49342,37 +49503,50 @@ class ExchangesManager {
         await this.exchanges[exchangeName].addPair(symbol, quote, updatePairs);
     }
     static registerQuoteForConversion(quote, preferredExchange) {
+        let exchanges = Object.values(this.exchanges);
+        if (preferredExchange && preferredExchange !== 'others') {
+            exchanges = [this.exchanges[preferredExchange]].concat(Object.entries(this.exchanges).filter(([exchangeName, exchange]) => exchangeName !== preferredExchange).map(([o, exchange]) => exchange));
+        }
         for (const currency of Currencies) {
-            // if there is a preferred exchange we should first check if the pair exists there
-            // unless it's "others" (coingecko which is slow)
-            if (preferredExchange && preferredExchange !== 'others') {
-                const exchange = this.exchanges[preferredExchange];
-                if (exchange.pairExists(quote, currency))
-                    continue;
-                if (exchange.isPairAvailable(quote, currency)) {
-                    exchange.addPair(quote, currency, false);
-                    continue;
+            for (const exchange of exchanges) {
+                if (exchange.pairExists(quote, currency) || exchange.pairExists(currency, quote)) {
+                    break; // next currency
                 }
-            }
-            // if it exists somewhere we pass
-            if (this.pairExists(quote, currency))
-                continue;
-            // or else we just check everywhere if we can add it
-            for (const exchange of Object.values(this.exchanges)) {
+                // if it doesn't exist, we check if it's available
                 if (exchange.isPairAvailable(quote, currency)) {
                     exchange.addPair(quote, currency, false);
-                    break;
+                    break; // next currency
+                }
+                // or else we check if the counter pair is available
+                if (exchange.isPairAvailable(currency, quote)) {
+                    exchange.addPair(currency, quote, false);
+                    break; // next currency
                 }
             }
         }
     }
-    static pairExists(symbol, quote) {
-        for (const exchange of Object.values(this.exchanges)) {
-            if (exchange.pairExists(symbol, quote)) {
-                return true;
+    static getConversionPrice(symbol, preferredQuote, preferredExchange) {
+        const quotes = [preferredQuote].concat(Currencies.filter(c => c !== preferredQuote));
+        let exchanges = Object.values(this.exchanges);
+        if (preferredExchange && preferredExchange !== 'others') {
+            exchanges = [this.exchanges[preferredExchange]].concat(Object.entries(this.exchanges).filter(([exchangeName, exchange]) => exchangeName !== preferredExchange).map(([o, exchange]) => exchange));
+        }
+        let price = undefined;
+        for (const quote of quotes) {
+            for (const exchange of exchanges) {
+                // try to get the price (normal conversion)
+                price = exchange.getPrice(symbol, quote);
+                if (price) {
+                    return { quote, price };
+                }
+                // or else we try to get the counter pair
+                price = exchange.getPrice(quote, symbol);
+                if (price) {
+                    return { quote, price: 1 / price };
+                }
             }
         }
-        return false;
+        return { quote: undefined, price: undefined };
     }
 }
 // order matters !
@@ -49383,28 +49557,51 @@ ExchangesManager.exchanges = {
 };
 window.exchangesManager = ExchangesManager;
 
-class ProfitAggregator {
-    constructor() {
-        // @ts-ignore
-        this.aggregator = Object.fromEntries(Object.keys(ExchangesManager.exchanges).map(name => [name, []]));
+class Aggregator {
+    constructor(exchangeName) {
+        this.units = [];
+        this.exchangeName = exchangeName;
     }
-    pushUnit(exchangeName, quote, profit) {
+    pushUnit(quote, profit) {
         // we should push the profit in the existing quote
-        const unit = this.aggregator[exchangeName].find(unit => unit[0] === quote);
+        const unit = this.units.find(unit => unit[0] === quote);
         if (unit) {
             unit[1] += profit;
             return;
         }
-        this.aggregator[exchangeName].push([quote, profit]);
+        this.units.push([quote, profit]);
     }
-    resolveQuotes() {
-        const currency = window.app.currency;
-        for (const [exchangeName, units] of Object.entries(this.aggregator)) {
-            for (const unit of units) {
-                // if the quote is different from the current currency
-                if (unit[0] !== currency) ;
+    resolveQuotes(currency) {
+        for (const unit of this.units) {
+            // if the quote is different from the current currency
+            if (unit[0] !== currency) {
+                // We should get the price for conversion.
+                // Ideally the price should be the conversion of the quote in the current currency
+                // but there are some case where a pair for conversion is not available on any exchange
+                // in this case we should have a fallback where we convert the best conversion match returned
+                // from the conversion method to the current currency calculated from the currency conversion
+                // values imported from https://exchangeratesapi.io/.
+                const { quote, price } = ExchangesManager.getConversionPrice(unit[0], currency, this.exchangeName);
+                if (quote === currency && price !== undefined) {
+                    unit[0] = quote;
+                    unit[1] = price * unit[1];
+                }
             }
         }
+        this.reduce();
+    }
+    reduce() {
+        const reduceds = [];
+        for (const unit of this.units) {
+            const reduced = reduceds.find(r => r[0] === unit[0]);
+            if (reduced) {
+                reduced[1] += unit[1];
+            }
+            else {
+                reduceds.push([unit[0], unit[1]]);
+            }
+        }
+        this.units = reduceds;
     }
 }
 
@@ -49414,43 +49611,57 @@ let TradesView = class TradesView extends LitElement {
         this.interface = tradesInterface;
     }
     render() {
-        this.aggregator = new ProfitAggregator();
         return html `
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
             const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange);
-            if (sessions.length === 0)
-                return nothing;
+            this.profitAggregator = new Aggregator(exchange);
+            this.investmentAggregator = new Aggregator(exchange);
+            // if (sessions.length === 0) return nothing
             return html `
       <div class="exchange-frame">
         <p>${firstLetterUpperCase(exchange)}</p>
         ${sessions.map(session => {
                 return this.sessionTemplate(session);
             })}
+
+        ${window.walletsManager.walletTemplate(exchange)}
+
+        ${(() => {
+                this.profitAggregator.resolveQuotes(window.spacesManager.space.currency);
+                return this.aggregationTemplate(this.profitAggregator);
+            })()}
       </div>
       `;
         })}
 
-    ${(() => console.log(this.aggregator))()}
     `;
     }
     sessionTemplate(session) {
         const summary = this.interface.tradesManager.getSummarizedSessionTrades(session);
         let activeProfit, overallProfit;
+        const investment = { total: summary.investment, quote: session.quote };
         const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote);
         if (price) {
             activeProfit = price * summary.volume;
-            overallProfit = round(summary.profit + activeProfit, 5);
-            this.aggregator.pushUnit(session.exchange, session.quote, overallProfit);
+            overallProfit = summary.profit + activeProfit;
+            const investmentConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange);
+            if (investmentConversion.price && investmentConversion.quote === window.spacesManager.space.currency) {
+                investment.total *= investmentConversion.price;
+                investment.quote = investmentConversion.quote;
+            }
+            this.profitAggregator.pushUnit(session.quote, overallProfit);
         }
         return html `
     <div class="session"
         @mousedown="${(e) => this.onSessionElementClick(e, session)}">
-      <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
       <div>
-        <span>${summary.volume} ${session.symbol}</span>
-        <span>/</span>
-        <span class="profit"
-          style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit === 0 ? '' : overallProfit > 0 ? '+' : ''} ${overallProfit}${formatQuote(session.quote)}</span>
+        <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
+        <div class="price">${price}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div style="font-size:14px;margin-bottom:5px;color:#3f51b5">${formatOutputPrice(investment.total, investment.quote)}</div>
+        <!-- <div>${investment.total}</div> -->
+        <div>${outputPriceTemplate(overallProfit, session.quote)}</div>
       </div>
       <mwc-icon-button icon="close"
         @mousedown="${e => e.stopPropagation()}"
@@ -49458,6 +49669,19 @@ let TradesView = class TradesView extends LitElement {
     </div>
     <style>
     </style>
+    `;
+    }
+    aggregationTemplate(aggregator) {
+        return html `
+    <div style="display:flex;align-items:center;justify-content:space-between;background-color:#eeeeee;border:2px solid #e0e0e0;border-top:none;color:white;padding:12px;padding-top:6px;border-radius:0 0 5px 5px;box-shadow:0px 5px 10px -2px #e0e0e0">
+      <div></div>
+      ${aggregator.units.map((agg, i) => {
+            return html `${outputPriceTemplate(agg[1], agg[0])}
+        ${i < aggregator.units.length - 1 ? html `<span> + </span>` : nothing}
+        `;
+        })}
+      <div></div>
+    </div>
     `;
     }
     onSessionElementClick(e, session) {
@@ -49475,8 +49699,8 @@ TradesView.styles = css `
     max-width: 1024px;
     margin: 0 auto;
   }
-  .exchange-frame:not(:last-of-type) {
-    margin-bottom: 24px;
+  .exchange-frame {
+    margin-bottom: 32px;
   }
   .exchange-frame > p:first-of-type {
     margin-left: 12px;
@@ -49497,7 +49721,7 @@ TradesView.styles = css `
   .session:hover {
     background-color: #e4e4e4;
   }
-  .session > .name {
+  .session .name {
     display: flex;
     align-items: center;
     font-size: 16px;
@@ -49505,9 +49729,14 @@ TradesView.styles = css `
     width: 60px;
     text-align: left
   }
-  .session > .name > mwc-icon {
+  .session .name > mwc-icon {
     margin: 0 5px;
     color: #bdbdbd;
+  }
+  .session .price {
+    font-size: 12px;
+    color: grey;
+    margin: 4px 0 0;
   }
   .session > mwc-icon-button {
     --mdc-icon-size: 24px;
@@ -50914,11 +51143,64 @@ let WalletsManager = WalletsManager_1 = class WalletsManager extends LitElement 
         super();
         // @ts-ignore
         this.wallets = WalletsManager_1.generateEmptyWallet();
+        window.walletsManager = this;
+        window.wallets = () => this.wallets;
     }
     static generateEmptyWallet() {
         return Object.fromEntries(Object.keys(ExchangesManager.exchanges).map(name => [name, 0]));
     }
+    render() {
+        return html `
+    <mwc-dialog heading="Funds">
+      <div>
+        <p>How many ${window.spacesManager.space?.currency} do you have in your balance on ${firstLetterUpperCase(this.exchangeName)}?</p>
+        <mwc-textfield id="funds-textfield" outlined type="number" min="0" step="0.01" style="width:100%"
+          .value="${this.wallets[this.exchangeName]}"></mwc-textfield>
+        
+        <p>Do not include the funds that are in the form of trades on the market. Only ${window.spacesManager.space?.currency} in your balance on your exchange.</p>
+      </div>
+
+      <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
+      <mwc-button unelevated slot="primaryAction"
+        @click="${this.onFundsDialogUpdate}">update</mwc-button>
+    </mwc-dialog>
+    `;
+    }
+    walletTemplate(exchangeName) {
+        return html `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background-color:#eeeeee;border:2px solid #e0e0e0;border-bottom:none;padding:11px;padding-bottom:5px;border-radius:5px 5px 0 0;position:relative;z-index:3">
+      <div style="font-weight:500"><span style="font-weight:500">${window.spacesManager.space.currency}</span> : <span style="color:#3f51b5">${formatOutputPrice(this.wallets[exchangeName], window.spacesManager.space.currency)}</span></div>
+      <mwc-icon-button icon="account_balance_wallet" style="--mdc-icon-size:20px;--mdc-icon-button-size: 32px;"
+        @click="${() => this.openWallet(exchangeName)}"></mwc-icon-button>
+    </div>
+    `;
+    }
+    onFundsDialogUpdate() {
+        this.wallets[this.exchangeName] = parseFloat(this.fundsTextfield.value);
+        this.dialog.close();
+        window.tradesInterface.requestUpdate();
+        window.spacesManager.save();
+    }
+    loadWallets(wallets) {
+        this.wallets = wallets;
+    }
+    openWallet(exchangeName) {
+        this.exchangeName = exchangeName;
+        this.dialog.show();
+    }
 };
+__decorate([
+    property()
+], WalletsManager.prototype, "wallets", void 0);
+__decorate([
+    property()
+], WalletsManager.prototype, "exchangeName", void 0);
+__decorate([
+    query('mwc-dialog')
+], WalletsManager.prototype, "dialog", void 0);
+__decorate([
+    query('#funds-textfield')
+], WalletsManager.prototype, "fundsTextfield", void 0);
 WalletsManager = WalletsManager_1 = __decorate([
     customElement('wallets-manager')
 ], WalletsManager);
@@ -50970,7 +51252,8 @@ let SpacesManager = class SpacesManager extends LitElement {
         this.loadSpace(this.getDefaultSpace());
     }
     loadSpace(space) {
-        window.app.tradesInterface.loadSessions(space.sessions);
+        window.tradesInterface.loadSessions(space.sessions);
+        window.walletsManager.loadWallets(space.wallets);
         this.space = space;
         window.app.requestUpdate();
         // console.log(this.toString());
@@ -51017,14 +51300,14 @@ let AppContainer = class AppContainer extends LitElement {
     constructor() {
         super();
         this.spacesManager = new SpacesManager();
-        this.currency = 'EUR';
         window.app = this;
         this.tradesInterface = new TradesInterface();
+        this.walletsManager = new WalletsManager();
     }
     render() {
         return html `
     <header style="margin:7px;display:flex;align-items:center;justify-content:space-between">
-      <img src="./images/candles.png" width="32px" height="32px">
+      <img src="./images/logo.png" width="42px" height="42px">
       <div style="display:flex;align-items:center">
         <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button>
@@ -51033,6 +51316,8 @@ let AppContainer = class AppContainer extends LitElement {
     </header>
 
     ${this.spacesManager}
+
+    ${this.walletsManager}
 
     ${this.tradesInterface}
 
@@ -51077,7 +51362,7 @@ AppContainer.styles = css `
   `;
 __decorate([
     property()
-], AppContainer.prototype, "currency", void 0);
+], AppContainer.prototype, "walletsManager", void 0);
 __decorate([
     query('mwc-snackbar')
 ], AppContainer.prototype, "snackbar", void 0);

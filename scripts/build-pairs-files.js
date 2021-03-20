@@ -4,6 +4,7 @@ const fs = require('fs')
 async function main () {
   buildBinancePairs()
   buildKrakenPairs()
+  buildCoingeckoPairs()
 }
 
 async function buildBinancePairs () {
@@ -37,6 +38,25 @@ async function buildKrakenPairs () {
       })
     )
   )
+}
+
+async function buildCoingeckoPairs () {
+  // first we build the coin list
+  let result = await (await fetch('https://api.coingecko.com/api/v3/coins/list')).json()
+
+  fs.writeFileSync('src/coingecko/coingecko-symbols.json', JSON.stringify(
+    result.map(o => ({
+      id: o.id,
+      s: o.symbol.toUpperCase()
+    }))
+  ))
+
+  // then the quotes
+  result = await (await fetch('https://api.coingecko.com/api/v3/simple/supported_vs_currencies')).json()
+
+  fs.writeFileSync('src/coingecko/coingecko-quotes.json', JSON.stringify(
+    result.map(o => o.toUpperCase())
+  ))
 }
 
 

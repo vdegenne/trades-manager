@@ -2,18 +2,19 @@ import { css, customElement, html, LitElement } from "lit-element";
 import { nothing } from 'lit-html'
 import { Trade, TradeManager, TradeSession } from "./trades";
 import { TradesInterface } from "./trades-interface";
-import { firstLetterUpperCase, formatQuote, round } from "./util";
+import { firstLetterUpperCase, formatOutputPrice, formatQuote, outputPriceTemplate, round } from "./util";
 import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
-import { ExchangesManager } from "./ExchangesManager";
-import { ProfitAggregator, Aggregator } from "./profit-aggregator";
+import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
+import { Aggregator } from "./profit-aggregator";
 
 
 @customElement('trades-view')
 export class TradesView extends LitElement {
   private interface: TradesInterface;
 
-  private aggregator!: ProfitAggregator;
+  private profitAggregator!: Aggregator;
+  private investmentAggregator!: Aggregator;
 
   constructor(tradesInterface: TradesInterface) {
     super()
@@ -26,8 +27,8 @@ export class TradesView extends LitElement {
     max-width: 1024px;
     margin: 0 auto;
   }
-  .exchange-frame:not(:last-of-type) {
-    margin-bottom: 24px;
+  .exchange-frame {
+    margin-bottom: 32px;
   }
   .exchange-frame > p:first-of-type {
     margin-left: 12px;
@@ -48,7 +49,7 @@ export class TradesView extends LitElement {
   .session:hover {
     background-color: #e4e4e4;
   }
-  .session > .name {
+  .session .name {
     display: flex;
     align-items: center;
     font-size: 16px;
@@ -56,9 +57,14 @@ export class TradesView extends LitElement {
     width: 60px;
     text-align: left
   }
-  .session > .name > mwc-icon {
+  .session .name > mwc-icon {
     margin: 0 5px;
     color: #bdbdbd;
+  }
+  .session .price {
+    font-size: 12px;
+    color: grey;
+    margin: 4px 0 0;
   }
   .session > mwc-icon-button {
     --mdc-icon-size: 24px;
@@ -67,13 +73,14 @@ export class TradesView extends LitElement {
   `
 
   render () {
-    this.aggregator = new ProfitAggregator()
-
     return html`
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
       const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange)
 
-      if (sessions.length === 0) return nothing
+      this.profitAggregator = new Aggregator(exchange as AvailableExchanges)
+      this.investmentAggregator = new Aggregator(exchange as AvailableExchanges)
+
+      // if (sessions.length === 0) return nothing
 
       return html`
       <div class="exchange-frame">
@@ -81,33 +88,50 @@ export class TradesView extends LitElement {
         ${sessions.map(session => {
           return this.sessionTemplate(session)
         })}
+
+        ${window.walletsManager.walletTemplate(exchange)}
+
+        ${(() => {
+          this.profitAggregator.resolveQuotes(window.spacesManager.space.currency)
+          return this.aggregationTemplate(this.profitAggregator)
+        })()}
       </div>
       `
     })}
 
-    ${(() => console.log(this.aggregator))()}
     `
   }
 
   sessionTemplate (session: TradeSession) {
     const summary = this.interface.tradesManager.getSummarizedSessionTrades(session)
     let activeProfit, overallProfit;
+    const investment = { total: summary.investment, quote: session.quote };
     const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote)
     if (price) {
       activeProfit = price * summary.volume;
-      overallProfit = round(summary.profit + activeProfit, 5)
-      this.aggregator.pushUnit(session.exchange, session.quote, overallProfit)
+      overallProfit = summary.profit + activeProfit
+      const investmentConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange)
+      if (investmentConversion.price && investmentConversion.quote === window.spacesManager.space.currency) {
+        investment.total *= investmentConversion.price;
+        investment.quote = investmentConversion.quote;
+      }
+      else {
+        // @todo implement or else we should check if the quote is convertible from currency conversion
+      }
+      this.profitAggregator.pushUnit(session.quote, overallProfit)
     }
 
     return html`
     <div class="session"
         @mousedown="${(e) => this.onSessionElementClick(e, session)}">
-      <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
       <div>
-        <span>${summary.volume} ${session.symbol}</span>
-        <span>/</span>
-        <span class="profit"
-          style="font-weight:500;color:${overallProfit === 0 ? 'initial' : (overallProfit > 0 ? 'green' : 'red')}">${overallProfit === 0 ? '' : overallProfit > 0 ? '+' : ''} ${overallProfit}${formatQuote(session.quote)}</span>
+        <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
+        <div class="price">${price}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div style="font-size:14px;margin-bottom:5px;color:#3f51b5">${formatOutputPrice(investment.total, investment.quote)}</div>
+        <!-- <div>${investment.total}</div> -->
+        <div>${outputPriceTemplate(overallProfit, session.quote)}</div>
       </div>
       <mwc-icon-button icon="close"
         @mousedown="${e => e.stopPropagation()}"
@@ -115,6 +139,20 @@ export class TradesView extends LitElement {
     </div>
     <style>
     </style>
+    `
+  }
+
+  aggregationTemplate (aggregator: Aggregator) {
+    return html`
+    <div style="display:flex;align-items:center;justify-content:space-between;background-color:#eeeeee;border:2px solid #e0e0e0;border-top:none;color:white;padding:12px;padding-top:6px;border-radius:0 0 5px 5px;box-shadow:0px 5px 10px -2px #e0e0e0">
+      <div></div>
+      ${aggregator.units.map((agg, i) => {
+        return html`${outputPriceTemplate(agg[1], agg[0])}
+        ${i < aggregator.units.length - 1 ? html`<span> + </span>` : nothing }
+        `
+      })}
+      <div></div>
+    </div>
     `
   }
 
