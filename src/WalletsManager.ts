@@ -2,10 +2,12 @@ import { Dialog } from "@material/mwc-dialog";
 import { TextField } from "@material/mwc-textfield";
 import { customElement, html, LitElement, property, query } from "lit-element";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
-import { firstLetterUpperCase, formatOutputPrice } from "./util";
+import { Aggregator, AggregatorUnit } from "./profit-aggregator";
+import { WalletsData } from "./SpacesManager";
+import { firstLetterUpperCase, formatOutputAggregation, formatOutputPrice } from "./util";
 
 export type Wallets = {
-  [key in AvailableExchanges]: number
+  [key in AvailableExchanges]: Aggregator
 }
 
 declare global {
@@ -37,7 +39,7 @@ export class WalletsManager extends LitElement {
   }
 
   static generateEmptyWallet () {
-    return Object.fromEntries(Object.keys(ExchangesManager.exchanges).map(name => [name, 0])) as Wallets;
+    return Object.fromEntries(Object.keys(ExchangesManager.exchanges).map(name => [name, new Aggregator(name as AvailableExchanges)])) as Wallets;
   }
 
   render () {
@@ -61,11 +63,20 @@ export class WalletsManager extends LitElement {
   walletTemplate (exchangeName: string) {
     return html`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
-      <div style="font-weight:500"><span style="font-weight:500">${window.spacesManager.space.currency}</span> : <span style="color:#3f51b5">${formatOutputPrice(this.wallets[exchangeName], window.spacesManager.space.currency)}</span></div>
-      <mwc-icon-button icon="account_balance_wallet" style="--mdc-icon-size:20px;--mdc-icon-button-size: 32px;"
-        @click="${() => this.openWallet(exchangeName)}"></mwc-icon-button>
+      <div style="font-weight:500">
+        <span style="font-weight:500">Wallet :</span>
+        <span style="color:#3f51b5">${formatOutputAggregation(this.wallets[exchangeName])}</span>
+      </div>
+      <!-- <mwc-icon-button icon="account_balance_wallet" style="--mdc-icon-size:20px;--mdc-icon-button-size: 32px;"
+        @click="${() => this.openWallet(exchangeName)}"></mwc-icon-button> -->
     </div>
     `
+  }
+
+  loadWallets (wallets: WalletsData) {
+    this.wallets = Object.fromEntries(Object.entries(wallets).map(([exchangeName, units]) => {
+      return [exchangeName as AvailableExchanges, new Aggregator(exchangeName as AvailableExchanges, units)]
+    })) as Wallets
   }
 
   private onFundsDialogUpdate () {
@@ -73,10 +84,6 @@ export class WalletsManager extends LitElement {
     this.dialog.close()
     window.tradesInterface.requestUpdate()
     window.spacesManager.save()
-  }
-
-  loadWallets (wallets: Wallets) {
-    this.wallets = wallets;
   }
 
   openWallet (exchangeName: string) {

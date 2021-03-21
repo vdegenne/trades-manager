@@ -7,6 +7,7 @@ import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { Aggregator } from "./profit-aggregator";
+import { WalletsManager } from "./WalletsManager";
 
 
 @customElement('trades-view')
@@ -15,6 +16,8 @@ export class TradesView extends LitElement {
 
   private profitAggregator!: Aggregator;
   private totalValueAggregator!: Aggregator;
+  // @temporary
+  private walletAggregator?: Aggregator;
 
   constructor(tradesInterface: TradesInterface) {
     super()
@@ -77,9 +80,15 @@ export class TradesView extends LitElement {
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
       const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange)
 
-      this.profitAggregator = new Aggregator(exchange as AvailableExchanges)
-      this.totalValueAggregator = new Aggregator(exchange as AvailableExchanges)
-      this.totalValueAggregator.pushUnit(window.spacesManager.space.currency, window.walletsManager.wallets[exchange])
+      this.profitAggregator = new Aggregator(exchange)
+      this.totalValueAggregator = new Aggregator(exchange)
+      // this.totalValueAggregator.pushUnit(window.spacesManager.space.currency, window.walletsManager.wallets[exchange])
+
+      // @temporary
+      this.walletAggregator = undefined
+      if (window.walletsManager.wallets[exchange].isEmpty() && sessions.length) {
+        this.walletAggregator = new Aggregator(exchange)
+      }
 
       // if (sessions.length === 0) return nothing
 
@@ -96,15 +105,22 @@ export class TradesView extends LitElement {
         ${window.walletsManager.walletTemplate(exchange)}
 
         ${(() => {
+          // @temporary
+          if (this.walletAggregator) {
+            // window.spacesManager.save()
+            console.log(JSON.stringify(this.walletAggregator.units))
+          }
           this.profitAggregator.resolveQuotes(window.spacesManager.space.currency)
           this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency)
+
           return html`
           <div style="display:flex;align-items:center;justify-content:space-between;background-color:#fff176;padding:12px;border-radius:5px">
             <div>
               <span>Total : </span><span style="color:#3f51b5">${formatOutputAggregation(this.totalValueAggregator)}</span>
             </div>
+            <div>
             ${aggregationTemplate(this.profitAggregator)}
-            <div></div>
+            </div>
           </div>
           `
         })()}
@@ -140,6 +156,12 @@ export class TradesView extends LitElement {
       this.totalValueAggregator.pushUnit(totalObject.quote, totalObject.value)
     }
 
+    // @temporary
+    // we update the wallet for old version
+    if (this.walletAggregator) {
+      window.walletsManager.wallets[session.exchange].pushUnit(session.symbol, summary.volume)
+    }
+
     return html`
     <div class="session"
         @mousedown="${(e) => this.onSessionElementClick(e, session)}">
@@ -172,5 +194,9 @@ export class TradesView extends LitElement {
     else {
       this.interface.sessionsInterface.openSession(session)
     }
+  }
+
+  private updateWalletIfNecessary () {
+
   }
 }

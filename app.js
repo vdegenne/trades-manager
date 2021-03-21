@@ -49574,8 +49574,8 @@ ExchangesManager.exchanges = {
 window.exchangesManager = ExchangesManager;
 
 class Aggregator {
-    constructor(exchangeName) {
-        this.units = [];
+    constructor(exchangeName, units) {
+        this.units = units || [];
         this.exchangeName = exchangeName;
     }
     pushUnit(quote, value) {
@@ -49619,6 +49619,16 @@ class Aggregator {
         }
         this.units = reduceds;
     }
+    isEmpty() {
+        return !this.units.length;
+    }
+    clone() {
+        const cloned = [];
+        for (const unit of this.units) {
+            cloned.push([unit[0], unit[1]]);
+        }
+        return new Aggregator(this.exchangeName, cloned);
+    }
 }
 
 let TradesView = class TradesView extends LitElement {
@@ -49632,7 +49642,12 @@ let TradesView = class TradesView extends LitElement {
             const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange);
             this.profitAggregator = new Aggregator(exchange);
             this.totalValueAggregator = new Aggregator(exchange);
-            this.totalValueAggregator.pushUnit(window.spacesManager.space.currency, window.walletsManager.wallets[exchange]);
+            // this.totalValueAggregator.pushUnit(window.spacesManager.space.currency, window.walletsManager.wallets[exchange])
+            // @temporary
+            this.walletAggregator = undefined;
+            if (window.walletsManager.wallets[exchange].isEmpty() && sessions.length) {
+                this.walletAggregator = new Aggregator(exchange);
+            }
             // if (sessions.length === 0) return nothing
             return html `
       <div class="exchange-frame">
@@ -49647,6 +49662,11 @@ let TradesView = class TradesView extends LitElement {
         ${window.walletsManager.walletTemplate(exchange)}
 
         ${(() => {
+                // @temporary
+                if (this.walletAggregator) {
+                    // window.spacesManager.save()
+                    console.log(JSON.stringify(this.walletAggregator.units));
+                }
                 this.profitAggregator.resolveQuotes(window.spacesManager.space.currency);
                 this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency);
                 return html `
@@ -49654,8 +49674,9 @@ let TradesView = class TradesView extends LitElement {
             <div>
               <span>Total : </span><span style="color:#3f51b5">${formatOutputAggregation(this.totalValueAggregator)}</span>
             </div>
+            <div>
             ${aggregationTemplate(this.profitAggregator)}
-            <div></div>
+            </div>
           </div>
           `;
             })()}
@@ -49684,6 +49705,11 @@ let TradesView = class TradesView extends LitElement {
             this.profitAggregator.pushUnit(session.quote, profit);
             const totalObject = totalConverted || total;
             this.totalValueAggregator.pushUnit(totalObject.quote, totalObject.value);
+        }
+        // @temporary
+        // we update the wallet for old version
+        if (this.walletAggregator) {
+            window.walletsManager.wallets[session.exchange].pushUnit(session.symbol, summary.volume);
         }
         return html `
     <div class="session"
@@ -49716,6 +49742,8 @@ let TradesView = class TradesView extends LitElement {
         else {
             this.interface.sessionsInterface.openSession(session);
         }
+    }
+    updateWalletIfNecessary() {
     }
 };
 TradesView.styles = css `
@@ -51385,74 +51413,6 @@ ConfirmDialog = __decorate([
     customElement('confirm-dialog')
 ], ConfirmDialog);
 
-var WalletsManager_1;
-let WalletsManager = WalletsManager_1 = class WalletsManager extends LitElement {
-    constructor() {
-        super();
-        // @ts-ignore
-        this.wallets = WalletsManager_1.generateEmptyWallet();
-        window.walletsManager = this;
-        window.wallets = () => this.wallets;
-    }
-    static generateEmptyWallet() {
-        return Object.fromEntries(Object.keys(ExchangesManager.exchanges).map(name => [name, 0]));
-    }
-    render() {
-        return html `
-    <mwc-dialog heading="Funds">
-      <div>
-        <p>How many ${window.spacesManager.space?.currency} do you have in your balance on ${firstLetterUpperCase(this.exchangeName)}?</p>
-        <mwc-textfield id="funds-textfield" outlined type="number" min="0" step="0.01" style="width:100%"
-          .value="${this.wallets[this.exchangeName]}"></mwc-textfield>
-        
-        <p>Do not include the funds that are in the form of trades on the market. Only ${window.spacesManager.space?.currency} in your balance on your exchange.</p>
-      </div>
-
-      <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
-      <mwc-button unelevated slot="primaryAction"
-        @click="${this.onFundsDialogUpdate}">update</mwc-button>
-    </mwc-dialog>
-    `;
-    }
-    walletTemplate(exchangeName) {
-        return html `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
-      <div style="font-weight:500"><span style="font-weight:500">${window.spacesManager.space.currency}</span> : <span style="color:#3f51b5">${formatOutputPrice(this.wallets[exchangeName], window.spacesManager.space.currency)}</span></div>
-      <mwc-icon-button icon="account_balance_wallet" style="--mdc-icon-size:20px;--mdc-icon-button-size: 32px;"
-        @click="${() => this.openWallet(exchangeName)}"></mwc-icon-button>
-    </div>
-    `;
-    }
-    onFundsDialogUpdate() {
-        this.wallets[this.exchangeName] = parseFloat(this.fundsTextfield.value);
-        this.dialog.close();
-        window.tradesInterface.requestUpdate();
-        window.spacesManager.save();
-    }
-    loadWallets(wallets) {
-        this.wallets = wallets;
-    }
-    openWallet(exchangeName) {
-        this.exchangeName = exchangeName;
-        this.dialog.show();
-    }
-};
-__decorate([
-    property()
-], WalletsManager.prototype, "wallets", void 0);
-__decorate([
-    property()
-], WalletsManager.prototype, "exchangeName", void 0);
-__decorate([
-    query('mwc-dialog')
-], WalletsManager.prototype, "dialog", void 0);
-__decorate([
-    query('#funds-textfield')
-], WalletsManager.prototype, "fundsTextfield", void 0);
-WalletsManager = WalletsManager_1 = __decorate([
-    customElement('wallets-manager')
-], WalletsManager);
-
 let SpacesManager = class SpacesManager extends LitElement {
     constructor() {
         super();
@@ -51493,6 +51453,14 @@ let SpacesManager = class SpacesManager extends LitElement {
             }
         }
         else {
+            // we make sure we convert the wallet value to the new wallet version
+            spaces.forEach((space) => {
+                for (const wallet of Object.keys(space.wallets)) {
+                    if (!(space.wallets[wallet] instanceof Array)) {
+                        space.wallets[wallet] = [];
+                    }
+                }
+            });
             this.spaces = spaces;
         }
         // we should load the space indentified in the url or default
@@ -51507,14 +51475,16 @@ let SpacesManager = class SpacesManager extends LitElement {
         // console.log(this.toString());
     }
     async createDefaultSpace(sessions) {
-        console.log(sessions);
         const currency = await this.askCurrency();
         this.currencyDialog.close();
         this.spaces.push({
             name: 'default',
             sessions: sessions || [],
             currency,
-            wallets: WalletsManager.generateEmptyWallet()
+            // @ts-ignore
+            wallets: Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((exchangeName) => {
+                return [exchangeName, []];
+            }))
         });
     }
     getDefaultSpace() {
@@ -51542,6 +51512,79 @@ __decorate([
 SpacesManager = __decorate([
     customElement('spaces-manager')
 ], SpacesManager);
+
+var WalletsManager_1;
+let WalletsManager = WalletsManager_1 = class WalletsManager extends LitElement {
+    constructor() {
+        super();
+        // @ts-ignore
+        this.wallets = WalletsManager_1.generateEmptyWallet();
+        window.walletsManager = this;
+        window.wallets = () => this.wallets;
+    }
+    static generateEmptyWallet() {
+        return Object.fromEntries(Object.keys(ExchangesManager.exchanges).map(name => [name, new Aggregator(name)]));
+    }
+    render() {
+        return html `
+    <mwc-dialog heading="Funds">
+      <div>
+        <p>How many ${window.spacesManager.space?.currency} do you have in your balance on ${firstLetterUpperCase(this.exchangeName)}?</p>
+        <mwc-textfield id="funds-textfield" outlined type="number" min="0" step="0.01" style="width:100%"
+          .value="${this.wallets[this.exchangeName]}"></mwc-textfield>
+        
+        <p>Do not include the funds that are in the form of trades on the market. Only ${window.spacesManager.space?.currency} in your balance on your exchange.</p>
+      </div>
+
+      <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
+      <mwc-button unelevated slot="primaryAction"
+        @click="${this.onFundsDialogUpdate}">update</mwc-button>
+    </mwc-dialog>
+    `;
+    }
+    walletTemplate(exchangeName) {
+        return html `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
+      <div style="font-weight:500">
+        <span style="font-weight:500">Wallet :</span>
+        <span style="color:#3f51b5">${formatOutputAggregation(this.wallets[exchangeName])}</span>
+      </div>
+      <!-- <mwc-icon-button icon="account_balance_wallet" style="--mdc-icon-size:20px;--mdc-icon-button-size: 32px;"
+        @click="${() => this.openWallet(exchangeName)}"></mwc-icon-button> -->
+    </div>
+    `;
+    }
+    loadWallets(wallets) {
+        this.wallets = Object.fromEntries(Object.entries(wallets).map(([exchangeName, units]) => {
+            return [exchangeName, new Aggregator(exchangeName, units)];
+        }));
+    }
+    onFundsDialogUpdate() {
+        this.wallets[this.exchangeName] = parseFloat(this.fundsTextfield.value);
+        this.dialog.close();
+        window.tradesInterface.requestUpdate();
+        window.spacesManager.save();
+    }
+    openWallet(exchangeName) {
+        this.exchangeName = exchangeName;
+        this.dialog.show();
+    }
+};
+__decorate([
+    property()
+], WalletsManager.prototype, "wallets", void 0);
+__decorate([
+    property()
+], WalletsManager.prototype, "exchangeName", void 0);
+__decorate([
+    query('mwc-dialog')
+], WalletsManager.prototype, "dialog", void 0);
+__decorate([
+    query('#funds-textfield')
+], WalletsManager.prototype, "fundsTextfield", void 0);
+WalletsManager = WalletsManager_1 = __decorate([
+    customElement('wallets-manager')
+], WalletsManager);
 
 let TextDialog = class TextDialog extends LitElement {
     render() {
@@ -51574,6 +51617,34 @@ TextDialog = __decorate([
     customElement('text-dialog')
 ], TextDialog);
 
+let TCodeInterface = class TCodeInterface extends LitElement {
+    render() {
+        return html `
+    <mwc-dialog heading="T-Code">
+      <div>
+        <mwc-textfield type="text"
+          @keyup="${(e) => this.tcode = e.target.value}"></mwc-textfield>
+      </div>
+
+      <mwc-button unelevated slot="primaryAction"
+        ?disabled="${!this.tcode}"
+        @click="${(e) => this.submit()}">submit</mwc-button>
+      <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
+    </mwc-dialog>
+    `;
+    }
+    submit() {
+    }
+    resolveTCode() {
+    }
+};
+__decorate([
+    property()
+], TCodeInterface.prototype, "tcode", void 0);
+TCodeInterface = __decorate([
+    customElement('t-code-interface')
+], TCodeInterface);
+
 const Currencies = ['EUR', 'USD'];
 let AppContainer = class AppContainer extends LitElement {
     constructor() {
@@ -51581,6 +51652,7 @@ let AppContainer = class AppContainer extends LitElement {
         this.spacesManager = new SpacesManager();
         window.app = this;
         this.tradesInterface = new TradesInterface();
+        this.tCodeInterface = new TCodeInterface();
         this.walletsManager = new WalletsManager();
     }
     render() {
@@ -51600,15 +51672,12 @@ let AppContainer = class AppContainer extends LitElement {
 
     ${this.tradesInterface}
 
+    ${this.tCodeInterface}
+
     <mwc-dialog heading="Options">
       <div style="width:800px"></div>
       <div class="dialog-content">
         <p>Preferred currency</p>
-        <mwc-select id="currency" style="width:100%"
-            @change="${e => this.currency = e.target.value}">
-          ${Currencies.map(currency => html `
-          <mwc-list-item value="${currency}" ?selected="${currency === this.currency}">${currency}</mwc-list-item>`)}
-        </mwc-select>
 
         <p></p>
         <mwc-formfield label="Convert quotes in sessions also">

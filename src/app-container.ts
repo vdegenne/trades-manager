@@ -15,6 +15,8 @@ import { SpacesManager } from './SpacesManager';
 import { Wallets, WalletsManager } from './WalletsManager';
 import {TextDialog} from './text-dialog'
 import './text-dialog'
+import { TCodeInterface } from "./t-code-interface";
+import './t-code-interface'
 
 declare global {
   interface Window {
@@ -31,6 +33,7 @@ class AppContainer extends LitElement {
   public spacesManager: SpacesManager = new SpacesManager();
 
   public tradesInterface: TradesInterface;
+  private tCodeInterface: TCodeInterface;
 
   @property()
   private walletsManager: WalletsManager;
@@ -45,6 +48,7 @@ class AppContainer extends LitElement {
     window.app = this
 
     this.tradesInterface = new TradesInterface()
+    this.tCodeInterface = new TCodeInterface()
 
     this.walletsManager = new WalletsManager()
   }
@@ -80,15 +84,12 @@ class AppContainer extends LitElement {
 
     ${this.tradesInterface}
 
+    ${this.tCodeInterface}
+
     <mwc-dialog heading="Options">
       <div style="width:800px"></div>
       <div class="dialog-content">
         <p>Preferred currency</p>
-        <mwc-select id="currency" style="width:100%"
-            @change="${e => this.currency = e.target.value}">
-          ${Currencies.map(currency => html`
-          <mwc-list-item value="${currency}" ?selected="${currency === this.currency}">${currency}</mwc-list-item>`)}
-        </mwc-select>
 
         <p></p>
         <mwc-formfield label="Convert quotes in sessions also">

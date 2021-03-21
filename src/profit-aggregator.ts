@@ -8,8 +8,8 @@ export class Aggregator {
   public units: AggregatorUnit[];
   private exchangeName: AvailableExchanges;
 
-  constructor(exchangeName: AvailableExchanges) {
-    this.units = []
+  constructor(exchangeName: AvailableExchanges, units?: AggregatorUnit[]) {
+    this.units = units || []
     this.exchangeName = exchangeName;
   }
 
@@ -58,5 +58,17 @@ export class Aggregator {
       }
     }
     this.units = reduceds
+  }
+
+  isEmpty () {
+    return !this.units.length
+  }
+  
+  clone () {
+    const cloned: AggregatorUnit[] = []
+    for (const unit of this.units) {
+      cloned.push([unit[0], unit[1]])
+    }
+    return new Aggregator(this.exchangeName, cloned)
   }
 }

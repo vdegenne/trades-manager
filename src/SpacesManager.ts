@@ -1,7 +1,8 @@
 import { Dialog } from "@material/mwc-dialog";
 import { customElement, html, LitElement, property, query } from "lit-element";
 import { Currencies, Currency } from "./app-container";
-import { ExchangesManager } from "./ExchangesManager";
+import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
+import { Aggregator, AggregatorUnit } from "./profit-aggregator";
 import { TradeSession } from "./trades";
 import { Wallets, WalletsManager } from "./WalletsManager";
 
@@ -9,8 +10,12 @@ export type Space = {
   name: string;
   currency: Currency;
   sessions: TradeSession[];
-  wallets: Wallets;
+  wallets: WalletsData
 }
+
+export type WalletsData = {
+  [key in AvailableExchanges]: AggregatorUnit[]
+} 
 
 declare global {
   interface Window {
@@ -73,6 +78,14 @@ export class SpacesManager extends LitElement {
       }
     }
     else {
+      // we make sure we convert the wallet value to the new wallet version
+      spaces.forEach((space: Space) => {
+        for (const wallet of Object.keys(space.wallets)) {
+          if (!(space.wallets[wallet] instanceof Array)) {
+            space.wallets[wallet] = []
+          }
+        }
+      })
       this.spaces = spaces
     }
 
@@ -83,6 +96,7 @@ export class SpacesManager extends LitElement {
 
   loadSpace (space: Space) {
     window.tradesInterface.loadSessions(space.sessions)
+
     window.walletsManager.loadWallets(space.wallets)
 
     this.space = space;
@@ -92,14 +106,16 @@ export class SpacesManager extends LitElement {
 
 
   private async createDefaultSpace (sessions?: TradeSession[]) {
-    console.log(sessions);
     const currency = await this.askCurrency()
     this.currencyDialog.close()
     this.spaces.push({
       name: 'default',
       sessions: sessions || [],
       currency,
-      wallets: WalletsManager.generateEmptyWallet()
+      // @ts-ignore
+      wallets: Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((exchangeName) => {
+        return [exchangeName, []]
+      }))
     })
   }
 
