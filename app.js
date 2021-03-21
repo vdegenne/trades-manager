@@ -6498,20 +6498,17 @@ class TradeManager {
 function summarizeSessionTrades(session) {
     return session.trades.reduce((acc, trade) => {
         if (trade.type === 'buy') {
-            acc.profit -= trade.price * trade.volume;
+            acc.invested += trade.price * trade.volume;
             acc.volume += trade.volume;
-            acc.investment += trade.volume * trade.price;
         }
         else {
-            acc.profit += trade.price * trade.volume;
+            acc.invested -= trade.price * trade.volume;
             acc.volume -= trade.volume;
-            acc.investment -= trade.volume * trade.price;
         }
         return acc;
     }, {
-        profit: 0,
-        volume: 0,
-        investment: 0
+        invested: 0,
+        volume: 0
     });
 }
 // export function reduceTrades(trades: Trades) {
@@ -15946,6 +15943,25 @@ function outputPriceTemplate(value, quote) {
   <span style="color:${value === 0 ? 'initial' : value > 0 ? 'green' : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
   `;
 }
+function openVirtualInfoDialog() {
+    window.textDialog.open('Virtual', html `
+  <p>When Using Virtual</p>
+  `);
+}
+function formatOutputAggregation(aggregator) {
+    return aggregator.units.map(agg => formatOutputPrice(agg[1], agg[0], false)).join(' + ');
+}
+function aggregationTemplate(aggregator) {
+    return html `
+  <div>
+  ${aggregator.units.map((agg, i) => {
+        return html `${outputPriceTemplate(agg[1], agg[0])}
+    ${i < aggregator.units.length - 1 ? html `<span> + </span>` : nothing}
+    `;
+    })}
+  </div>
+  `;
+}
 
 /** @soyCompatible */
 class IconButtonBase extends LitElement {
@@ -16299,9 +16315,9 @@ class PairsManager {
                 quote
             });
         }
-        if (updatePairs) {
-            await this.updatePairs();
-        }
+        // if (updatePairs) {
+        //   await this.updatePairs()
+        // }
         return true;
     }
     async updatePairs() {
@@ -49459,7 +49475,7 @@ class CoingeckoPairsManager extends PairsManager {
         super.updateFunction();
     }
     getAvailableSymbols() {
-        return coingeckoSymbols.map(s => s.s);
+        return [...new Set(coingeckoSymbols.map(s => s.s))];
     }
     getAvailableQuotesFromSymbol(symbol) {
         return coingeckoQuotes;
@@ -49562,14 +49578,14 @@ class Aggregator {
         this.units = [];
         this.exchangeName = exchangeName;
     }
-    pushUnit(quote, profit) {
+    pushUnit(quote, value) {
         // we should push the profit in the existing quote
         const unit = this.units.find(unit => unit[0] === quote);
         if (unit) {
-            unit[1] += profit;
+            unit[1] += value;
             return;
         }
-        this.units.push([quote, profit]);
+        this.units.push([quote, value]);
     }
     resolveQuotes(currency) {
         for (const unit of this.units) {
@@ -49615,20 +49631,33 @@ let TradesView = class TradesView extends LitElement {
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
             const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange);
             this.profitAggregator = new Aggregator(exchange);
-            this.investmentAggregator = new Aggregator(exchange);
+            this.totalValueAggregator = new Aggregator(exchange);
+            this.totalValueAggregator.pushUnit(window.spacesManager.space.currency, window.walletsManager.wallets[exchange]);
             // if (sessions.length === 0) return nothing
             return html `
       <div class="exchange-frame">
-        <p>${firstLetterUpperCase(exchange)}</p>
-        ${sessions.map(session => {
-                return this.sessionTemplate(session);
-            })}
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <mwc-button unelevated dense>${firstLetterUpperCase(exchange)}</mwc-button>
+          <mwc-button outlined icon="add" dense
+            @click="${() => window.sessionInterface.createDialog.open(exchange)}">add pair</mwc-button>
+        </div>
+
+        ${sessions.map(session => this.sessionTemplate(session))}
 
         ${window.walletsManager.walletTemplate(exchange)}
 
         ${(() => {
                 this.profitAggregator.resolveQuotes(window.spacesManager.space.currency);
-                return this.aggregationTemplate(this.profitAggregator);
+                this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency);
+                return html `
+          <div style="display:flex;align-items:center;justify-content:space-between;background-color:#fff176;padding:12px;border-radius:5px">
+            <div>
+              <span>Total : </span><span style="color:#3f51b5">${formatOutputAggregation(this.totalValueAggregator)}</span>
+            </div>
+            ${aggregationTemplate(this.profitAggregator)}
+            <div></div>
+          </div>
+          `;
             })()}
       </div>
       `;
@@ -49636,20 +49665,25 @@ let TradesView = class TradesView extends LitElement {
 
     `;
     }
-    sessionTemplate(session) {
+    sessionTemplate(session, outsideTemplate = false) {
         const summary = this.interface.tradesManager.getSummarizedSessionTrades(session);
-        let activeProfit, overallProfit;
-        const investment = { total: summary.investment, quote: session.quote };
+        let profit;
+        const total = { value: 0, quote: session.quote };
+        let totalConverted = undefined;
         const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote);
         if (price) {
-            activeProfit = price * summary.volume;
-            overallProfit = summary.profit + activeProfit;
-            const investmentConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange);
-            if (investmentConversion.price && investmentConversion.quote === window.spacesManager.space.currency) {
-                investment.total *= investmentConversion.price;
-                investment.quote = investmentConversion.quote;
+            total.value = price * summary.volume;
+            profit = total.value - summary.invested;
+            const totalValueConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange);
+            if (totalValueConversion.price && totalValueConversion.quote === window.spacesManager.space.currency) {
+                totalConverted = {
+                    value: total.value * totalValueConversion.price,
+                    quote: totalValueConversion.quote
+                };
             }
-            this.profitAggregator.pushUnit(session.quote, overallProfit);
+            this.profitAggregator.pushUnit(session.quote, profit);
+            const totalObject = totalConverted || total;
+            this.totalValueAggregator.pushUnit(totalObject.quote, totalObject.value);
         }
         return html `
     <div class="session"
@@ -49659,9 +49693,13 @@ let TradesView = class TradesView extends LitElement {
         <div class="price">${price}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center">
-        <div style="font-size:14px;margin-bottom:5px;color:#3f51b5">${formatOutputPrice(investment.total, investment.quote)}</div>
-        <!-- <div>${investment.total}</div> -->
-        <div>${outputPriceTemplate(overallProfit, session.quote)}</div>
+        <div style="margin-bottom:5px">${outputPriceTemplate(profit, session.quote)}</div>
+        <div style="font-size:14px;color:#3f51b5">
+          <span>${formatOutputPrice(total.value, total.quote)}</span>
+          ${total.quote !== window.spacesManager.space.currency && totalConverted !== undefined ? html `
+          <span>(${formatOutputPrice(totalConverted.value, totalConverted.quote)})</span>
+          ` : nothing}
+        </div>
       </div>
       <mwc-icon-button icon="close"
         @mousedown="${e => e.stopPropagation()}"
@@ -49671,25 +49709,12 @@ let TradesView = class TradesView extends LitElement {
     </style>
     `;
     }
-    aggregationTemplate(aggregator) {
-        return html `
-    <div style="display:flex;align-items:center;justify-content:space-between;background-color:#eeeeee;border:2px solid #e0e0e0;border-top:none;color:white;padding:12px;padding-top:6px;border-radius:0 0 5px 5px;box-shadow:0px 5px 10px -2px #e0e0e0">
-      <div></div>
-      ${aggregator.units.map((agg, i) => {
-            return html `${outputPriceTemplate(agg[1], agg[0])}
-        ${i < aggregator.units.length - 1 ? html `<span> + </span>` : nothing}
-        `;
-        })}
-      <div></div>
-    </div>
-    `;
-    }
     onSessionElementClick(e, session) {
         if (e.button === 2) {
             openCryptowatchLink(session);
         }
         else {
-            this.interface.sessionsInterface.open(session);
+            this.interface.sessionsInterface.openSession(session);
         }
     }
 };
@@ -49700,7 +49725,7 @@ TradesView.styles = css `
     margin: 0 auto;
   }
   .exchange-frame {
-    margin-bottom: 32px;
+    margin-bottom: 62px;
   }
   .exchange-frame > p:first-of-type {
     margin-left: 12px;
@@ -49747,6 +49772,236 @@ TradesView = __decorate([
     customElement('trades-view')
 ], TradesView);
 
+let SessionCreateDialog = class SessionCreateDialog extends LitElement {
+    render() {
+        let symbols, quotes;
+        if (this.exchange) {
+            symbols = sortAlphabetically(ExchangesManager.getAvailableSymbols(this.exchange));
+            if (this.symbol) {
+                quotes = sortAlphabetically(ExchangesManager.getAvailableQuotesFromSymbol(this.exchange, this.symbol));
+            }
+        }
+        return html `
+    <mwc-dialog heading="Create Session on ${firstLetterUpperCase(this.exchange)}"
+        @opened="${this.fixOverflow}">
+      <div style="width:400px"></div>
+      <div>
+        <div style="display:flex;align-items:center">
+          <mwc-formfield label="virtual">
+            <mwc-checkbox name="virtual"></mwc-checkbox>
+          </mwc-formfield>
+          <mwc-icon style="cursor:pointer;--mdc-icon-size:18px;margin-left:6px" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
+        </div>
+
+        <p>Symbol</p>
+        ${this.exchange !== 'others'
+            ? html `
+          <mwc-select outlined name="symbol"
+              value="${ifDefined(this.symbol)}"
+              @change="${this.onSymbolSelectChange}">
+            <mwc-list-item></mwc-list-item>
+            ${symbols ? symbols.map(symbol => {
+                return html `<mwc-list-item value="${symbol}">${symbol}</mwc-list-item>`;
+            }) : nothing}
+          </mwc-select>
+        `
+            : html `
+          <select name="symbol"
+              value="${ifDefined(this.symbol)}"
+              @change="${this.onSymbolSelectChange}">
+            <option></option>
+            ${symbols ? symbols.map(symbol => {
+                return html `<option value="${symbol}">${symbol}</option>`;
+            }) : nothing}
+          </select>
+        `}
+
+        <p>Quote</p>
+        <mwc-select outlined name="quote"
+            value="${ifDefined(this.quote)}"
+            ?disabled="${this.exchange !== undefined && !this.symbol}"
+            @change="${(e) => this.quote = e.target.value}">
+          <mwc-list-item></mwc-list-item>
+          ${quotes ? quotes.map(quote => {
+            return html `<mwc-list-item value="${quote}">${quote}</mwc-list-item>`;
+        }) : nothing}
+        </mwc-select>
+
+        <div style="display:flex;justify-content:center;align-items:center;margin:42px;font-size:32px">
+         <span style="color:black;">${this.symbol || '??'}</span>
+         <mwc-icon style="--mdc-icon-size:32px;margin:10px;">sync_alt</mwc-icon>
+         <span style="color:black">${this.quote || '??'}</span>
+        </div>
+      </div>
+
+      <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
+      <mwc-button unelevated slot="primaryAction" ?disabled="${!this.symbol || !this.quote}"
+        @click="${this.submit}">create</mwc-button>
+    </mwc-dialog>
+    `;
+    }
+    fixOverflow() {
+        this.dialog.shadowRoot.querySelector('.mdc-dialog__surface').style.overflowY = 'visible';
+        this.dialog.shadowRoot.querySelector('.mdc-dialog__content').style.overflow = 'visible';
+    }
+    submit() {
+        const session = window.tradesInterface.tradesManager.createSession(this.exchange, this.symbol, this.quote);
+        ExchangesManager.addPair(session.exchange, session.symbol, session.quote, false);
+        window.tradesInterface.requestUpdate();
+        ExchangesManager.exchanges[session.exchange].updatePairs();
+        // window.sessionInterface.openSession(session)
+        this.dialog.close();
+        window.spacesManager.save();
+    }
+    onSymbolSelectChange(e) {
+        this.symbol = e.target.value;
+    }
+    open(exchangeName) {
+        this.dialog.show();
+        this.exchange = exchangeName;
+        this.symbol = '';
+        this.quote = '';
+        this.virtualCheckbox.checked = false;
+    }
+};
+SessionCreateDialog.styles = css `
+    mwc-select, select {
+      width: 100%;
+    }
+  `;
+__decorate([
+    property()
+], SessionCreateDialog.prototype, "exchange", void 0);
+__decorate([
+    property()
+], SessionCreateDialog.prototype, "symbol", void 0);
+__decorate([
+    property()
+], SessionCreateDialog.prototype, "quote", void 0);
+__decorate([
+    query('mwc-dialog')
+], SessionCreateDialog.prototype, "dialog", void 0);
+__decorate([
+    query('[name=virtual]')
+], SessionCreateDialog.prototype, "virtualCheckbox", void 0);
+SessionCreateDialog = __decorate([
+    customElement('session-create-dialog')
+], SessionCreateDialog);
+
+let TradeCreateDialog = class TradeCreateDialog extends LitElement {
+    constructor() {
+        super();
+        this.price = '';
+        this.quantity = '';
+        this.fees = '';
+        window.tradeCreateDialog = this;
+    }
+    render() {
+        return html `
+    <mwc-dialog heading="Add Trade">
+      <div style="width:500px;"></div>
+      <form>
+        <mwc-tab-bar>
+          <mwc-tab label="buy" style="--mdc-tab-text-label-color-default:green;--mdc-theme-primary:green"></mwc-tab>
+          <mwc-tab label="sell" style="--mdc-tab-text-label-color-default:red;--mdc-theme-primary:red"></mwc-tab>
+        </mwc-tab-bar>
+
+        <p>Price</p>
+        <div class="field-and-button">
+          <mwc-textfield outlined type="number"
+            value="${this.price}"
+            @keyup="${(e) => this.price = e.target.value}"
+            step="${this.getStep(this.price)}"
+            min="0"></mwc-textfield>
+          <mwc-button outlined
+            @click="${() => this.insertLastPrice()}">last price</mwc-button>
+        </div>
+
+        <p>Quantity</p>
+        <mwc-textfield outlined type="number"
+          value="${this.quantity}"
+          @keyup="${(e) => this.quantity = e.target.value}"
+          step="${this.getStep(this.quantity)}"
+          min="0"></mwc-textfield>
+
+        <p>Fees</p>
+        <mwc-textfield outlined type="number"
+          min="0"></mwc-textfield>
+      </form>
+
+      <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
+      <mwc-button unelevated slot="primaryAction" icon="add"
+        ?disabled="${!this.price || !this.quantity}"
+        @click="${() => this.onAddButtonClick()}">add</mwc-button>
+    </mwc-dialog>`;
+    }
+    getStep(value) {
+        return 1 / Math.pow(10, value.split('.')[1]?.length ?? 0);
+    }
+    async insertLastPrice() {
+        // we want the very last price so we should update the pairs to fetch the new data
+        await ExchangesManager.exchanges[this.session.exchange].updatePairs();
+        const price = ExchangesManager.getPrice(this.session.exchange, this.session.symbol, this.session.quote);
+        this.price = price ? price.toString() : '';
+    }
+    onAddButtonClick() {
+    }
+    open(session) {
+        if (session !== this.session) {
+            this.reset();
+        }
+        this.session = session;
+        this.dialog.show();
+    }
+    reset() {
+        this.price = '';
+        this.quantity = '';
+        this.fees = '';
+    }
+};
+TradeCreateDialog.styles = css `
+  mwc-tab[label=buy][active] {
+    background-color: #00800022;
+  }
+  mwc-tab[label=sell][active] {
+    background-color: #ff000022;
+  }
+  form p {
+    margin-bottom: 8px
+  }
+  form mwc-textfield {
+    flex: 1;
+  }
+
+  .field-and-button {
+    display: flex;
+    align-items: center;
+  }
+  .field-and-button > mwc-button {
+    --mdc-button-horizontal-padding: 14px;
+    margin: 0 0 0 6px;
+  }
+
+  mwc-tab-bar {
+    --mdc-tab-height: 66px;
+  }
+  `;
+__decorate([
+    property()
+], TradeCreateDialog.prototype, "price", void 0);
+__decorate([
+    property()
+], TradeCreateDialog.prototype, "quantity", void 0);
+__decorate([
+    property()
+], TradeCreateDialog.prototype, "fees", void 0);
+__decorate([
+    query('mwc-dialog')
+], TradeCreateDialog.prototype, "dialog", void 0);
+TradeCreateDialog = __decorate([
+    customElement('trade-create-dialog')
+], TradeCreateDialog);
+
 let SessionInterface = class SessionInterface extends LitElement {
     constructor() {
         super();
@@ -49766,9 +50021,13 @@ let SessionInterface = class SessionInterface extends LitElement {
       </div>
 
       <mwc-button unelevated slot="secondaryAction" icon="show_charts"
-          @click="${() => window.app.tradesInterface.open(this.session)}">add trade</mwc-button>
+          @click="${() => window.tradesInterface.open(this.session)}">add trade</mwc-button>
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
+
+    <session-create-dialog></session-create-dialog>
+
+    <trade-create-dialog></trade-create-dialog>
     `;
     }
     tradeTemplate(trade, session, eventful = true) {
@@ -49798,7 +50057,7 @@ let SessionInterface = class SessionInterface extends LitElement {
     </style>
     `;
     }
-    open(session) {
+    openSession(session) {
         this.session = session;
         this.dialog.show();
     }
@@ -49807,14 +50066,14 @@ let SessionInterface = class SessionInterface extends LitElement {
             await window.app.confirmDialog.open('Deleting Trade', html `
         You are about to delete this trade :
         <div style="margin:12px 0">
-        ${this.tradeTemplate(trade, this.session, false)}
+          ${this.tradeTemplate(trade, this.session, false)}
         </div>
         Are you sure to continue ?
       `);
             window.tradesInterface.tradesManager.deleteTrade(trade);
             window.spacesManager.save();
             // also we should make sure that the trades dialog get resetted
-            // because on a trade delete the volume change
+            // vuuubecause on a trade delete the volume change
             window.app.tradesInterface.hardReset();
             // window.app.tradesInterface.requestUpdate() // not necessary ? since the reset function will update the view
             this.requestUpdate();
@@ -49833,6 +50092,12 @@ __decorate([
 __decorate([
     query('mwc-dialog')
 ], SessionInterface.prototype, "dialog", void 0);
+__decorate([
+    query('session-create-dialog')
+], SessionInterface.prototype, "createDialog", void 0);
+__decorate([
+    query('trade-create-dialog')
+], SessionInterface.prototype, "createTradeDialog", void 0);
 SessionInterface = __decorate([
     customElement('session-interface')
 ], SessionInterface);
@@ -49881,7 +50146,8 @@ let TradesInterface = class TradesInterface extends LitElement {
             }
         }
         return html `
-    <div>
+    ${this.tradesView}
+    <!-- <div>
       ${this.tradesManager ? html `
         ${!this.tradesManager.sessions.length ? html `
         <div style="text-align:center">
@@ -49889,14 +50155,13 @@ let TradesInterface = class TradesInterface extends LitElement {
           <img src="./images/empty.gif">
         </div>
         ` : nothing}
-        ${this.tradesView}
         <div style="text-align:center">
           <mwc-button 
             style="margin-top:20px"
             @click="${() => this.open()}" raised icon="add">add session</mwc-button>
         </div>
       ` : nothing}
-    </div>
+    </div> -->
 
     ${this.sessionsInterface}
 
@@ -50115,23 +50380,6 @@ let TradesInterface = class TradesInterface extends LitElement {
                 return;
             }
         }
-        // const formElements = Object.values(names)
-        // for (const el of formElements) {
-        //   if (el instanceof Radio) continue
-        //   if (el.getAttribute('name') === 'volume' || el.getAttribute('name') === 'price') {
-        //     el.setCustomValidity('')
-        //     el.reportValidity()
-        //     if (isNaN(parseFloat(el.value))) {
-        //       el.setCustomValidity('invalid value')
-        //       el.reportValidity()
-        //       return;
-        //     }
-        //   }
-        //   if (!el.checkValidity()) {
-        //     el.reportValidity()
-        //     return;
-        //   }
-        // }
         if (this.formType === 'form') {
             const formData = this.serializeForm();
             // inserting the new pair in the appropriate exchange
@@ -51168,7 +51416,7 @@ let WalletsManager = WalletsManager_1 = class WalletsManager extends LitElement 
     }
     walletTemplate(exchangeName) {
         return html `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background-color:#eeeeee;border:2px solid #e0e0e0;border-bottom:none;padding:11px;padding-bottom:5px;border-radius:5px 5px 0 0;position:relative;z-index:3">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
       <div style="font-weight:500"><span style="font-weight:500">${window.spacesManager.space.currency}</span> : <span style="color:#3f51b5">${formatOutputPrice(this.wallets[exchangeName], window.spacesManager.space.currency)}</span></div>
       <mwc-icon-button icon="account_balance_wallet" style="--mdc-icon-size:20px;--mdc-icon-button-size: 32px;"
         @click="${() => this.openWallet(exchangeName)}"></mwc-icon-button>
@@ -51295,6 +51543,37 @@ SpacesManager = __decorate([
     customElement('spaces-manager')
 ], SpacesManager);
 
+let TextDialog = class TextDialog extends LitElement {
+    render() {
+        return html `
+    <mwc-dialog heading="${this.heading ?? ''}">
+      <div>
+        ${this.message}
+      </div>
+
+      <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
+    </mwc-dialog>
+    `;
+    }
+    open(heading, message) {
+        this.heading = heading;
+        this.message = message;
+        this.dialog.show();
+    }
+};
+__decorate([
+    property()
+], TextDialog.prototype, "heading", void 0);
+__decorate([
+    property()
+], TextDialog.prototype, "message", void 0);
+__decorate([
+    query('mwc-dialog')
+], TextDialog.prototype, "dialog", void 0);
+TextDialog = __decorate([
+    customElement('text-dialog')
+], TextDialog);
+
 const Currencies = ['EUR', 'USD'];
 let AppContainer = class AppContainer extends LitElement {
     constructor() {
@@ -51306,8 +51585,8 @@ let AppContainer = class AppContainer extends LitElement {
     }
     render() {
         return html `
-    <header style="margin:7px;display:flex;align-items:center;justify-content:space-between">
-      <img src="./images/logo.png" width="42px" height="42px">
+    <header style="margin:7px 0 32px 10px;display:flex;align-items:center;justify-content:space-between">
+      <img src="./images/logo.jpeg" width="48px" height="48px">
       <div style="display:flex;align-items:center">
         <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button>
@@ -51342,9 +51621,13 @@ let AppContainer = class AppContainer extends LitElement {
     </mwc-dialog>
 
     <confirm-dialog></confirm-dialog>
+    <text-dialog></text-dialog>
 
     <mwc-snackbar leading></mwc-snackbar>
     `;
+    }
+    firstUpdated() {
+        window.textDialog = this.textDialog;
     }
     toast(message) {
         this.snackbar.labelText = message;
@@ -51353,7 +51636,11 @@ let AppContainer = class AppContainer extends LitElement {
 };
 AppContainer.styles = css `
   :host {
+    display: block;
     --mdc-theme-primary: #004d40;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 10px 10px;
   }
 
   .dialog-content > p {
@@ -51372,6 +51659,9 @@ __decorate([
 __decorate([
     query('mwc-dialog[heading=Options]')
 ], AppContainer.prototype, "optionsDialog", void 0);
+__decorate([
+    query('text-dialog')
+], AppContainer.prototype, "textDialog", void 0);
 AppContainer = __decorate([
     customElement('app-container')
 ], AppContainer);

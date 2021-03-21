@@ -20,7 +20,7 @@ export class ExchangesManager {
   }
 
   static getAvailableExchanges () {
-    return Object.keys(this.exchanges)
+    return Object.keys(this.exchanges) as AvailableExchanges[]
   }
 
   static getAvailableSymbols (exchangeName: string) {

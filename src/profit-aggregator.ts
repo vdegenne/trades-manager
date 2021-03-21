@@ -13,14 +13,14 @@ export class Aggregator {
     this.exchangeName = exchangeName;
   }
 
-  pushUnit(quote: string, profit: number) {
+  pushUnit(quote: string, value: number) {
     // we should push the profit in the existing quote
     const unit = this.units.find(unit => unit[0] === quote)
     if (unit) {
-      unit[1] += profit;
+      unit[1] += value;
       return
     }
-    this.units.push([quote, profit])
+    this.units.push([quote, value])
   }
 
   resolveQuotes (currency: Currency) {

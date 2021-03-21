@@ -60,9 +60,9 @@ export class PairsManager implements PairsManagerInterface {
       })
     }
 
-    if (updatePairs) {
-      await this.updatePairs()
-    }
+    // if (updatePairs) {
+    //   await this.updatePairs()
+    // }
 
     return true
   }

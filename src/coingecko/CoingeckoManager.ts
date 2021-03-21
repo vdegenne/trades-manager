@@ -54,7 +54,7 @@ export class CoingeckoPairsManager extends PairsManager implements PairsManagerI
   }
 
   getAvailableSymbols () {
-    return coingeckoSymbols.map(s => s.s)
+    return [...new Set(coingeckoSymbols.map(s => s.s))]
   }
 
   getAvailableQuotesFromSymbol (symbol: string) {

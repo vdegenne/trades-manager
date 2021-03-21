@@ -163,7 +163,8 @@ export class TradesInterface extends LitElement {
     }
 
     return html`
-    <div>
+    ${this.tradesView}
+    <!-- <div>
       ${this.tradesManager ? html`
         ${!this.tradesManager.sessions.length ? html`
         <div style="text-align:center">
@@ -171,14 +172,13 @@ export class TradesInterface extends LitElement {
           <img src="./images/empty.gif">
         </div>
         ` : nothing}
-        ${this.tradesView}
         <div style="text-align:center">
           <mwc-button 
             style="margin-top:20px"
             @click="${() => this.open()}" raised icon="add">add session</mwc-button>
         </div>
       ` : nothing }
-    </div>
+    </div> -->
 
     ${this.sessionsInterface}
 
@@ -412,27 +412,6 @@ export class TradesInterface extends LitElement {
         return;
       }
     }
-    // const formElements = Object.values(names)
-
-    // for (const el of formElements) {
-    //   if (el instanceof Radio) continue
-
-    //   if (el.getAttribute('name') === 'volume' || el.getAttribute('name') === 'price') {
-    //     el.setCustomValidity('')
-    //     el.reportValidity()
-
-    //     if (isNaN(parseFloat(el.value))) {
-    //       el.setCustomValidity('invalid value')
-    //       el.reportValidity()
-    //       return;
-    //     }
-    //   }
-
-    //   if (!el.checkValidity()) {
-    //     el.reportValidity()
-    //     return;
-    //   }
-    // }
 
     if (this.formType === 'form') {
       const formData = this.serializeForm() as FormData

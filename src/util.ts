@@ -1,4 +1,5 @@
-import { html } from "lit-html";
+import { html, nothing } from "lit-html";
+import { Aggregator } from "./profit-aggregator";
 import { TradeSession } from "./trades";
 
 export function round(value: number, precision = 2) {
@@ -70,5 +71,28 @@ export function formatOutputPrice (value: number, quote: string, sign = false) {
 export function outputPriceTemplate (value: number, quote: string) {
   return html`
   <span style="color:${value === 0 ? 'initial' : value > 0 ? 'green' : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  `
+}
+
+
+export function openVirtualInfoDialog () {
+  window.textDialog.open('Virtual', html`
+  <p>When Using Virtual</p>
+  `)
+}
+
+export function formatOutputAggregation (aggregator: Aggregator) {
+  return aggregator.units.map(agg => formatOutputPrice(agg[1], agg[0], false)).join(' + ')
+}
+
+export function aggregationTemplate (aggregator: Aggregator) {
+  return html`
+  <div>
+  ${aggregator.units.map((agg, i) => {
+    return html`${outputPriceTemplate(agg[1], agg[0])}
+    ${i < aggregator.units.length - 1 ? html`<span> + </span>` : nothing }
+    `
+  })}
+  </div>
   `
 }

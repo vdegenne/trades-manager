@@ -18,7 +18,7 @@ declare global {
 @customElement('wallets-manager')
 export class WalletsManager extends LitElement {
   @property()
-  private wallets: Wallets;
+  public wallets: Wallets;
 
   @property()
   private exchangeName?: string;
@@ -60,7 +60,7 @@ export class WalletsManager extends LitElement {
 
   walletTemplate (exchangeName: string) {
     return html`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background-color:#eeeeee;border:2px solid #e0e0e0;border-bottom:none;padding:11px;padding-bottom:5px;border-radius:5px 5px 0 0;position:relative;z-index:3">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
       <div style="font-weight:500"><span style="font-weight:500">${window.spacesManager.space.currency}</span> : <span style="color:#3f51b5">${formatOutputPrice(this.wallets[exchangeName], window.spacesManager.space.currency)}</span></div>
       <mwc-icon-button icon="account_balance_wallet" style="--mdc-icon-size:20px;--mdc-icon-button-size: 32px;"
         @click="${() => this.openWallet(exchangeName)}"></mwc-icon-button>

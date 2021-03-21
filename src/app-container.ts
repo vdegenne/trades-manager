@@ -13,10 +13,13 @@ import { ConfirmDialog } from './confirm-dialog';
 import { Dialog } from '@material/mwc-dialog';
 import { SpacesManager } from './SpacesManager';
 import { Wallets, WalletsManager } from './WalletsManager';
+import {TextDialog} from './text-dialog'
+import './text-dialog'
 
 declare global {
   interface Window {
     app: AppContainer
+    textDialog: TextDialog
   }
 }
 
@@ -35,6 +38,7 @@ class AppContainer extends LitElement {
   @query('mwc-snackbar') snackbar!: Snackbar;
   @query('confirm-dialog') confirmDialog!: ConfirmDialog;
   @query('mwc-dialog[heading=Options]') optionsDialog!: Dialog;
+  @query('text-dialog') textDialog!: TextDialog;
 
   constructor() {
     super()
@@ -47,7 +51,11 @@ class AppContainer extends LitElement {
 
   static styles = css`
   :host {
+    display: block;
     --mdc-theme-primary: #004d40;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 10px 10px;
   }
 
   .dialog-content > p {
@@ -57,8 +65,8 @@ class AppContainer extends LitElement {
 
   render () {
     return html`
-    <header style="margin:7px;display:flex;align-items:center;justify-content:space-between">
-      <img src="./images/logo.png" width="42px" height="42px">
+    <header style="margin:7px 0 32px 10px;display:flex;align-items:center;justify-content:space-between">
+      <img src="./images/logo.jpeg" width="48px" height="48px">
       <div style="display:flex;align-items:center">
         <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button>
@@ -93,9 +101,14 @@ class AppContainer extends LitElement {
     </mwc-dialog>
 
     <confirm-dialog></confirm-dialog>
+    <text-dialog></text-dialog>
 
     <mwc-snackbar leading></mwc-snackbar>
     `
+  }
+
+  firstUpdated() {
+    window.textDialog = this.textDialog;
   }
 
   toast (message: string) {

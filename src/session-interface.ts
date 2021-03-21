@@ -5,7 +5,11 @@ import '@material/mwc-button'
 import '@material/mwc-icon-button'
 import { Dialog } from "@material/mwc-dialog";
 import { nothing } from "lit-html";
-import { firstLetterUpperCase } from "./util";
+import { firstLetterUpperCase, sortAlphabetically } from "./util";
+import './session-create-dialog'
+import { SessionCreateDialog } from "./session-create-dialog";
+import './trade-create-dialog'
+import { TradeCreateDialog } from "./trade-create-dialog";
 
 declare global {
   interface Window {
@@ -19,6 +23,8 @@ export class SessionInterface extends LitElement {
   private session?: TradeSession;
 
   @query('mwc-dialog') dialog!: Dialog;
+  @query('session-create-dialog') createDialog!: SessionCreateDialog;
+  @query('trade-create-dialog') createTradeDialog!: TradeCreateDialog;
 
   static styles = css`
   `
@@ -44,9 +50,13 @@ export class SessionInterface extends LitElement {
       </div>
 
       <mwc-button unelevated slot="secondaryAction" icon="show_charts"
-          @click="${() => window.app.tradesInterface.open(this.session)}">add trade</mwc-button>
+          @click="${() => window.tradesInterface.open(this.session!)}">add trade</mwc-button>
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
+
+    <session-create-dialog></session-create-dialog>
+
+    <trade-create-dialog></trade-create-dialog>
     `
   }
 
@@ -78,7 +88,7 @@ export class SessionInterface extends LitElement {
     `
   }
 
-  open (session: TradeSession) {
+  openSession (session: TradeSession) {
     this.session = session
     this.dialog.show();
   }
@@ -88,14 +98,14 @@ export class SessionInterface extends LitElement {
       await window.app.confirmDialog.open('Deleting Trade', html`
         You are about to delete this trade :
         <div style="margin:12px 0">
-        ${this.tradeTemplate(trade, this.session!, false)}
+          ${this.tradeTemplate(trade, this.session!, false)}
         </div>
         Are you sure to continue ?
       `)
-      window.tradesInterface.tradesManager.deleteTrade(trade)
+   window.tradesInterface.tradesManager.deleteTrade(trade)
       window.spacesManager.save()
       // also we should make sure that the trades dialog get resetted
-      // because on a trade delete the volume change
+      // vuuubecause on a trade delete the volume change
       window.app.tradesInterface.hardReset()
       // window.app.tradesInterface.requestUpdate() // not necessary ? since the reset function will update the view
       this.requestUpdate()

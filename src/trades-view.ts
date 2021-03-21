@@ -2,7 +2,7 @@ import { css, customElement, html, LitElement } from "lit-element";
 import { nothing } from 'lit-html'
 import { Trade, TradeManager, TradeSession } from "./trades";
 import { TradesInterface } from "./trades-interface";
-import { firstLetterUpperCase, formatOutputPrice, formatQuote, outputPriceTemplate, round } from "./util";
+import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, formatQuote, outputPriceTemplate, round } from "./util";
 import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
@@ -14,7 +14,7 @@ export class TradesView extends LitElement {
   private interface: TradesInterface;
 
   private profitAggregator!: Aggregator;
-  private investmentAggregator!: Aggregator;
+  private totalValueAggregator!: Aggregator;
 
   constructor(tradesInterface: TradesInterface) {
     super()
@@ -28,7 +28,7 @@ export class TradesView extends LitElement {
     margin: 0 auto;
   }
   .exchange-frame {
-    margin-bottom: 32px;
+    margin-bottom: 62px;
   }
   .exchange-frame > p:first-of-type {
     margin-left: 12px;
@@ -78,22 +78,35 @@ export class TradesView extends LitElement {
       const sessions = this.interface.tradesManager.sessions.filter(session => session.exchange === exchange)
 
       this.profitAggregator = new Aggregator(exchange as AvailableExchanges)
-      this.investmentAggregator = new Aggregator(exchange as AvailableExchanges)
+      this.totalValueAggregator = new Aggregator(exchange as AvailableExchanges)
+      this.totalValueAggregator.pushUnit(window.spacesManager.space.currency, window.walletsManager.wallets[exchange])
 
       // if (sessions.length === 0) return nothing
 
       return html`
       <div class="exchange-frame">
-        <p>${firstLetterUpperCase(exchange)}</p>
-        ${sessions.map(session => {
-          return this.sessionTemplate(session)
-        })}
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <mwc-button unelevated dense>${firstLetterUpperCase(exchange)}</mwc-button>
+          <mwc-button outlined icon="add" dense
+            @click="${() => window.sessionInterface.createDialog.open(exchange)}">add pair</mwc-button>
+        </div>
+
+        ${sessions.map(session => this.sessionTemplate(session))}
 
         ${window.walletsManager.walletTemplate(exchange)}
 
         ${(() => {
           this.profitAggregator.resolveQuotes(window.spacesManager.space.currency)
-          return this.aggregationTemplate(this.profitAggregator)
+          this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency)
+          return html`
+          <div style="display:flex;align-items:center;justify-content:space-between;background-color:#fff176;padding:12px;border-radius:5px">
+            <div>
+              <span>Total : </span><span style="color:#3f51b5">${formatOutputAggregation(this.totalValueAggregator)}</span>
+            </div>
+            ${aggregationTemplate(this.profitAggregator)}
+            <div></div>
+          </div>
+          `
         })()}
       </div>
       `
@@ -102,23 +115,29 @@ export class TradesView extends LitElement {
     `
   }
 
-  sessionTemplate (session: TradeSession) {
+  sessionTemplate (session: TradeSession, outsideTemplate = false) {
     const summary = this.interface.tradesManager.getSummarizedSessionTrades(session)
-    let activeProfit, overallProfit;
-    const investment = { total: summary.investment, quote: session.quote };
+    let profit, totalInvested;
+    const total = { value: 0, quote: session.quote }
+    let totalConverted: { value: number, quote: string }|undefined = undefined
     const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote)
     if (price) {
-      activeProfit = price * summary.volume;
-      overallProfit = summary.profit + activeProfit
-      const investmentConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange)
-      if (investmentConversion.price && investmentConversion.quote === window.spacesManager.space.currency) {
-        investment.total *= investmentConversion.price;
-        investment.quote = investmentConversion.quote;
+      total.value = price * summary.volume;
+      profit = total.value - summary.invested
+      totalInvested = total.value - profit;
+      const totalValueConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange)
+      if (totalValueConversion.price && totalValueConversion.quote === window.spacesManager.space.currency) {
+        totalConverted = {
+          value: total.value * totalValueConversion.price,
+          quote: totalValueConversion.quote
+        }
       }
       else {
         // @todo implement or else we should check if the quote is convertible from currency conversion
       }
-      this.profitAggregator.pushUnit(session.quote, overallProfit)
+      this.profitAggregator.pushUnit(session.quote, profit)
+      const totalObject = totalConverted || total;
+      this.totalValueAggregator.pushUnit(totalObject.quote, totalObject.value)
     }
 
     return html`
@@ -129,9 +148,13 @@ export class TradesView extends LitElement {
         <div class="price">${price}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center">
-        <div style="font-size:14px;margin-bottom:5px;color:#3f51b5">${formatOutputPrice(investment.total, investment.quote)}</div>
-        <!-- <div>${investment.total}</div> -->
-        <div>${outputPriceTemplate(overallProfit, session.quote)}</div>
+        <div style="margin-bottom:5px">${outputPriceTemplate(profit, session.quote)}</div>
+        <div style="font-size:14px;color:#3f51b5">
+          <span>${formatOutputPrice(total.value, total.quote)}</span>
+          ${total.quote !== window.spacesManager.space.currency && totalConverted !== undefined ? html`
+          <span>(${formatOutputPrice(totalConverted.value, totalConverted.quote)})</span>
+          ` : nothing}
+        </div>
       </div>
       <mwc-icon-button icon="close"
         @mousedown="${e => e.stopPropagation()}"
@@ -142,26 +165,12 @@ export class TradesView extends LitElement {
     `
   }
 
-  aggregationTemplate (aggregator: Aggregator) {
-    return html`
-    <div style="display:flex;align-items:center;justify-content:space-between;background-color:#eeeeee;border:2px solid #e0e0e0;border-top:none;color:white;padding:12px;padding-top:6px;border-radius:0 0 5px 5px;box-shadow:0px 5px 10px -2px #e0e0e0">
-      <div></div>
-      ${aggregator.units.map((agg, i) => {
-        return html`${outputPriceTemplate(agg[1], agg[0])}
-        ${i < aggregator.units.length - 1 ? html`<span> + </span>` : nothing }
-        `
-      })}
-      <div></div>
-    </div>
-    `
-  }
-
   private onSessionElementClick (e: PointerEvent, session: TradeSession) {
     if (e.button === 2) {
       openCryptowatchLink(session)
     }
     else {
-      this.interface.sessionsInterface.open(session)
+      this.interface.sessionsInterface.openSession(session)
     }
   }
 }

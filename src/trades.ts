@@ -1,3 +1,4 @@
+import { Currency } from "./app-container"
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager"
 
 export type KrakenTradeObject = {
@@ -28,7 +29,7 @@ export type Trade = {
   type: 'buy'|'sell',
   price: number,
   volume: number,
-  fees?: number
+  fees?: number,
 }
 
 export type TradeSession = {
@@ -40,9 +41,8 @@ export type TradeSession = {
 }
 
 export type TradesSummary = {
-  profit: number,
+  invested: number,
   volume: number,
-  investment: number
 }
 
 
@@ -130,20 +130,17 @@ export class TradeManager {
 export function summarizeSessionTrades (session: TradeSession) {
   return session.trades.reduce((acc, trade)  => {
     if (trade.type === 'buy') {
-      acc.profit -= trade.price * trade.volume;
+      acc.invested += trade.price * trade.volume;
       acc.volume += trade.volume;
-      acc.investment += trade.volume * trade.price;
     }
     else {
-      acc.profit += trade.price * trade.volume;
+      acc.invested -= trade.price * trade.volume;
       acc.volume -= trade.volume;
-      acc.investment -= trade.volume * trade.price;
     }
     return acc
   }, {
-    profit: 0,
-    volume: 0,
-    investment: 0
+    invested: 0,
+    volume: 0
   } as TradesSummary)
 }
 
