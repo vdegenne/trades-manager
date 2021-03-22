@@ -23,7 +23,7 @@ import { AboutDialog } from './about-dialog';
 declare global {
   interface Window {
     app: AppContainer
-    textDialog: TextDialog
+    textDialog: TextDialog;
   }
 }
 
@@ -49,6 +49,7 @@ class AppContainer extends LitElement {
   constructor() {
     super()
     window.app = this
+    window.app.title = 'Tradon'
 
     this.tradesInterface = new TradesInterface()
     this.tCodeInterface = new TCodeInterface()
@@ -72,8 +73,10 @@ class AppContainer extends LitElement {
 
   render () {
     return html`
-    <header style="margin:7px 0 32px 10px;display:flex;align-items:center;justify-content:space-between">
-      <img src="./images/logo.jpeg" width="48px" height="48px">
+    <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017">
+        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.app.title}</span>
+      </div>
       <div style="display:flex;align-items:center">
         <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button>

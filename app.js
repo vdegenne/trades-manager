@@ -51716,17 +51716,17 @@ TCodeInterface = __decorate([
 let AboutDialog = class AboutDialog extends LitElement {
     render() {
         return html `
-    <mwc-dialog heading="Chandelle (v1.0)">
+    <mwc-dialog heading="${window.app.title} (v1.0)">
       <div style="width:1000px"></div>
       <div>
-        Chandelle is a small app you can use to organize your tradings.
+        ${window.app.title} is a small app you can use to organize your tradings.
 
         <h3>Benefits</h3>
         < to complete >
 
-        <h3>What chandelle is not</h3>
-        <p>Chandelle is not a portfolio manager.<br>
-        You can use Chandelle to make a quick porfolio based on your recent tradings, but chances are things will get a little clunky as new trades happen.
+        <h3>What ${window.app.title} is not</h3>
+        <p>${window.app.title} is not a portfolio manager.<br>
+        You can use ${window.app.title} to make a quick porfolio based on your recent tradings, but chances are things will get a little clunky as new trades happen.
         Because pairs are not connected.</p>
         <p>Let's say you buy 10 ETH on the pair <b>ETH-EUR</b> and 10 more ETH on the pair <b>ETH-USD</b>.<br>
         First of all, you have 20 ETH but they are organized in different pairs.
@@ -51760,14 +51760,17 @@ let AppContainer = class AppContainer extends LitElement {
         super();
         this.spacesManager = new SpacesManager();
         window.app = this;
+        window.app.title = 'Tradon';
         this.tradesInterface = new TradesInterface();
         this.tCodeInterface = new TCodeInterface();
         this.walletsManager = new WalletsManager();
     }
     render() {
         return html `
-    <header style="margin:7px 0 32px 10px;display:flex;align-items:center;justify-content:space-between">
-      <img src="./images/logo.jpeg" width="48px" height="48px">
+    <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017">
+        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.app.title}</span>
+      </div>
       <div style="display:flex;align-items:center">
         <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button>
