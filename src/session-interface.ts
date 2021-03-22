@@ -1,5 +1,5 @@
 import { css, customElement, html, LitElement, property, query } from "lit-element";
-import { Trade, TradeSession } from "./trades";
+import { getSummary, Trade, TradeSession } from "./trades";
 import '@material/mwc-dialog'
 import '@material/mwc-button'
 import '@material/mwc-icon-button'
@@ -38,19 +38,25 @@ export class SessionInterface extends LitElement {
     const trades = this.session?.trades.slice().reverse()
 
     return html`
-    <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})">
+    <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})"
+        escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
-      ${this.session ? html`
-        ${trades!.length
-          ? trades!.map(trade => this.tradeTemplate(trade, this.session!))
-          : html`<div style="margin:38px;text-align:center">no trades</div>`
-        }
-      ` : nothing}
+        <div style="max-height: 500px;overflow: auto;">
+        ${this.session ? html`
+          ${trades!.length
+            ? trades!.map(trade => this.tradeTemplate(trade, this.session!))
+            : html`<div style="margin:38px;text-align:center">no trades</div>`
+          }
+        ` : nothing}
+        </div>
+
+        <div style="padding: 7px 12px;background: #e0e0e0;color: #212121;border-radius: 0 0 5px 5px;">
+          <span>Total Volume : </span><span style="font-weight:500">${this.session ? getSummary(this.session).volume : ''}</span></div>
       </div>
 
       <mwc-button unelevated slot="secondaryAction" icon="show_charts"
-          @click="${() => window.tradesInterface.open(this.session!)}">add trade</mwc-button>
+          @click="${() => window.tradeCreateDialog.open(this.session!)}">add trade</mwc-button>
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
 
@@ -102,16 +108,13 @@ export class SessionInterface extends LitElement {
         </div>
         Are you sure to continue ?
       `)
-   window.tradesInterface.tradesManager.deleteTrade(trade)
-      window.spacesManager.save()
-      // also we should make sure that the trades dialog get resetted
-      // vuuubecause on a trade delete the volume change
-      window.app.tradesInterface.hardReset()
-      // window.app.tradesInterface.requestUpdate() // not necessary ? since the reset function will update the view
-      this.requestUpdate()
-      window.app.toast('trade deleted')
     } catch (e) {
-      /* canceled */
+      return; // canceled
     }
+
+    window.tradesInterface.deleteTrade(this.session!, trade)
+    window.app.toast('trade deleted')
+    window.tradesInterface.requestUpdate()
+    this.requestUpdate()
   }
 }

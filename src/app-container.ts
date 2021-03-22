@@ -17,6 +17,8 @@ import {TextDialog} from './text-dialog'
 import './text-dialog'
 import { TCodeInterface } from "./t-code-interface";
 import './t-code-interface'
+import './about-dialog'
+import { AboutDialog } from './about-dialog';
 
 declare global {
   interface Window {
@@ -42,6 +44,7 @@ class AppContainer extends LitElement {
   @query('confirm-dialog') confirmDialog!: ConfirmDialog;
   @query('mwc-dialog[heading=Options]') optionsDialog!: Dialog;
   @query('text-dialog') textDialog!: TextDialog;
+  @query('about-dialog') aboutDialog!: AboutDialog;
 
   constructor() {
     super()
@@ -74,6 +77,7 @@ class AppContainer extends LitElement {
       <div style="display:flex;align-items:center">
         <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button>
+        <mwc-icon-button icon="help_outline" @click="${() => this.aboutDialog.open()}"></mwc-icon-button>
         <mwc-icon-button icon="settings" @click="${() => this.optionsDialog.show()}"></mwc-icon-button>
       </div>
     </header>
@@ -85,6 +89,8 @@ class AppContainer extends LitElement {
     ${this.tradesInterface}
 
     ${this.tCodeInterface}
+
+    <about-dialog></about-dialog>
 
     <mwc-dialog heading="Options">
       <div style="width:800px"></div>

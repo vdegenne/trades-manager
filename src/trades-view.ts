@@ -16,8 +16,7 @@ export class TradesView extends LitElement {
 
   private profitAggregator!: Aggregator;
   private totalValueAggregator!: Aggregator;
-  // @temporary
-  private walletAggregator?: Aggregator;
+  private walletAggregator!: Aggregator;
 
   constructor(tradesInterface: TradesInterface) {
     super()
@@ -82,13 +81,7 @@ export class TradesView extends LitElement {
 
       this.profitAggregator = new Aggregator(exchange)
       this.totalValueAggregator = new Aggregator(exchange)
-      // this.totalValueAggregator.pushUnit(window.spacesManager.space.currency, window.walletsManager.wallets[exchange])
-
-      // @temporary
-      this.walletAggregator = undefined
-      if (window.walletsManager.wallets[exchange].isEmpty() && sessions.length) {
-        this.walletAggregator = new Aggregator(exchange)
-      }
+      this.walletAggregator = new Aggregator(exchange)
 
       // if (sessions.length === 0) return nothing
 
@@ -102,16 +95,12 @@ export class TradesView extends LitElement {
 
         ${sessions.map(session => this.sessionTemplate(session))}
 
-        ${window.walletsManager.walletTemplate(exchange)}
+        ${window.walletsManager.walletTemplate(this.walletAggregator)}
 
         ${(() => {
-          // @temporary
-          if (this.walletAggregator) {
-            // window.spacesManager.save()
-            console.log(JSON.stringify(this.walletAggregator.units))
-          }
           this.profitAggregator.resolveQuotes(window.spacesManager.space.currency)
           this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency)
+          this.walletAggregator.resolveQuotes(window.spacesManager.space.currency)
 
           return html`
           <div style="display:flex;align-items:center;justify-content:space-between;background-color:#fff176;padding:12px;border-radius:5px">
@@ -154,12 +143,7 @@ export class TradesView extends LitElement {
       this.profitAggregator.pushUnit(session.quote, profit)
       const totalObject = totalConverted || total;
       this.totalValueAggregator.pushUnit(totalObject.quote, totalObject.value)
-    }
-
-    // @temporary
-    // we update the wallet for old version
-    if (this.walletAggregator) {
-      window.walletsManager.wallets[session.exchange].pushUnit(session.symbol, summary.volume)
+      this.walletAggregator.pushUnit(session.symbol, summary.volume)
     }
 
     return html`

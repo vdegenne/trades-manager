@@ -143,6 +143,7 @@ export function summarizeSessionTrades (session: TradeSession) {
     volume: 0
   } as TradesSummary)
 }
+export const getSummary = summarizeSessionTrades; // alias
 
 // export function reduceTrades(trades: Trades) {
 //   return Object.fromEntries(

@@ -60,15 +60,11 @@ export class WalletsManager extends LitElement {
     `
   }
 
-  walletTemplate (exchangeName: string) {
+  walletTemplate (walletAggregator: Aggregator) {
     return html`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
-      <div style="font-weight:500">
-        <span style="font-weight:500">Wallet :</span>
-        <span style="color:#3f51b5">${formatOutputAggregation(this.wallets[exchangeName])}</span>
-      </div>
-      <!-- <mwc-icon-button icon="account_balance_wallet" style="--mdc-icon-size:20px;--mdc-icon-button-size: 32px;"
-        @click="${() => this.openWallet(exchangeName)}"></mwc-icon-button> -->
+    <div style="display:flex;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
+        <div style="font-weight:500">Wallet :</div>
+        <div style="color:#3f51b5;margin-left:12px">${formatOutputAggregation(walletAggregator) || 'empty'}</div>
     </div>
     `
   }

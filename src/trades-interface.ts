@@ -437,6 +437,21 @@ export class TradesInterface extends LitElement {
     window.spacesManager.save()
   }
 
+  async addTrade (session: TradeSession, trade: Trade) {
+    this.tradesManager.addTrade(session, trade)
+    window.app.toast('trade registered')
+    this.sessionsInterface.requestUpdate()
+    this.requestUpdate()
+    // @todo we should check if the trade affects others sessions
+    window.spacesManager.save()
+  }
+
+  async deleteTrade (session: TradeSession, trade: Trade) {
+    this.tradesManager.deleteTrade(trade, session)
+    // @todo we should check if the trade affects other sessions
+    window.spacesManager.save()
+  }
+
   validateForm () {
     const names = this.names
     for (const [elName, el] of Object.entries(names)) {
