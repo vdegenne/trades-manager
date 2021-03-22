@@ -108,7 +108,7 @@ export class TradesView extends LitElement {
               <span>Total : </span><span style="color:#41ecd4">${formatOutputAggregation(this.totalValueAggregator)}</span>
             </div>
             <div>
-            ${aggregationTemplate(this.profitAggregator)}
+            ${aggregationTemplate(this.profitAggregator, true)}
             </div>
           </div>
           `

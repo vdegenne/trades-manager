@@ -49665,10 +49665,10 @@ let TradesView = class TradesView extends LitElement {
                 return html `
           <div style="display:flex;align-items:center;justify-content:space-between;background-color:var(--mdc-theme-primary);padding:12px;border-radius:5px">
             <div style="color:white">
-              <span>Total : </span><span style="color:#00e2ff">${formatOutputAggregation(this.totalValueAggregator)}</span>
+              <span>Total : </span><span style="color:#41ecd4">${formatOutputAggregation(this.totalValueAggregator)}</span>
             </div>
             <div>
-            ${aggregationTemplate(this.profitAggregator)}
+            ${aggregationTemplate(this.profitAggregator, true)}
             </div>
           </div>
           `;
