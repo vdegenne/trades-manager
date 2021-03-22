@@ -49684,15 +49684,20 @@ let TradesView = class TradesView extends LitElement {
         let profit;
         const total = { value: 0, quote: session.quote };
         let totalConverted = undefined;
+        let profitConverted = undefined;
         const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote);
         if (price) {
             total.value = price * summary.volume;
             profit = total.value - summary.invested;
-            const totalValueConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange);
-            if (totalValueConversion.price && totalValueConversion.quote === window.spacesManager.space.currency) {
+            const quoteConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange);
+            if (quoteConversion.price && quoteConversion.quote === window.spacesManager.space.currency) {
                 totalConverted = {
-                    value: total.value * totalValueConversion.price,
-                    quote: totalValueConversion.quote
+                    value: total.value * quoteConversion.price,
+                    quote: quoteConversion.quote
+                };
+                profitConverted = {
+                    value: profit * quoteConversion.price,
+                    quote: quoteConversion.quote
                 };
             }
             this.profitAggregator.pushUnit(session.quote, profit);
@@ -49708,7 +49713,14 @@ let TradesView = class TradesView extends LitElement {
         <div class="price">${price}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center">
-        <div style="margin-bottom:5px">${outputPriceTemplate(profit, session.quote)}</div>
+        <div style="display:flex;align-items:center;margin-bottom:5px">
+          <div>${outputPriceTemplate(profit, session.quote)}</div>
+          ${profitConverted ? html `
+          <div style="display:flex;align-items:center;margin-left:4px;">
+            <span style="color:#00000033">(</span>${outputPriceTemplate(profitConverted.value, profitConverted.quote)}<span style="color:#00000033">)</span>
+          </div>
+          ` : nothing}
+        </div>
         <div style="font-size:14px;color:#3f51b5">
           <span>${formatOutputPrice(total.value, total.quote)}</span>
           ${total.quote !== window.spacesManager.space.currency && totalConverted !== undefined ? html `
