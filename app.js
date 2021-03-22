@@ -15941,8 +15941,9 @@ function formatOutputPrice(value, quote, sign = false) {
 }
 function outputPriceTemplate(value, quote, light = false) {
     const green = light ? '#00ff00' : '#05cb05';
+    const red = light ? '#ff6d62' : '#ff0000';
     return html `
-  <span style="color:${value === 0 ? 'initial' : value > 0 ? green : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  <span style="color:${value === 0 ? 'initial' : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
   `;
 }
 function openVirtualInfoDialog() {
@@ -49665,7 +49666,7 @@ let TradesView = class TradesView extends LitElement {
                 return html `
           <div style="display:flex;align-items:center;justify-content:space-between;background-color:var(--mdc-theme-primary);padding:12px;border-radius:5px">
             <div style="color:white">
-              <span>Total : </span><span style="color:#41ecd4">${formatOutputAggregation(this.totalValueAggregator)}</span>
+              <span>Total : </span><span style="color:#9bf1e5">${formatOutputAggregation(this.totalValueAggregator)}</span>
             </div>
             <div>
             ${aggregationTemplate(this.profitAggregator, true)}
