@@ -68,9 +68,11 @@ export function formatOutputPrice (value: number, quote: string, sign = false) {
   return `${sign ? value > 0 ? '+ ' : '' : ''}${round(value, precision)}${symbol}`
 }
 
-export function outputPriceTemplate (value: number, quote: string) {
+export function outputPriceTemplate (value: number, quote: string, light = false) {
+  const green = light ? '#00ff00' : '#05cb05';
+
   return html`
-  <span style="color:${value === 0 ? 'initial' : value > 0 ? 'green' : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  <span style="color:${value === 0 ? 'initial' : value > 0 ? green : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
   `
 }
 
@@ -85,11 +87,11 @@ export function formatOutputAggregation (aggregator: Aggregator) {
   return aggregator.units.map(agg => formatOutputPrice(agg[1], agg[0], false)).join(' + ')
 }
 
-export function aggregationTemplate (aggregator: Aggregator) {
+export function aggregationTemplate (aggregator: Aggregator, light = false) {
   return html`
   <div>
   ${aggregator.units.map((agg, i) => {
-    return html`${outputPriceTemplate(agg[1], agg[0])}
+    return html`${outputPriceTemplate(agg[1], agg[0], light)}
     ${i < aggregator.units.length - 1 ? html`<span> + </span>` : nothing }
     `
   })}

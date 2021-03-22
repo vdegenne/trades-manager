@@ -103,9 +103,9 @@ export class TradesView extends LitElement {
           this.walletAggregator.resolveQuotes(window.spacesManager.space.currency)
 
           return html`
-          <div style="display:flex;align-items:center;justify-content:space-between;background-color:#fff176;padding:12px;border-radius:5px">
-            <div>
-              <span>Total : </span><span style="color:#3f51b5">${formatOutputAggregation(this.totalValueAggregator)}</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;background-color:var(--mdc-theme-primary);padding:12px;border-radius:5px">
+            <div style="color:white">
+              <span>Total : </span><span style="color:#41ecd4">${formatOutputAggregation(this.totalValueAggregator)}</span>
             </div>
             <div>
             ${aggregationTemplate(this.profitAggregator)}

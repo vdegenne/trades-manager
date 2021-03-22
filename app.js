@@ -15939,9 +15939,10 @@ function formatOutputPrice(value, quote, sign = false) {
     let precision = precisionsMap[quote] || 5;
     return `${sign ? value > 0 ? '+ ' : '' : ''}${round(value, precision)}${symbol}`;
 }
-function outputPriceTemplate(value, quote) {
+function outputPriceTemplate(value, quote, light = false) {
+    const green = light ? '#00ff00' : '#05cb05';
     return html `
-  <span style="color:${value === 0 ? 'initial' : value > 0 ? 'green' : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  <span style="color:${value === 0 ? 'initial' : value > 0 ? green : 'red'};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
   `;
 }
 function openVirtualInfoDialog() {
@@ -15952,11 +15953,11 @@ function openVirtualInfoDialog() {
 function formatOutputAggregation(aggregator) {
     return aggregator.units.map(agg => formatOutputPrice(agg[1], agg[0], false)).join(' + ');
 }
-function aggregationTemplate(aggregator) {
+function aggregationTemplate(aggregator, light = false) {
     return html `
   <div>
   ${aggregator.units.map((agg, i) => {
-        return html `${outputPriceTemplate(agg[1], agg[0])}
+        return html `${outputPriceTemplate(agg[1], agg[0], light)}
     ${i < aggregator.units.length - 1 ? html `<span> + </span>` : nothing}
     `;
     })}
@@ -49662,9 +49663,9 @@ let TradesView = class TradesView extends LitElement {
                 this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency);
                 this.walletAggregator.resolveQuotes(window.spacesManager.space.currency);
                 return html `
-          <div style="display:flex;align-items:center;justify-content:space-between;background-color:#fff176;padding:12px;border-radius:5px">
-            <div>
-              <span>Total : </span><span style="color:#3f51b5">${formatOutputAggregation(this.totalValueAggregator)}</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;background-color:var(--mdc-theme-primary);padding:12px;border-radius:5px">
+            <div style="color:white">
+              <span>Total : </span><span style="color:#00e2ff">${formatOutputAggregation(this.totalValueAggregator)}</span>
             </div>
             <div>
             ${aggregationTemplate(this.profitAggregator)}
