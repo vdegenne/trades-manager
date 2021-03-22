@@ -15940,7 +15940,7 @@ function formatOutputPrice(value, quote, sign = false) {
     return `${sign ? value > 0 ? '+ ' : '' : ''}${round(value, precision)}${symbol}`;
 }
 function outputPriceTemplate(value, quote, light = false) {
-    const green = light ? '#00ff00' : '#05cb05';
+    const green = light ? '#00ff00' : '#4caf50';
     const red = light ? '#f44336' : '#ff0000';
     return html `
   <span style="color:${value === 0 ? 'initial' : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
