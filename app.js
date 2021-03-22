@@ -49932,8 +49932,9 @@ let TradeCreateDialog = class TradeCreateDialog extends LitElement {
         <div class="field-and-button">
           <mwc-textfield id="price" outlined type="number"
             min="0"
-            @mousewheel="${(e) => this.price = e.target.value}"
-            @keyup="${(e) => e.target.step = this.getStep(e.target.value)}"></mwc-textfield>
+            @keyup="${(e) => this.updatePrice(e.target.value)}"
+            @mousewheel="${(e) => this.updatePrice(e.target.value)}">
+          </mwc-textfield>
           <mwc-button outlined
             @click="${() => this.insertLastPrice()}">last price</mwc-button>
         </div>
@@ -49942,8 +49943,9 @@ let TradeCreateDialog = class TradeCreateDialog extends LitElement {
         <div class="field-and-button">
           <mwc-textfield id="quantity" outlined type="number"
             min="0"
-            @mousewheel="${(e) => this.quantity = e.target.value}"
-            @keyup="${(e) => e.target.step = this.getStep(e.target.value)}"></mwc-textfield>
+            @keyup="${(e) => this.updateQuantity(e.target.value)}"
+            @mousewheel="${(e) => this.updateQuantity(e.target.value)}">
+          </mwc-textfield>
           <mwc-button outlined
             ?disabled="${this.type === 'buy' || this.session && !this.maxQuantity}"
             @click="${() => this.insertAvailableVolume()}">available</mwc-button>
@@ -49962,16 +49964,22 @@ let TradeCreateDialog = class TradeCreateDialog extends LitElement {
     getStep(value) {
         return 1 / Math.pow(10, value.split('.')[1]?.length ?? 0);
     }
+    updatePrice(value) {
+        this.priceField.value = this.price = value ? value.toString() : '';
+        this.priceField.step = this.getStep(this.priceField.value);
+    }
     async insertLastPrice() {
         // we want the very last price so we should update the pairs to fetch the new data
         await ExchangesManager.exchanges[this.session.exchange].updatePairs();
         const price = ExchangesManager.getPrice(this.session.exchange, this.session.symbol, this.session.quote);
-        this.priceField.value = this.price = price ? price.toString() : '';
-        this.priceField.step = this.getStep(this.priceField.value);
+        this.updatePrice(price.toString());
+    }
+    updateQuantity(value) {
+        this.quantityField.value = this.quantity = value ? value.toString() : '';
+        this.quantityField.step = this.getStep(this.quantityField.value);
     }
     async insertAvailableVolume() {
-        this.quantityField.value = this.quantity = this.maxQuantity.toString();
-        this.quantityField.step = this.getStep(this.quantityField.value);
+        this.updateQuantity(this.maxQuantity.toString());
     }
     async onAddButtonClick() {
         if (!this.priceField.value || !this.priceField.value) {
