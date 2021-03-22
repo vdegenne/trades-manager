@@ -7,17 +7,17 @@ export class AboutDialog extends LitElement {
 
   render () {
     return html`
-    <mwc-dialog heading="${window.app.title} (v1.0)">
+    <mwc-dialog heading="${window.appTitle} (v1.0)">
       <div style="width:1000px"></div>
       <div>
-        ${window.app.title} is a small app you can use to organize your tradings.
+        ${window.appTitle} is a small app you can use to organize your tradings.
 
         <h3>Benefits</h3>
         < to complete >
 
-        <h3>What ${window.app.title} is not</h3>
-        <p>${window.app.title} is not a portfolio manager.<br>
-        You can use ${window.app.title} to make a quick porfolio based on your recent tradings, but chances are things will get a little clunky as new trades happen.
+        <h3>What ${window.appTitle} is not</h3>
+        <p>${window.appTitle} is not a portfolio manager.<br>
+        You can use ${window.appTitle} to make a quick porfolio based on your recent tradings, but chances are things will get a little clunky as new trades happen.
         Because pairs are not connected.</p>
         <p>Let's say you buy 10 ETH on the pair <b>ETH-EUR</b> and 10 more ETH on the pair <b>ETH-USD</b>.<br>
         First of all, you have 20 ETH but they are organized in different pairs.

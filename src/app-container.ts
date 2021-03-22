@@ -22,7 +22,8 @@ import { AboutDialog } from './about-dialog';
 
 declare global {
   interface Window {
-    app: AppContainer
+    app: AppContainer;
+    appTitle: string;
     textDialog: TextDialog;
   }
 }
@@ -49,7 +50,7 @@ class AppContainer extends LitElement {
   constructor() {
     super()
     window.app = this
-    window.app.title = 'Tradon'
+    window.appTitle = 'Tradon'
 
     this.tradesInterface = new TradesInterface()
     this.tCodeInterface = new TCodeInterface()
@@ -75,11 +76,12 @@ class AppContainer extends LitElement {
     return html`
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017">
-        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.app.title}</span>
+        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.appTitle}</span>
       </div>
       <div style="display:flex;align-items:center">
         <!-- <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button> -->
+        <mwc-icon-button icon="title" @click="${() => this.tCodeInterface.open()}"></mwc-icon-button>
         <mwc-icon-button icon="help_outline" @click="${() => this.aboutDialog.open()}"></mwc-icon-button>
         <mwc-icon-button icon="settings" @click="${() => this.optionsDialog.show()}"></mwc-icon-button>
       </div>

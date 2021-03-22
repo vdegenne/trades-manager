@@ -127,10 +127,13 @@ export class TradesView extends LitElement {
     let totalConverted: { value: number, quote: string }|undefined = undefined
     let profitConverted: { value: number, quote: string }|undefined = undefined
     const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote)
+    let percent;
     if (price) {
       total.value = price * summary.volume;
       profit = total.value - summary.invested
-      totalInvested = total.value - profit;
+      percent = ((total.value - summary.invested) / summary.invested) * 100;
+
+      // check if we should convert the values for UI comprehension
       const quoteConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange)
       if (quoteConversion.price && quoteConversion.quote === window.spacesManager.space.currency) {
         totalConverted = {
@@ -158,7 +161,7 @@ export class TradesView extends LitElement {
         <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
         <div class="price">${price}</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:center">
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
         <div style="display:flex;align-items:center;margin-bottom:5px">
           <div>${outputPriceTemplate(profit, session.quote)}</div>
           ${profitConverted ? html`
@@ -174,6 +177,7 @@ export class TradesView extends LitElement {
           ` : nothing}
         </div>
       </div>
+      <span style="color:${percent === 0 ? 'black' : percent > 0 ? 'green' : 'red'};margin-right:12px;">${round(percent, 2)}%</span>
       <mwc-icon-button icon="close"
         @mousedown="${e => e.stopPropagation()}"
         @click="${() => this.interface.removeSession(session)}"></mwc-icon-button>

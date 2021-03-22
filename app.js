@@ -15940,7 +15940,7 @@ function formatOutputPrice(value, quote, sign = false) {
     return `${sign ? value > 0 ? '+ ' : '' : ''}${round(value, precision)}${symbol}`;
 }
 function outputPriceTemplate(value, quote, light = false) {
-    const green = light ? '#00ff00' : '#4caf50';
+    const green = light ? '#3adc41' : '#4caf50';
     const red = light ? '#f44336' : '#ff0000';
     return html `
   <span style="color:${value === 0 ? 'initial' : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
@@ -49687,9 +49687,12 @@ let TradesView = class TradesView extends LitElement {
         let totalConverted = undefined;
         let profitConverted = undefined;
         const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote);
+        let percent;
         if (price) {
             total.value = price * summary.volume;
             profit = total.value - summary.invested;
+            percent = ((total.value - summary.invested) / summary.invested) * 100;
+            // check if we should convert the values for UI comprehension
             const quoteConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange);
             if (quoteConversion.price && quoteConversion.quote === window.spacesManager.space.currency) {
                 totalConverted = {
@@ -49713,7 +49716,7 @@ let TradesView = class TradesView extends LitElement {
         <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
         <div class="price">${price}</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:center">
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
         <div style="display:flex;align-items:center;margin-bottom:5px">
           <div>${outputPriceTemplate(profit, session.quote)}</div>
           ${profitConverted ? html `
@@ -49729,6 +49732,7 @@ let TradesView = class TradesView extends LitElement {
           ` : nothing}
         </div>
       </div>
+      <span style="color:${percent === 0 ? 'black' : percent > 0 ? 'green' : 'red'};margin-right:12px;">${round(percent, 2)}%</span>
       <mwc-icon-button icon="close"
         @mousedown="${e => e.stopPropagation()}"
         @click="${() => this.interface.removeSession(session)}"></mwc-icon-button>
@@ -51704,7 +51708,8 @@ let TCodeInterface = class TCodeInterface extends LitElement {
         return html `
     <mwc-dialog heading="T-Code">
       <div>
-        <mwc-textfield type="text"
+        <p>Use a <b>t-code</b> to quickly add a trade entry (learn more)</p>
+        <mwc-textfield type="text" outlined style="width:100%"
           @keyup="${(e) => this.tcode = e.target.value}"></mwc-textfield>
       </div>
 
@@ -51719,10 +51724,16 @@ let TCodeInterface = class TCodeInterface extends LitElement {
     }
     resolveTCode() {
     }
+    open() {
+        this.dialog.show();
+    }
 };
 __decorate([
     property()
 ], TCodeInterface.prototype, "tcode", void 0);
+__decorate([
+    query('mwc-dialog')
+], TCodeInterface.prototype, "dialog", void 0);
 TCodeInterface = __decorate([
     customElement('t-code-interface')
 ], TCodeInterface);
@@ -51730,17 +51741,17 @@ TCodeInterface = __decorate([
 let AboutDialog = class AboutDialog extends LitElement {
     render() {
         return html `
-    <mwc-dialog heading="${window.app.title} (v1.0)">
+    <mwc-dialog heading="${window.appTitle} (v1.0)">
       <div style="width:1000px"></div>
       <div>
-        ${window.app.title} is a small app you can use to organize your tradings.
+        ${window.appTitle} is a small app you can use to organize your tradings.
 
         <h3>Benefits</h3>
         < to complete >
 
-        <h3>What ${window.app.title} is not</h3>
-        <p>${window.app.title} is not a portfolio manager.<br>
-        You can use ${window.app.title} to make a quick porfolio based on your recent tradings, but chances are things will get a little clunky as new trades happen.
+        <h3>What ${window.appTitle} is not</h3>
+        <p>${window.appTitle} is not a portfolio manager.<br>
+        You can use ${window.appTitle} to make a quick porfolio based on your recent tradings, but chances are things will get a little clunky as new trades happen.
         Because pairs are not connected.</p>
         <p>Let's say you buy 10 ETH on the pair <b>ETH-EUR</b> and 10 more ETH on the pair <b>ETH-USD</b>.<br>
         First of all, you have 20 ETH but they are organized in different pairs.
@@ -51774,7 +51785,7 @@ let AppContainer = class AppContainer extends LitElement {
         super();
         this.spacesManager = new SpacesManager();
         window.app = this;
-        window.app.title = 'Tradon';
+        window.appTitle = 'Tradon';
         this.tradesInterface = new TradesInterface();
         this.tCodeInterface = new TCodeInterface();
         this.walletsManager = new WalletsManager();
@@ -51783,11 +51794,12 @@ let AppContainer = class AppContainer extends LitElement {
         return html `
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017">
-        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.app.title}</span>
+        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.appTitle}</span>
       </div>
       <div style="display:flex;align-items:center">
         <!-- <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button> -->
+        <mwc-icon-button icon="title" @click="${() => this.tCodeInterface.open()}"></mwc-icon-button>
         <mwc-icon-button icon="help_outline" @click="${() => this.aboutDialog.open()}"></mwc-icon-button>
         <mwc-icon-button icon="settings" @click="${() => this.optionsDialog.show()}"></mwc-icon-button>
       </div>
