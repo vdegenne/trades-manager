@@ -27,7 +27,7 @@ export class PairsManager implements PairsManagerInterface {
   /**
    * pairExists will check if the pair exists in the pairs list, hence
    * if it was registered.
-   * Also check for `isPairAvailable` to understand the subtle difference. 
+   * Also check for `isPairAvailable` to understand the subtle difference.
    */
   pairExists (symbol: string, quote: string) {
     return this.pairs.some(p => {
@@ -72,7 +72,7 @@ export class PairsManager implements PairsManagerInterface {
       clearTimeout(this.updateTimeout)
       this.updateTimeout = undefined;
     }
-    
+
     this.updateTimeout = setTimeout(() => this.updatePairs(), this.timeoutMs)
     await this.updateFunction()
   }
@@ -83,7 +83,7 @@ export class PairsManager implements PairsManagerInterface {
    * it will trigger code execution and reset the timer
    */
   async updateFunction () {
-    window.app.tradesInterface.refreshUI()
+    window.app.sessionsInterface.refreshUI()
   }
 
   getAvailableSymbols() {

@@ -1,5 +1,4 @@
-import { Currency } from "./app-container"
-import { AvailableExchanges, ExchangesManager } from "./ExchangesManager"
+import { AvailableExchanges } from "./ExchangesManager"
 
 export type KrakenTradeObject = {
   pair: string,
@@ -19,13 +18,7 @@ export type TradeUnit = {
   c: number
 }
 
-// export type Trades = {
-//   [pair: string]: TradeUnit[]
-// }
-
 export type Trade = {
-  // symbol: string,
-  // quote: string,
   type: 'buy'|'sell',
   price: number,
   volume: number,
@@ -37,7 +30,8 @@ export type TradeSession = {
   exchange: AvailableExchanges,
   symbol: string,
   quote: string,
-  trades: Trade[]
+  trades: Trade[],
+  virtual: boolean
 }
 
 export type TradesSummary = {
@@ -45,22 +39,31 @@ export type TradesSummary = {
   volume: number,
 }
 
+declare global {
+  interface Window {
+    tradesManager: TradesManager;
+    sessions: TradeSession[];
+  }
+}
 
 
-export class TradeManager {
+export class TradesManager {
   public sessions: TradeSession[]
 
   constructor(tradeSessions?: TradeSession[]) {
     this.sessions = tradeSessions || []
+    window.tradesManager = this;
+    window.sessions = this.sessions
   }
 
-  createSession (exchange: AvailableExchanges, symbol: string, quote: string) {
+  createSession (exchange: AvailableExchanges, symbol: string, quote: string, virtual = false) {
     const session: TradeSession = {
       id: Date.now(),
       exchange,
       symbol,
       quote,
-      trades: []
+      trades: [],
+      virtual
     }
     this.sessions.push(session)
     return session
@@ -74,13 +77,8 @@ export class TradeManager {
     this.sessions.splice(this.sessions.indexOf(session), 1)
   }
 
-  deleteTrade (trade: Trade, session?: TradeSession) {
-    if (!session) {
-      session = this.getTradesSession(trade)
-      if (!session) {
-        return false
-      }
-    }
+  deleteTrade (trade: Trade) {
+    const session = this.getTradesSession(trade)!
     const indexOfTrade = session.trades.indexOf(trade)
     if (indexOfTrade === -1) return false
 
@@ -90,6 +88,14 @@ export class TradeManager {
 
   getTradesSession (trade: Trade) {
     return this.sessions.find(s => s.trades.indexOf(trade) >= 0)
+  }
+
+  getSessions (exchangeName: string, symbol: string, quote: string) {
+    return this.sessions.filter(s => s.exchange === exchangeName && s.symbol === symbol && s.quote === quote)
+  }
+
+  getSessionFromId (id: number) {
+    return this.sessions.find(s => s.id === id)
   }
 
   getPairTrades (pair: string) {

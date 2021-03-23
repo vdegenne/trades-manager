@@ -28,11 +28,11 @@ export class KrakenManager extends PairsManager implements PairsManagerInterface
   }
 
   getAvailableSymbols () {
-    return [...new Set(krakenPairs.map(p => p.s))]
+    return [...new Set(krakenPairs.map(p => p.s))].map(v => convertSymbol(v, true))
   }
 
   getAvailableQuotesFromSymbol (symbol: string) {
-    return [...new Set(krakenPairs.filter(p => p.s === symbol).map(p => p.q))]
+    return [...new Set(krakenPairs.filter(p => p.s === convertSymbol(symbol)).map(p => p.q))]
   }
 
   getPairsString () {
@@ -49,14 +49,12 @@ export class KrakenManager extends PairsManager implements PairsManagerInterface
   }
 }
 
-function convertSymbol (symbol: string) {
-  const conversionMap = {
-    'BTC': 'XBT'
-  }
-
-  if (symbol in conversionMap) {
-    return conversionMap[symbol]
-  }
-
-  return symbol
+function convertSymbol (symbol: string, reverse = false) {
+  const map = reverse ? reveredConversionMap : conversionMap;
+  return symbol in map ? map[symbol] : symbol;
 }
+
+const conversionMap = {
+  'BTC': 'XBT'
+}
+const reveredConversionMap = Object.fromEntries(Object.entries(conversionMap).map(([a, b]) => [b, a]))

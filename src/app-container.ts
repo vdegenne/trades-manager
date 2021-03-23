@@ -1,5 +1,4 @@
 import {css, customElement, html, LitElement, property, query} from 'lit-element'
-import { TradesInterface } from './trades-interface';
 import '@material/mwc-dialog'
 import '@material/mwc-button'
 import '@material/mwc-select'
@@ -12,19 +11,22 @@ import { Snackbar } from '@material/mwc-snackbar';
 import { ConfirmDialog } from './confirm-dialog';
 import { Dialog } from '@material/mwc-dialog';
 import { SpacesManager } from './SpacesManager';
-import { Wallets, WalletsManager } from './WalletsManager';
+import { WalletsManager } from './WalletsManager';
 import {TextDialog} from './text-dialog'
 import './text-dialog'
 import { TCodeInterface } from "./t-code-interface";
 import './t-code-interface'
 import './about-dialog'
 import { AboutDialog } from './about-dialog';
+import { OptionsInterface } from './options/options-interface'
+import { SessionsInterface } from './sessions-interface'
 
 declare global {
   interface Window {
     app: AppContainer;
     appTitle: string;
     textDialog: TextDialog;
+    confirmDialog: ConfirmDialog;
   }
 }
 
@@ -35,14 +37,16 @@ export type Currency = typeof Currencies[number]
 class AppContainer extends LitElement {
   public spacesManager: SpacesManager = new SpacesManager();
 
-  public tradesInterface: TradesInterface;
+  public sessionsInterface: SessionsInterface; // considered as the main interface
   private tCodeInterface: TCodeInterface;
+  private optionsInterface: OptionsInterface;
+
+  private confirmDialog = new ConfirmDialog()
 
   @property()
   private walletsManager: WalletsManager;
 
   @query('mwc-snackbar') snackbar!: Snackbar;
-  @query('confirm-dialog') confirmDialog!: ConfirmDialog;
   @query('mwc-dialog[heading=Options]') optionsDialog!: Dialog;
   @query('text-dialog') textDialog!: TextDialog;
   @query('about-dialog') aboutDialog!: AboutDialog;
@@ -51,9 +55,11 @@ class AppContainer extends LitElement {
     super()
     window.app = this
     window.appTitle = 'Tradon'
+    window.confirmDialog = this.confirmDialog
 
-    this.tradesInterface = new TradesInterface()
+    this.sessionsInterface = new SessionsInterface()
     this.tCodeInterface = new TCodeInterface()
+    this.optionsInterface = new OptionsInterface()
 
     this.walletsManager = new WalletsManager()
   }
@@ -91,9 +97,10 @@ class AppContainer extends LitElement {
 
     ${this.walletsManager}
 
-    ${this.tradesInterface}
+    ${this.sessionsInterface}
 
     ${this.tCodeInterface}
+    ${this.optionsInterface}
 
     <about-dialog></about-dialog>
 
@@ -112,7 +119,7 @@ class AppContainer extends LitElement {
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
 
-    <confirm-dialog></confirm-dialog>
+    ${this.confirmDialog}
     <text-dialog></text-dialog>
 
     <mwc-snackbar leading></mwc-snackbar>

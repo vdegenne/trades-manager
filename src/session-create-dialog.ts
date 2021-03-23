@@ -1,11 +1,9 @@
 import { Checkbox } from "@material/mwc-checkbox";
 import { Dialog } from "@material/mwc-dialog";
-import { Select } from "@material/mwc-select";
 import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { nothing } from "lit-html";
 import { ifDefined } from "lit-html/directives/if-defined";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
-import { TradeSession } from "./trades";
 import { firstLetterUpperCase, sortAlphabetically, openVirtualInfoDialog } from "./util";
 
 @customElement('session-create-dialog')
@@ -25,7 +23,7 @@ export class SessionCreateDialog extends LitElement {
       width: 100%;
     }
   `
-  
+
   render () {
     let symbols, quotes
     if (this.exchange) {
@@ -102,10 +100,11 @@ export class SessionCreateDialog extends LitElement {
   }
 
   submit () {
-    const session = window.tradesInterface.tradesManager.createSession(this.exchange!, this.symbol!, this.quote!)
+    const session = window.tradesManager.createSession(this.exchange!, this.symbol!, this.quote!)
     ExchangesManager.addPair(session.exchange, session.symbol, session.quote, false)
-    window.tradesInterface.requestUpdate()
+    window.sessionsInterface.requestUpdate()
     ExchangesManager.exchanges[session.exchange].updatePairs()
+    // window.sessionsInterface.requestUpdate()
     // window.sessionInterface.openSession(session)
     this.dialog.close()
     window.spacesManager.save()

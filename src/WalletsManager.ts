@@ -2,7 +2,7 @@ import { Dialog } from "@material/mwc-dialog";
 import { TextField } from "@material/mwc-textfield";
 import { customElement, html, LitElement, property, query } from "lit-element";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
-import { Aggregator, AggregatorUnit } from "./profit-aggregator";
+import { Aggregator } from "./profit-aggregator";
 import { WalletsData } from "./SpacesManager";
 import { firstLetterUpperCase, formatOutputAggregation, formatOutputPrice } from "./util";
 
@@ -49,7 +49,7 @@ export class WalletsManager extends LitElement {
         <p>How many ${window.spacesManager.space?.currency} do you have in your balance on ${firstLetterUpperCase(this.exchangeName)}?</p>
         <mwc-textfield id="funds-textfield" outlined type="number" min="0" step="0.01" style="width:100%"
           .value="${this.wallets[this.exchangeName!]}"></mwc-textfield>
-        
+
         <p>Do not include the funds that are in the form of trades on the market. Only ${window.spacesManager.space?.currency} in your balance on your exchange.</p>
       </div>
 

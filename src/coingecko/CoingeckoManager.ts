@@ -1,7 +1,7 @@
 import coingeckoSymbols from './coingecko-symbols.json'
 import coingeckoQuotes from './coingecko-quotes.json'
 import ms from 'ms'
-import {Pair, PairsManager, PairsManagerInterface} from '../PairsManager'
+import { PairsManager, PairsManagerInterface} from '../PairsManager'
 
 export class CoingeckoPairsManager extends PairsManager implements PairsManagerInterface {
   protected timeoutMs = ms('10s')
@@ -40,7 +40,7 @@ export class CoingeckoPairsManager extends PairsManager implements PairsManagerI
     if (!ids || !vs_currencies) {
       return
     }
-    
+
     const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=${vs_currencies}`)
     const result = await response.json()
 

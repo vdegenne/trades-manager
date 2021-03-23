@@ -2,7 +2,7 @@ import { KrakenManager } from './kraken/KrakenManager';
 import { BinanceManager } from "./binance/BinanceManager";
 import { CoingeckoPairsManager } from "./coingecko/CoingeckoManager";
 import { PairsManager } from "./PairsManager"
-import { TradeSession } from "./trades";
+import { TradeSession } from "./TradesManager";
 import { Currencies } from './app-container';
 
 export type Exchange = PairsManager;

@@ -2,9 +2,8 @@ import { Dialog } from "@material/mwc-dialog";
 import { customElement, html, LitElement, property, query } from "lit-element";
 import { Currencies, Currency } from "./app-container";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
-import { Aggregator, AggregatorUnit } from "./profit-aggregator";
-import { TradeSession } from "./trades";
-import { Wallets, WalletsManager } from "./WalletsManager";
+import { AggregatorUnit } from "./profit-aggregator";
+import { TradeSession } from "./TradesManager";
 
 export type Space = {
   name: string;
@@ -15,7 +14,7 @@ export type Space = {
 
 export type WalletsData = {
   [key in AvailableExchanges]: AggregatorUnit[]
-} 
+}
 
 declare global {
   interface Window {
@@ -95,7 +94,7 @@ export class SpacesManager extends LitElement {
   }
 
   loadSpace (space: Space) {
-    window.tradesInterface.loadSessions(space.sessions)
+    window.sessionsInterface.loadSessions(space.sessions)
 
     window.walletsManager.loadWallets(space.wallets)
 

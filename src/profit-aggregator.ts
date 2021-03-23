@@ -1,4 +1,3 @@
-import { html } from 'lit-html';
 import { Currency } from './app-container';
 import {AvailableExchanges, ExchangesManager, Exchange} from './ExchangesManager'
 
@@ -63,7 +62,7 @@ export class Aggregator {
   isEmpty () {
     return !this.units.length
   }
-  
+
   clone () {
     const cloned: AggregatorUnit[] = []
     for (const unit of this.units) {

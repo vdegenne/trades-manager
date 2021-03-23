@@ -2,7 +2,7 @@ import { Dialog } from "@material/mwc-dialog";
 import { TextField } from "@material/mwc-textfield";
 import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { ExchangesManager } from "./ExchangesManager";
-import { getSummary, summarizeSessionTrades, TradeSession } from "./trades";
+import { getSummary, TradeSession } from "./TradesManager";
 
 declare global {
   interface Window {
@@ -145,26 +145,19 @@ export class TradeCreateDialog extends LitElement {
       return;
     }
     const quantity = parseFloat(this.quantityField.value)
-    if (this.type === 'sell' && this.maxQuantity && quantity > this.maxQuantity) {
-      try {
-        await window.app.confirmDialog.open('Selling more than you have', html`
-        <p>You are about to sell more volume than you have registered in this pair (from <b>BUY</b> order).</p>
-
-        <p>If you continue, your session will show inconsistent values.<br>
-        A good practice is to always sell what you have, or delete a session if it shows negative values or else the totals will also have bad results.</p>
-        `)
-      } catch (e) {
-        return; // canceled
-      }
-    }
 
     // add the new trade into the session
-    window.tradesInterface.addTrade(this.session, {
-      type: this.type,
-      price: parseFloat(this.priceField.value),
-      volume: quantity,
-      fees: parseFloat(this.feesField.value) || 0
-    })
+    try {
+      await window.tradesInterface.addTrade(this.session, {
+        type: this.type,
+        price: parseFloat(this.priceField.value),
+        volume: quantity,
+        fees: parseFloat(this.feesField.value) || 0
+      })
+    } catch (e) {
+      return; // canceled
+    }
+
     this.dialog.close()
     this.reset()
   }
@@ -176,7 +169,7 @@ export class TradeCreateDialog extends LitElement {
     this.session = session;
     this.dialog.show()
   }
-  
+
   private reset() {
     this.type = 'buy'
     this.price = '';

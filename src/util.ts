@@ -1,6 +1,6 @@
 import { html, nothing } from "lit-html";
 import { Aggregator } from "./profit-aggregator";
-import { TradeSession } from "./trades";
+import { TradeSession } from "./TradesManager";
 
 export function round(value: number, precision = 2) {
   return Math.round(value * (10**precision)) / (10**precision);
@@ -73,7 +73,7 @@ export function outputPriceTemplate (value: number, quote: string, light = false
   const red = light ? '#f44336' : '#ff0000'
 
   return html`
-  <span style="color:${value === 0 ? 'initial' : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  <span style="color:${value === 0 ? (light ? 'white': 'black') : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
   `
 }
 

@@ -1,6 +1,5 @@
 import { Dialog } from "@material/mwc-dialog";
 import { customElement, html, LitElement, property, query, TemplateResult } from "lit-element";
-import {ifDefined} from 'lit-html/directives/if-defined'
 
 @customElement('text-dialog')
 export class TextDialog extends LitElement {
