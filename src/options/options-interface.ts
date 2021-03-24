@@ -65,7 +65,7 @@ export class OptionsInterface extends LitElement {
 
         <mwc-formfield label="Show wallet at the bottom">
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showWallet}"
-            @change="${(e) => this.options.exchangeViewOptions.showWallet = e.target.checked}"></mwc-checkbox>
+            @change="${(e) => {this.options.exchangeViewOptions.showWallet = e.target.checked; this.requestUpdate()}}"></mwc-checkbox>
         </mwc-formfield>
       </div>
 
@@ -92,6 +92,7 @@ export class OptionsInterface extends LitElement {
     // on opening we clone the current options object
     // so any changes are not forwarded to the main UI
     this.options = JSON.parse(JSON.stringify(this.optionsManager.options))
+    console.log(this.options)
     this.dialog.show()
   }
 
