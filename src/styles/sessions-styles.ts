@@ -46,6 +46,7 @@ export default css`
 
 .session .percent {
   color: white;
+  font-size: 14px;
   border-radius: 4px;
   padding: 5px 7px;
   opacity: 0.8;

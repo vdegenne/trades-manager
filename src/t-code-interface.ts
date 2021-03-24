@@ -36,6 +36,7 @@ export class TCodeInterface extends LitElement {
   ]
 
   render () {
+    let sessionIndex = -1;
     return html`
     <mwc-dialog heading="T-Code" style="--mdc-dialog-min-width:${window.innerWidth > 560 ? `${Math.min(window.innerWidth - 40, 900)}px`: '280px'}">
       <div>
@@ -50,15 +51,18 @@ export class TCodeInterface extends LitElement {
 
             if (session.virtual) return nothing;
 
+            sessionIndex++;
+
             return html`
             <!-- <mwc-formfield label=""> -->
             <div style="display:flex;align-items:center;">
-            <mwc-radio name="session" value="${session.id}" ?checked="${i === 0}"></mwc-radio>
-            ${window.sessionsView.sessionExternalTemplate(session,
-              Object.assign({}, window.options.sessionViewOptions, { events: false, showCross: false, showPrice: false } as Partial<SessionViewOptions>))}
+              <mwc-radio name="session" value="${session.id}" ?checked="${sessionIndex === 0}"></mwc-radio>
+              ${window.sessionsView.sessionExternalTemplate(session,
+                Object.assign({}, window.options.sessionViewOptions, { events: false, showCross: false, showPrice: false } as Partial<SessionViewOptions>))}
             </div>
             <!-- </mwc-formfield> -->`
           })}
+          ${this.sessions.length && !this.lockSessions ? html`<mwc-formfield label="new session"><mwc-radio name="session" value=""></mwc-radio></mwc-formfield>` : nothing }
         </div>
       </div>
 
@@ -114,17 +118,25 @@ export class TCodeInterface extends LitElement {
     const tcode = resolveTCode(this.textfield.value) as TCode;
     let session;
 
-    if (this.checkedSession === null) {
+    if (this.sessions.length && !this.checkedSession) {
+      window.app.toast('Please, select an option.')
+      return;
+    }
+
+    if (this.checkedSession === null || this.checkedSession.value === '') {
+
       // we should ask if the user intended to create the session
-      try {
-        await window.confirmDialog.open('Create New Session', html`
-        <p style="margin-right:12px">The session <b>${tcode.symbol}-${tcode.quote}</b> on <b>${firstLetterUpperCase(tcode.exchange)}</b> doesn't exist.<br>
-        Do you want to create it ?</p>
-        `)
-        session = window.sessionsInterface.createSession(tcode.exchange, tcode.symbol, tcode.quote)
-      } catch (e) {
-        return // canceled
+      // unless he explicitely choosed a new one from the radio
+      if (this.checkedSession === null) {
+        try {
+          await window.confirmDialog.open('Create New Session', html`
+            <p style="margin-right:12px">The session <b>${tcode.symbol}-${tcode.quote}</b> on <b>${firstLetterUpperCase(tcode.exchange)}</b> doesn't exist.<br>
+            Do you want to create it ?</p>
+          `)
+        } catch (e) { return /* canceled */ }
       }
+
+      session = window.sessionsInterface.createSession(tcode.exchange, tcode.symbol, tcode.quote)
     } else {
       session = window.tradesManager.getSessionFromId(parseInt(this.checkedSession.value))
     }
@@ -151,8 +163,13 @@ export class TCodeInterface extends LitElement {
   }
 
 
-  public open () {
+  public open (session?: TradeSession) {
     this.requestUpdate() // used to resize the width if the screen width changes
+    // if a session is provided we should lock the sessions array because it's a targetted selection
+    if (session) {
+      this.sessions = [session]
+      this.lockSessions = true;
+    }
     this.dialog.show()
     setTimeout(() => this.textfield.focus(), 300)
   }

@@ -37,11 +37,15 @@ export class tradesInterface extends LitElement {
         escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
-        <div>
-        <mwc-formfield label="virtual">
-          <mwc-checkbox ?checked="${this.session?.virtual}"
-            @change="${(e) => this.onVirtualChange(e)}"></mwc-checkbox>
-        </mwc-formfield>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <mwc-formfield label="virtual">
+            <mwc-checkbox ?checked="${this.session?.virtual}"
+              @change="${(e) => this.onVirtualChange(e)}"></mwc-checkbox>
+          </mwc-formfield>
+          <div>
+            <mwc-button outlined icon="title"
+              @click="${(e) => window.tcodeInterface.open(this.session)}">tcode</mwc-button>
+          </div>
         </div>
         <div style="max-height: 500px;overflow: auto;">
         ${this.session ? html`

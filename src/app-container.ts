@@ -28,6 +28,7 @@ declare global {
     appTitle: string;
     textDialog: TextDialog;
     confirmDialog: ConfirmDialog;
+    tcodeInterface: TCodeInterface;
   }
 }
 
@@ -62,7 +63,9 @@ class AppContainer extends LitElement {
     this.tCodeInterface = new TCodeInterface()
     this.optionsInterface = new OptionsInterface()
 
-    this.walletsManager = new WalletsManager()
+    this.walletsManager = new WalletsManager() // deprecated ?
+
+    window.tcodeInterface = this.tCodeInterface;
   }
 
   static styles = css`

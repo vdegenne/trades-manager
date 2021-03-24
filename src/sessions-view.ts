@@ -163,8 +163,10 @@ export class SessionsView extends LitElement {
 
       <!-- PERCENT -->
         ${viewOptions.showPercent ? html`
-        <span class="percent"
-          style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : 'red'}">${round(percent, 2) || '0'}%</span>
+        <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
+          <span class="percent"
+            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : 'red'}">${round(percent, 2) || '0'}%</span>
+        <!-- </div> -->
         ` : nothing }
 
       ${viewOptions.showCross ? html`
