@@ -69,7 +69,8 @@ class AppContainer extends LitElement {
   :host {
     display: block;
     /* --mdc-theme-primary: #004d40; */
-    max-width: 800px;
+    --mdc-theme-primary: #3e2723;
+    max-width: 700px;
     margin: 0 auto;
     padding: 10px 10px;
   }

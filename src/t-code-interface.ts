@@ -40,7 +40,7 @@ export class TCodeInterface extends LitElement {
     <mwc-dialog heading="T-Code" style="--mdc-dialog-min-width:${window.innerWidth > 560 ? `${Math.min(window.innerWidth - 40, 900)}px`: '280px'}">
       <div>
         <p>Use a <b>t-code</b> to quickly add a trade entry (learn more)</p>
-        <mwc-textfield type="text" outlined style="width:100%"
+        <mwc-textfield type="text" outlined style="width:100%" initialFocusAttribute
           helperPersistent helper="${this.textfield ? ['exchange', 'symbol', 'quote', 'type', 'price', 'quantity', 'fees (optional)'][this.textfield.value.split(':').length - 1] : 'exchange'}"
           @keyup="${() => this.onTextFieldKeypress()}"></mwc-textfield>
 
@@ -68,6 +68,14 @@ export class TCodeInterface extends LitElement {
       <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
     `
+  }
+
+  firstUpdated() {
+    window.addEventListener('keypress', e => {
+      if (e.key === 't' && !e.ctrlKey && !e.altKey) {
+        this.open()
+      }
+    })
   }
 
   private onTextFieldKeypress() {
@@ -146,6 +154,7 @@ export class TCodeInterface extends LitElement {
   public open () {
     this.requestUpdate() // used to resize the width if the screen width changes
     this.dialog.show()
+    setTimeout(() => this.textfield.focus(), 300)
   }
 
   reset () {

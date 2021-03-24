@@ -67,8 +67,10 @@ export class SessionsView extends LitElement {
           this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency)
           this.walletAggregator.resolveQuotes(window.spacesManager.space.currency)
 
+          if (this.totalValueAggregator.units.length === 0) return nothing;
+
           return html`
-          <div style="display:flex;align-items:center;justify-content:space-between;background-color:#424242;padding:12px;border-radius:5px">
+          <div style="display:flex;align-items:center;justify-content:space-between;background-color:var(--mdc-theme-primary);padding:12px;border-radius:5px">
             <div style="color:white">
               <span>Total : </span><span style="color:#9bf1e5">${formatOutputAggregation(this.totalValueAggregator)}</span>
             </div>

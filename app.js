@@ -1536,12 +1536,13 @@ limitations under the License.
   flex: 1;
   align-items: center;
   padding: 11px;
-  background-color: #f5f5f5;
+  background-color: #eeeeee;
   justify-content: space-between;
   margin: 8px 0;
   border-radius: 5px;
   line-height: normal;
-  box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+  /* box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.1), 0px 2px 2px 0px rgba(0, 0, 0, 0.08), 0px 1px 5px 0px rgba(0, 0, 0, 0.06); */
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25);
 }
 .session:hover {
   background-color: #eeeeee;
@@ -1583,7 +1584,7 @@ limitations under the License.
     <mwc-dialog heading="T-Code" style="--mdc-dialog-min-width:${window.innerWidth>560?`${Math.min(window.innerWidth-40,900)}px`:"280px"}">
       <div>
         <p>Use a <b>t-code</b> to quickly add a trade entry (learn more)</p>
-        <mwc-textfield type="text" outlined style="width:100%"
+        <mwc-textfield type="text" outlined style="width:100%" initialFocusAttribute
           helperPersistent helper="${this.textfield?["exchange","symbol","quote","type","price","quantity","fees (optional)"][this.textfield.value.split(":").length-1]:"exchange"}"
           @keyup="${()=>this.onTextFieldKeypress()}"></mwc-textfield>
 
@@ -1604,10 +1605,10 @@ limitations under the License.
         @click="${e=>this.submit()}">submit</mwc-button>
       <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
-    `}onTextFieldKeypress(){this.textfield.setCustomValidity(""),this.textfield.reportValidity(),this.validity=!1;let e=Js(this.textfield.value);try{!function(e){if("string"==typeof e){if(e.split(":").length>7)throw new Error("Invalid tcode (length)");e=Js(e)}if(void 0===e)throw new Error("Invalid tcode (not defined)");if("exchange"in e&&!Object.keys(qs.exchanges).includes(e.exchange))throw new Error("The exchange doesn't exist");const t=qs.exchanges[e.exchange];if("symbol"in e&&!t.getAvailableSymbols().includes(e.symbol))throw new Error("The symbol is not available in this exchange");if("quote"in e&&!qs.exchanges[e.exchange].getAvailableQuotesFromSymbol(e.symbol).includes(e.quote))throw new Error("The quote is not available for this symbol");if("type"in e&&"buy"!==e.type&&"sell"!==e.type)throw new Error("The type should be either 'buy' or 'sell'");if("price"in e&&isNaN(e.price))throw new Error("The price should be a number");if("quantity"in e&&isNaN(e.quantity))throw new Error("The quantity should be a number");if("fees"in e&&isNaN(e.fees))throw new Error("The fees should be a number")}(this.textfield.value)}catch(e){this.reportValidity(e.message)}this.lockSessions||(["exchange","symbol","quote"].every((t=>t in e))?this.sessions=window.tradesManager.getSessions(e.exchange,e.symbol,e.quote):this.sessions=[]),function(e){return"exchange"in e&&"symbol"in e&&"quote"in e&&"type"in e&&"price"in e&&"quantity"in e}(e)&&(this.validity=!0)}async submit(){if(!this.validity)return;const e=Js(this.textfield.value);let t;if(null===this.checkedSession)try{await window.confirmDialog.open("Create New Session",X`
+    `}firstUpdated(){window.addEventListener("keypress",(e=>{"t"!==e.key||e.ctrlKey||e.altKey||this.open()}))}onTextFieldKeypress(){this.textfield.setCustomValidity(""),this.textfield.reportValidity(),this.validity=!1;let e=Js(this.textfield.value);try{!function(e){if("string"==typeof e){if(e.split(":").length>7)throw new Error("Invalid tcode (length)");e=Js(e)}if(void 0===e)throw new Error("Invalid tcode (not defined)");if("exchange"in e&&!Object.keys(qs.exchanges).includes(e.exchange))throw new Error("The exchange doesn't exist");const t=qs.exchanges[e.exchange];if("symbol"in e&&!t.getAvailableSymbols().includes(e.symbol))throw new Error("The symbol is not available in this exchange");if("quote"in e&&!qs.exchanges[e.exchange].getAvailableQuotesFromSymbol(e.symbol).includes(e.quote))throw new Error("The quote is not available for this symbol");if("type"in e&&"buy"!==e.type&&"sell"!==e.type)throw new Error("The type should be either 'buy' or 'sell'");if("price"in e&&isNaN(e.price))throw new Error("The price should be a number");if("quantity"in e&&isNaN(e.quantity))throw new Error("The quantity should be a number");if("fees"in e&&isNaN(e.fees))throw new Error("The fees should be a number")}(this.textfield.value)}catch(e){this.reportValidity(e.message)}this.lockSessions||(["exchange","symbol","quote"].every((t=>t in e))?this.sessions=window.tradesManager.getSessions(e.exchange,e.symbol,e.quote):this.sessions=[]),function(e){return"exchange"in e&&"symbol"in e&&"quote"in e&&"type"in e&&"price"in e&&"quantity"in e}(e)&&(this.validity=!0)}async submit(){if(!this.validity)return;const e=Js(this.textfield.value);let t;if(null===this.checkedSession)try{await window.confirmDialog.open("Create New Session",X`
         <p style="margin-right:12px">The session <b>${e.symbol}-${e.quote}</b> on <b>${Hs(e.exchange)}</b> doesn't exist.<br>
         Do you want to create it ?</p>
-        `),t=window.sessionsInterface.createSession(e.exchange,e.symbol,e.quote)}catch(e){return}else t=window.tradesManager.getSessionFromId(parseInt(this.checkedSession.value));try{await window.tradesInterface.addTrade(t,{type:e.type,price:e.price,volume:e.quantity,fees:e.fees||0})}catch(e){return}this.dialog.close(),this.reset()}reportValidity(e){this.textfield.validationMessage=e,this.textfield.setCustomValidity(e),this.textfield.reportValidity()}open(){this.requestUpdate(),this.dialog.show()}reset(){this.textfield.value="",this.sessions=[],this.lockSessions=!1,this.validity=!1}};eo.styles=[Qs,le`
+        `),t=window.sessionsInterface.createSession(e.exchange,e.symbol,e.quote)}catch(e){return}else t=window.tradesManager.getSessionFromId(parseInt(this.checkedSession.value));try{await window.tradesInterface.addTrade(t,{type:e.type,price:e.price,volume:e.quantity,fees:e.fees||0})}catch(e){return}this.dialog.close(),this.reset()}reportValidity(e){this.textfield.validationMessage=e,this.textfield.setCustomValidity(e),this.textfield.reportValidity()}open(){this.requestUpdate(),this.dialog.show(),setTimeout((()=>this.textfield.focus()),300)}reset(){this.textfield.value="",this.sessions=[],this.lockSessions=!1,this.validity=!1}};eo.styles=[Qs,le`
     #sessions {
       min-height: 100px;
     }
@@ -2105,8 +2106,8 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
 
         ${window.options.exchangeViewOptions.showWallet?window.walletsManager.walletTemplate(this.walletAggregator):v}
 
-        ${(()=>(this.profitAggregator.resolveQuotes(window.spacesManager.space.currency),this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency),this.walletAggregator.resolveQuotes(window.spacesManager.space.currency),X`
-          <div style="display:flex;align-items:center;justify-content:space-between;background-color:#424242;padding:12px;border-radius:5px">
+        ${(()=>(this.profitAggregator.resolveQuotes(window.spacesManager.space.currency),this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency),this.walletAggregator.resolveQuotes(window.spacesManager.space.currency),0===this.totalValueAggregator.units.length?v:X`
+          <div style="display:flex;align-items:center;justify-content:space-between;background-color:var(--mdc-theme-primary);padding:12px;border-radius:5px">
             <div style="color:white">
               <span>Total : </span><span style="color:#9bf1e5">${Ws(this.totalValueAggregator)}</span>
             </div>
@@ -2415,7 +2416,7 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
   #inputs-box > mwc-textfield {
     min-width: 232px;
   }
-  `,s([ee()],fd.prototype,"formType",void 0),s([ee()],fd.prototype,"session",void 0),s([ee()],fd.prototype,"trade",void 0),s([ee()],fd.prototype,"exchange",void 0),s([ee()],fd.prototype,"symbol",void 0),s([ee()],fd.prototype,"quote",void 0),s([ee()],fd.prototype,"price",void 0),s([ee()],fd.prototype,"volume",void 0),s([ie("mwc-dialog#trade")],fd.prototype,"tradeDialog",void 0),fd=s([Q("sessions-interface")],fd);let bd=class extends me{render(){return X`test`}};bd=s([Q("import-export")],bd);const gd=["EUR","USD"];let Td=class extends me{constructor(){super(),this.spacesManager=new Ps,this.confirmDialog=new ys,window.app=this,window.appTitle="Tradon",window.confirmDialog=this.confirmDialog,this.sessionsInterface=new fd,this.tCodeInterface=new eo,this.optionsInterface=new so,this.walletsManager=new Zs}render(){return X`
+  `,s([ee()],fd.prototype,"formType",void 0),s([ee()],fd.prototype,"session",void 0),s([ee()],fd.prototype,"trade",void 0),s([ee()],fd.prototype,"exchange",void 0),s([ee()],fd.prototype,"symbol",void 0),s([ee()],fd.prototype,"quote",void 0),s([ee()],fd.prototype,"price",void 0),s([ee()],fd.prototype,"volume",void 0),s([ie("mwc-dialog#trade")],fd.prototype,"tradeDialog",void 0),fd=s([Q("sessions-interface")],fd);let bd=class extends me{render(){return X``}};bd=s([Q("import-export")],bd);const gd=["EUR","USD"];let Td=class extends me{constructor(){super(),this.spacesManager=new Ps,this.confirmDialog=new ys,window.app=this,window.appTitle="Tradon",window.confirmDialog=this.confirmDialog,this.sessionsInterface=new fd,this.tCodeInterface=new eo,this.optionsInterface=new so,this.walletsManager=new Zs}render(){return X`
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017">
         <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.appTitle}</span>
@@ -2466,7 +2467,8 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
   :host {
     display: block;
     /* --mdc-theme-primary: #004d40; */
-    max-width: 800px;
+    --mdc-theme-primary: #3e2723;
+    max-width: 700px;
     margin: 0 auto;
     padding: 10px 10px;
   }
