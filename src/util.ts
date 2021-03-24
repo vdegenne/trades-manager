@@ -69,7 +69,7 @@ export function formatOutputPrice (value: number, quote: string, sign = false) {
 }
 
 export function outputPriceTemplate (value: number, quote: string, light = false) {
-  const green = light ? '#3adc41' : '#4caf50';
+  const green = light ? '#3adc41' : 'var(--green)';
   const red = light ? '#f44336' : '#ff0000'
 
   return html`

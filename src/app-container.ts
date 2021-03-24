@@ -20,6 +20,7 @@ import './about-dialog'
 import { AboutDialog } from './about-dialog';
 import { OptionsInterface } from './options/options-interface'
 import { SessionsInterface } from './sessions-interface'
+import './import-export'
 
 declare global {
   interface Window {
@@ -67,7 +68,7 @@ class AppContainer extends LitElement {
   static styles = css`
   :host {
     display: block;
-    --mdc-theme-primary: #004d40;
+    /* --mdc-theme-primary: #004d40; */
     max-width: 800px;
     margin: 0 auto;
     padding: 10px 10px;
@@ -88,8 +89,9 @@ class AppContainer extends LitElement {
         <!-- <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button> -->
         <mwc-icon-button icon="title" @click="${() => this.tCodeInterface.open()}"></mwc-icon-button>
-        <mwc-icon-button icon="help_outline" @click="${() => this.aboutDialog.open()}"></mwc-icon-button>
-        <mwc-icon-button icon="settings" @click="${() => this.optionsDialog.show()}"></mwc-icon-button>
+        <mwc-icon-button icon="save" @click="${e => this.toast('next feature to implement')}"></mwc-icon-button>
+        <!-- <mwc-icon-button icon="help_outline" @click="${() => this.aboutDialog.open()}"></mwc-icon-button> -->
+        <mwc-icon-button icon="settings" @click="${() => this.optionsInterface.open()}"></mwc-icon-button>
       </div>
     </header>
 
@@ -103,6 +105,8 @@ class AppContainer extends LitElement {
     ${this.optionsInterface}
 
     <about-dialog></about-dialog>
+
+    <import-export></import-export>
 
     <mwc-dialog heading="Options">
       <div style="width:800px"></div>

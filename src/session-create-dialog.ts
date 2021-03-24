@@ -71,6 +71,7 @@ export class SessionCreateDialog extends LitElement {
 
         <p>Quote</p>
         <mwc-select outlined name="quote"
+            @keydown="${(e) => e.stopPropagation()}"
             value="${ifDefined(this.quote)}"
             ?disabled="${this.exchange !== undefined && !this.symbol}"
             @change="${(e) => this.quote = e.target.value}">
@@ -80,7 +81,7 @@ export class SessionCreateDialog extends LitElement {
           }) : nothing }
         </mwc-select>
 
-        <div style="display:flex;justify-content:center;align-items:center;margin:42px;font-size:32px">
+        <div style="display:flex;justify-content:center;align-items:center;margin:42px 0 10px;font-size:32px">
          <span style="color:black;">${this.symbol || '??'}</span>
          <mwc-icon style="--mdc-icon-size:32px;margin:10px;">sync_alt</mwc-icon>
          <span style="color:black">${this.quote || '??'}</span>
@@ -100,6 +101,7 @@ export class SessionCreateDialog extends LitElement {
   }
 
   submit () {
+    if (!this.symbol || !this.quote) { return }
     const session = window.tradesManager.createSession(this.exchange!, this.symbol!, this.quote!)
     ExchangesManager.addPair(session.exchange, session.symbol, session.quote, false)
     window.sessionsInterface.requestUpdate()

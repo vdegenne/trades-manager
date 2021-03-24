@@ -20,7 +20,10 @@ export class KrakenManager extends PairsManager implements PairsManagerInterface
     const result = (await (await fetch(`https://api.kraken.com/0/public/Ticker?pair=${this.getPairsString()}`)).json()).result
 
     for (const pair of this.pairs) {
-      pair.price = parseFloat(result[this.getIdFromPair(pair)!].c[0])
+      try {
+        // sometimes the fetch occurs when a a pair is being added (e.g. on )
+        pair.price = parseFloat(result[this.getIdFromPair(pair)!].c[0])
+      } catch (e) {}
       // pair.price = parseFloat(result.find(r => r.symbol === `${pair.symbol}${pair.quote}`).price)
     }
 

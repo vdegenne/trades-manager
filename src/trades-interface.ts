@@ -50,6 +50,8 @@ export class tradesInterface extends LitElement {
           <span>Total Volume : </span><span style="font-weight:500">${this.session ? getSummary(this.session).volume : ''}</span></div>
       </div>
 
+      <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336"
+        @click="${() => window.sessionsInterface.deleteSession(this.session!)}">delete session</mwc-button>
       <mwc-button unelevated slot="secondaryAction" icon="show_charts"
           @click="${() => window.tradeCreateDialog.open(this.session!)}">add trade</mwc-button>
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>

@@ -1,24 +1,29 @@
 
 export type Options = {
   sessionViewOptions: SessionViewOptions
+  exchangeViewOptions: {
+    showWallet: boolean;
+  }
 }
 
 export type SessionViewOptions = {
   events: boolean;
   showPrice: boolean;
+  showSourceProfit: boolean;
+  showTotalValue: boolean;
   showPercent: boolean;
   showCross: boolean;
 }
 
 export class OptionsManager {
-  private options: Options;
+  public options: Options;
 
   constructor (options?: Options) {
-    /* default */
-    this.options = options || this.default;
-
-    if (!options) {
-      // @todo implement the localstorage loader
+    if (options) {
+      this.options = options
+    } else {
+      // we load options from localstorage or the default object
+      this.options = localStorage.getItem('options') ? JSON.parse(localStorage.getItem('options')!) : this.default;
     }
 
     window.optionsManager = this;
@@ -31,17 +36,20 @@ export class OptionsManager {
 
   get default (): Options {
     return {
+      exchangeViewOptions: { showWallet: true },
       sessionViewOptions: {
         events: true,
         showPrice: true,
+        showSourceProfit: false,
+        showTotalValue: true,
         showPercent: true,
-        showCross: true,
+        showCross: false,
       }
     }
   }
 
   save () {
-    // @todo
+    localStorage.setItem('options', JSON.stringify(this.options))
   }
 }
 

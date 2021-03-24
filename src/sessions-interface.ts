@@ -87,7 +87,7 @@ export class SessionsInterface extends LitElement {
     ExchangesManager.startUpdateRoutines()
 
     try { // trying to close the session interface dialog
-      this.tradesInterface.dialog.close()
+      // this.tradesInterface.dialog.close()
     } catch (e) {}
 
     this.requestUpdate()
@@ -163,13 +163,17 @@ export class SessionsInterface extends LitElement {
   async deleteSession (session: TradeSession) {
     try {
       await window.confirmDialog.open('Deleting Session', html`The session and all the trades inside will be lost.<br>Are you sure to continue?`)
-      this.tradesManager.deleteSession(session)
-      this.requestUpdate()
-      window.app.toast('session deleted')
-      window.spacesManager.save()
     } catch (e) {
-      // window.app.toast('canceled')
+      return // canceled
     }
+
+    this.tradesManager.deleteSession(session)
+    this.requestUpdate()
+    try { // try to close the trades dialog if it is open
+      window.tradesInterface.dialog.close()
+    } catch (e) {}
+    window.app.toast('session deleted')
+    window.spacesManager.save()
   }
 
   private refreshTimeout?: NodeJS.Timeout;
@@ -179,7 +183,7 @@ export class SessionsInterface extends LitElement {
       this.refreshTimeout = undefined
     }
 
-    this.refreshTimeout = setTimeout(() => this.requestUpdate(), 1000)
+    this.refreshTimeout = setTimeout(() => this.requestUpdate(), 500)
   }
 }
 

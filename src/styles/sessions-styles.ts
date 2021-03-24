@@ -37,4 +37,16 @@ export default css`
   --mdc-icon-size: 24px;
   --mdc-icon-button-size: 32px;
 }
+
+.session .total-value {
+  font-size:14px;
+  color:#3f51b5
+}
+
+.session .percent {
+  color: white;
+  border-radius: 4px;
+  padding: 5px 7px;
+  opacity: 0.8;
+}
 `

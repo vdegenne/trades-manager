@@ -60,7 +60,7 @@ export class SessionsView extends LitElement {
 
         ${sessions.map(session => this.sessionTemplate(session))}
 
-        ${window.walletsManager.walletTemplate(this.walletAggregator)}
+        ${window.options.exchangeViewOptions.showWallet ? window.walletsManager.walletTemplate(this.walletAggregator) : nothing}
 
         ${(() => {
           this.profitAggregator.resolveQuotes(window.spacesManager.space.currency)
@@ -130,23 +130,40 @@ export class SessionsView extends LitElement {
         <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
         ${viewOptions.showPrice ? html`<div class="price">${price}</div>` : nothing }
       </div>
-      <div style="display:flex;flex-direction:column;align-items:center;flex:1">
+
+      <!-- middle part -->
+      <div style="display:flex;flex-direction:column;align-items:${viewOptions.showPercent ? 'center' : 'flex-end' };flex:1">
+
+        <!-- GAIN -->
         <div style="display:flex;align-items:center;margin-bottom:5px">
+          ${viewOptions.showSourceProfit || !profitConverted ? html`
           <div>${outputPriceTemplate(profit, session.quote)}</div>
+          ` : nothing }
           ${profitConverted ? html`
           <div style="display:flex;align-items:center;margin-left:4px;">
-            <span style="color:#00000033">(</span>${outputPriceTemplate(profitConverted.value, profitConverted.quote)}<span style="color:#00000033">)</span>
+            ${viewOptions.showSourceProfit ? html`<span style="color:#00000033">(</span>` : nothing }
+            ${outputPriceTemplate(profitConverted.value, profitConverted.quote)}
+            ${viewOptions.showSourceProfit ? html`<span style="color:#00000033">)</span>` : nothing }
           </div>
           ` : nothing}
         </div>
-        <div style="font-size:14px;color:#3f51b5">
-          <span>${formatOutputPrice(total.value, total.quote)}</span>
-          ${total.quote !== window.spacesManager.space.currency && totalConverted !== undefined ? html`
-          <span>(${formatOutputPrice(totalConverted.value, totalConverted.quote)})</span>
-          ` : nothing}
-        </div>
+
+        <!-- TOTAL VALUE -->
+        ${viewOptions.showTotalValue ? html`
+          <div class="total-value">
+            <span>${formatOutputPrice(total.value, total.quote)}</span>
+            ${total.quote !== window.spacesManager.space.currency && totalConverted !== undefined ? html`
+            <span>(${formatOutputPrice(totalConverted.value, totalConverted.quote)})</span>
+            ` : nothing}
+          </div>
+        ` : nothing }
       </div>
-      <span style="color:${percent === 0 ? 'black' : percent > 0 ? 'green' : 'red'};margin-right:12px;">${round(percent, 2)}%</span>
+
+      <!-- PERCENT -->
+        ${viewOptions.showPercent ? html`
+        <span class="percent"
+          style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : 'red'}">${round(percent, 2) || '0'}%</span>
+        ` : nothing }
 
       ${viewOptions.showCross ? html`
         <mwc-icon-button icon="close"
