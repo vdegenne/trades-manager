@@ -117,7 +117,7 @@ export class SessionsView extends LitElement {
       }
 
       /* Aggregators */
-      if (!external) {
+      if (!external && !session.virtual) {
         this.profitAggregator.pushUnit(session.quote, profit)
         const totalObject = totalConverted || total;
         this.totalValueAggregator.pushUnit(totalObject.quote, totalObject.value)
@@ -126,7 +126,7 @@ export class SessionsView extends LitElement {
     }
 
     return html`
-    <div class="session" style="cursor:${viewOptions.events ? 'pointer' : 'initial'};transition:${viewOptions.events ? 'background-color linear .2s;' : 'none'}"
+    <div class="session" style="cursor:${viewOptions.events ? 'pointer' : 'initial'};transition:${viewOptions.events ? 'background-color linear .2s;' : 'none'};${session.virtual ? 'opacity:.4' : ''}"
         @mousedown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}">
       <div>
         <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>

@@ -37,6 +37,12 @@ export class tradesInterface extends LitElement {
         escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
+        <div>
+        <mwc-formfield label="virtual">
+          <mwc-checkbox ?checked="${this.session?.virtual}"
+            @change="${(e) => this.onVirtualChange(e)}"></mwc-checkbox>
+        </mwc-formfield>
+        </div>
         <div style="max-height: 500px;overflow: auto;">
         ${this.session ? html`
           ${trades!.length
@@ -89,6 +95,13 @@ export class tradesInterface extends LitElement {
       }
     </style>
     `
+  }
+
+  private onVirtualChange(e) {
+    this.session!.virtual = e.target.checked;
+    this.requestUpdate()
+    window.sessionsInterface.requestUpdate();
+    window.spacesManager.save()
   }
 
   openSession (session: TradeSession) {

@@ -2125,8 +2125,8 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
       </div>
       `}))}
 
-    `}sessionTemplate(e,t=!1,i=window.options.sessionViewOptions){const s=ao(e);let o;const d={value:0,quote:e.quote};let n,a;const r=qs.getPrice(e.exchange,e.symbol,e.quote);let c;if(r){d.value=r*s.volume,o=d.value-s.invested,c=(d.value-s.invested)/s.invested*100;const i=qs.getConversionPrice(e.quote,window.spacesManager.space.currency,e.exchange);if(i.price&&i.quote===window.spacesManager.space.currency&&(n={value:d.value*i.price,quote:i.quote},a={value:o*i.price,quote:i.quote}),!t){this.profitAggregator.pushUnit(e.quote,o);const t=n||d;this.totalValueAggregator.pushUnit(t.quote,t.value),this.walletAggregator.pushUnit(e.symbol,s.volume)}}return X`
-    <div class="session" style="cursor:${i.events?"pointer":"initial"};transition:${i.events?"background-color linear .2s;":"none"}"
+    `}sessionTemplate(e,t=!1,i=window.options.sessionViewOptions){const s=ao(e);let o;const d={value:0,quote:e.quote};let n,a;const r=qs.getPrice(e.exchange,e.symbol,e.quote);let c;if(r){d.value=r*s.volume,o=d.value-s.invested,c=(d.value-s.invested)/s.invested*100;const i=qs.getConversionPrice(e.quote,window.spacesManager.space.currency,e.exchange);if(i.price&&i.quote===window.spacesManager.space.currency&&(n={value:d.value*i.price,quote:i.quote},a={value:o*i.price,quote:i.quote}),!t&&!e.virtual){this.profitAggregator.pushUnit(e.quote,o);const t=n||d;this.totalValueAggregator.pushUnit(t.quote,t.value),this.walletAggregator.pushUnit(e.symbol,s.volume)}}return X`
+    <div class="session" style="cursor:${i.events?"pointer":"initial"};transition:${i.events?"background-color linear .2s;":"none"};${e.virtual?"opacity:.4":""}"
         @mousedown="${t=>i.events&&this.onSessionElementClick(t,e)}">
       <div>
         <div class="name">${e.symbol}<mwc-icon>sync_alt</mwc-icon>${e.quote}</div>
@@ -2242,7 +2242,7 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
       <mwc-button unelevated slot="primaryAction" ?disabled="${!this.symbol||!this.quote}"
         @click="${this.submit}">create</mwc-button>
     </mwc-dialog>
-    `}fixOverflow(){this.dialog.shadowRoot.querySelector(".mdc-dialog__surface").style.overflowY="visible",this.dialog.shadowRoot.querySelector(".mdc-dialog__content").style.overflow="visible"}submit(){if(!this.symbol||!this.quote)return;const e=window.tradesManager.createSession(this.exchange,this.symbol,this.quote);qs.addPair(e.exchange,e.symbol,e.quote,!1),window.sessionsInterface.requestUpdate(),qs.exchanges[e.exchange].updatePairs(),this.dialog.close(),window.spacesManager.save()}onSymbolSelectChange(e){this.symbol=e.target.value}open(e){this.dialog.show(),this.exchange=e,this.symbol="",this.quote="",this.virtualCheckbox.checked=!1}};md.styles=le`
+    `}fixOverflow(){this.dialog.shadowRoot.querySelector(".mdc-dialog__surface").style.overflowY="visible",this.dialog.shadowRoot.querySelector(".mdc-dialog__content").style.overflow="visible"}submit(){this.symbol&&this.quote&&(window.sessionsInterface.createSession(this.exchange,this.symbol,this.quote,this.virtualCheckbox.checked),this.dialog.close())}onSymbolSelectChange(e){this.symbol=e.target.value}open(e){this.dialog.show(),this.exchange=e,this.symbol="",this.quote="",this.virtualCheckbox.checked=!1}};md.styles=le`
     mwc-select, select {
       width: 100%;
     }
@@ -2287,7 +2287,7 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
       <mwc-button unelevated slot="primaryAction" icon="add"
         ?disabled="${!this.price||!this.quantity}"
         @click="${()=>this.onAddButtonClick()}">add</mwc-button>
-    </mwc-dialog>`}getStep(e){return 1/Math.pow(10,e.split(".")[1]?.length??0)}updatePrice(e){this.priceField.value=this.price=e?e.toString():"",this.priceField.step=this.getStep(this.priceField.value)}async insertLastPrice(){await qs.exchanges[this.session.exchange].updatePairs();const e=qs.getPrice(this.session.exchange,this.session.symbol,this.session.quote);this.updatePrice(e.toString())}updateQuantity(e){this.quantityField.value=this.quantity=e?e.toString():"",this.quantityField.step=this.getStep(this.quantityField.value)}async insertAvailableVolume(){this.updateQuantity(this.maxQuantity.toString())}async onAddButtonClick(){if(!this.priceField.value||!this.priceField.value)return;const e=parseFloat(this.quantityField.value);try{await window.tradesInterface.addTrade(this.session,{type:this.type,price:parseFloat(this.priceField.value),volume:e,fees:parseFloat(this.feesField.value)||0})}catch(e){return}this.dialog.close(),this.reset()}open(e){e!==this.session&&this.reset(),this.session=e,this.dialog.show()}reset(){this.type="buy",this.price="",this.priceField.value="",this.quantity="",this.quantityField.value="",this.fees="",this.feesField.value=""}};hd.styles=le`
+    </mwc-dialog>`}getStep(e){return 1/Math.pow(10,e.split(".")[1]?.length??0)}updatePrice(e){this.priceField.value=this.price=e?e.toString():"",this.priceField.step=this.getStep(this.priceField.value)}async insertLastPrice(){await qs.exchanges[this.session.exchange].updatePairs();const e=qs.getPrice(this.session.exchange,this.session.symbol,this.session.quote);this.updatePrice(e.toString())}updateQuantity(e){this.quantityField.value=this.quantity=e?e.toString():"",this.quantityField.step=this.getStep(this.quantityField.value)}async insertAvailableVolume(){this.updateQuantity(this.maxQuantity.toString())}async onAddButtonClick(){if(!this.priceField.value||!this.priceField.value)return;const e=parseFloat(this.quantityField.value);try{await window.tradesInterface.addTrade(this.session,{type:this.type,price:parseFloat(this.priceField.value),volume:e,fees:parseFloat(this.feesField.value)||0})}catch(e){return}this.dialog.close(),this.reset()}open(e){e!==this.session&&this.reset(),this.session=e,this.insertLastPrice(),this.dialog.show()}reset(){this.type="buy",this.price="",this.priceField.value="",this.quantity="",this.quantityField.value="",this.fees="",this.feesField.value=""}};hd.styles=le`
   mwc-tab[label=buy][active] {
     background-color: #00800022;
   }
@@ -2318,6 +2318,12 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
         escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
+        <div>
+        <mwc-formfield label="virtual">
+          <mwc-checkbox ?checked="${this.session?.virtual}"
+            @change="${e=>this.onVirtualChange(e)}"></mwc-checkbox>
+        </mwc-formfield>
+        </div>
         <div style="max-height: 500px;overflow: auto;">
         ${this.session?X`
           ${e.length?e.map((e=>this.tradeTemplate(e,this.session))):X`<div style="margin:38px;text-align:center">no trades</div>`}
@@ -2362,7 +2368,7 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
         --mdc-icon-button-size: 32px;
       }
     </style>
-    `}openSession(e){this.session=e,this.dialog.show()}async deleteTrade(e){try{await window.confirmDialog.open("Deleting Trade",X`
+    `}onVirtualChange(e){this.session.virtual=e.target.checked,this.requestUpdate(),window.sessionsInterface.requestUpdate(),window.spacesManager.save()}openSession(e){this.session=e,this.dialog.show()}async deleteTrade(e){try{await window.confirmDialog.open("Deleting Trade",X`
         You are about to delete this trade :
         <div style="margin:12px 0">
           ${this.tradeTemplate(e,this.session,!1)}
@@ -2378,7 +2384,7 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
     ${this.sessionsView}
 
     ${this.tradesInterface}
-    `}createSession(e,t,i,s=!1){const o=this.tradesManager.createSession(e,t,i,s);return this.requestUpdate(),o}async deleteSession(e){try{await window.confirmDialog.open("Deleting Session",X`The session and all the trades inside will be lost.<br>Are you sure to continue?`)}catch(e){return}this.tradesManager.deleteSession(e),this.requestUpdate();try{window.tradesInterface.dialog.close()}catch(e){}window.app.toast("session deleted"),window.spacesManager.save()}refreshUI(){this.refreshTimeout&&(clearTimeout(this.refreshTimeout),this.refreshTimeout=void 0),this.refreshTimeout=setTimeout((()=>this.requestUpdate()),500)}};fd.styles=le`
+    `}createSession(e,t,i,s=!1){const o=this.tradesManager.createSession(e,t,i,s);return this.requestUpdate(),qs.addPair(o.exchange,o.symbol,o.quote,!1),qs.exchanges[o.exchange].updatePairs(),window.spacesManager.save(),o}async deleteSession(e){try{await window.confirmDialog.open("Deleting Session",X`The session and all the trades inside will be lost.<br>Are you sure to continue?`)}catch(e){return}this.tradesManager.deleteSession(e),this.requestUpdate();try{window.tradesInterface.dialog.close()}catch(e){}window.app.toast("session deleted"),window.spacesManager.save()}refreshUI(){this.refreshTimeout&&(clearTimeout(this.refreshTimeout),this.refreshTimeout=void 0),this.refreshTimeout=setTimeout((()=>this.requestUpdate()),500)}};fd.styles=le`
   p {
     margin: 20px 0 4px 0;
   }

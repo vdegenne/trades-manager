@@ -167,6 +167,7 @@ export class TradeCreateDialog extends LitElement {
       this.reset()
     }
     this.session = session;
+    this.insertLastPrice()
     this.dialog.show()
   }
 

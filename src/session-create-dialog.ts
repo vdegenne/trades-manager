@@ -102,14 +102,12 @@ export class SessionCreateDialog extends LitElement {
 
   submit () {
     if (!this.symbol || !this.quote) { return }
-    const session = window.tradesManager.createSession(this.exchange!, this.symbol!, this.quote!)
-    ExchangesManager.addPair(session.exchange, session.symbol, session.quote, false)
-    window.sessionsInterface.requestUpdate()
-    ExchangesManager.exchanges[session.exchange].updatePairs()
+    window.sessionsInterface.createSession(this.exchange!, this.symbol!, this.quote!, this.virtualCheckbox.checked)
+    // const session = window.tradesManager.createSession(this.exchange!, this.symbol!, this.quote!)
+    // window.sessionsInterface.requestUpdate()
     // window.sessionsInterface.requestUpdate()
     // window.sessionInterface.openSession(session)
     this.dialog.close()
-    window.spacesManager.save()
   }
 
   onSymbolSelectChange (e) {
