@@ -2424,7 +2424,7 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
   }
   `,s([ee()],fd.prototype,"formType",void 0),s([ee()],fd.prototype,"session",void 0),s([ee()],fd.prototype,"trade",void 0),s([ee()],fd.prototype,"exchange",void 0),s([ee()],fd.prototype,"symbol",void 0),s([ee()],fd.prototype,"quote",void 0),s([ee()],fd.prototype,"price",void 0),s([ee()],fd.prototype,"volume",void 0),s([ie("mwc-dialog#trade")],fd.prototype,"tradeDialog",void 0),fd=s([Q("sessions-interface")],fd);let bd=class extends me{render(){return X``}};bd=s([Q("import-export")],bd);const gd=["EUR","USD"];let Td=class extends me{constructor(){super(),this.spacesManager=new Ps,this.confirmDialog=new ys,window.app=this,window.appTitle="Tradon",window.confirmDialog=this.confirmDialog,this.sessionsInterface=new fd,this.tCodeInterface=new eo,this.optionsInterface=new so,this.walletsManager=new Zs}render(){return X`
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017">
+      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017;flex:1">
         <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.appTitle}</span>
       </div>
       <div style="display:flex;align-items:center">

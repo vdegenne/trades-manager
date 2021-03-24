@@ -83,7 +83,7 @@ class AppContainer extends LitElement {
   render () {
     return html`
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017">
+      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017;flex:1">
         <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.appTitle}</span>
       </div>
       <div style="display:flex;align-items:center">
