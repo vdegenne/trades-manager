@@ -1542,7 +1542,12 @@ limitations under the License.
   border-radius: 5px;
   line-height: normal;
   /* box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.1), 0px 2px 2px 0px rgba(0, 0, 0, 0.08), 0px 1px 5px 0px rgba(0, 0, 0, 0.06); */
-    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25);
+  /* box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25); */
+  box-shadow: rgb(0 0 0 / 20%) 0px 1px 4px -1px;
+}
+.session[virtual] {
+  opacity: 0.4;
+  box-shadow: none;
 }
 .session:hover {
   background-color: #eeeeee;
@@ -2128,7 +2133,8 @@ const cd=le`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{heigh
       `}))}
 
     `}sessionTemplate(e,t=!1,i=window.options.sessionViewOptions){const s=ao(e);let o;const d={value:0,quote:e.quote};let n,a;const r=qs.getPrice(e.exchange,e.symbol,e.quote);let c;if(r){d.value=r*s.volume,o=d.value-s.invested,c=(d.value-s.invested)/s.invested*100;const i=qs.getConversionPrice(e.quote,window.spacesManager.space.currency,e.exchange);if(i.price&&i.quote===window.spacesManager.space.currency&&(n={value:d.value*i.price,quote:i.quote},a={value:o*i.price,quote:i.quote}),!t&&!e.virtual){this.profitAggregator.pushUnit(e.quote,o);const t=n||d;this.totalValueAggregator.pushUnit(t.quote,t.value),this.walletAggregator.pushUnit(e.symbol,s.volume)}}return X`
-    <div class="session" style="cursor:${i.events?"pointer":"initial"};transition:${i.events?"background-color linear .2s;":"none"};${e.virtual?"opacity:.4":""}"
+    <div class="session" style="cursor:${i.events?"pointer":"initial"};transition:${i.events?"background-color linear .2s;":"none"};"
+        ?virtual="${e.virtual}"
         @mousedown="${t=>i.events&&this.onSessionElementClick(t,e)}">
       <div>
         <div class="name">${e.symbol}<mwc-icon>sync_alt</mwc-icon>${e.quote}</div>
