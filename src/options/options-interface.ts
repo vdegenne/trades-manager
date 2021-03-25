@@ -61,7 +61,7 @@ export class OptionsInterface extends LitElement {
           <mwc-checkbox ?checked="${this.options.sessionViewOptions.showPercent}"
             @change="${(e) => this.changeSessionViewOption(e, 'showPercent')}"></mwc-checkbox>
         </mwc-formfield>
-        ${window.sessionsView.sessionExternalTemplate(this.session, this.options.sessionViewOptions)}
+        ${window.sessionsView.sessionExternalTemplate(this.session, Object.assign({}, this.options.sessionViewOptions, { events: false }))}
 
         <mwc-formfield label="Show wallet at the bottom">
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showWallet}"

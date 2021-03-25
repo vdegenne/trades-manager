@@ -16,12 +16,19 @@ export default css`
   /* box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25); */
   box-shadow: rgb(0 0 0 / 20%) 0px 1px 4px -1px;
 }
+.session[eventful] {
+  cursor: pointer;
+  transition: background-color .2s linear;
+}
+.session[eventful]:hover {
+  background-color: #eeeeee;
+}
+.session[external] {
+  border: 2px solid #e0e0e0;
+}
 .session[virtual] {
   opacity: 0.4;
   box-shadow: none;
-}
-.session:hover {
-  background-color: #eeeeee;
 }
 .session .name {
   display: flex;

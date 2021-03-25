@@ -7,6 +7,8 @@ export class TextDialog extends LitElement {
   private heading?: string;
   @property()
   private message?: string|TemplateResult;
+  @property()
+  private buttonTitle;
 
   @query('mwc-dialog') dialog!: Dialog;
 
@@ -17,14 +19,15 @@ export class TextDialog extends LitElement {
         ${this.message}
       </div>
 
-      <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
+      <mwc-button outlined slot="primaryAction" dialogAction="close">${this.buttonTitle}</mwc-button>
     </mwc-dialog>
     `
   }
 
-  open(heading: string, message: string|TemplateResult) {
+  open(heading: string, message: string|TemplateResult, buttonTitle?: string) {
     this.heading = heading;
     this.message = message;
+    this.buttonTitle = buttonTitle || 'close';
     this.dialog.show()
   }
 }

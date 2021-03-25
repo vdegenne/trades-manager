@@ -55,7 +55,7 @@ export class SessionsView extends LitElement {
         <div style="display:flex;align-items:center;justify-content:space-between">
           <mwc-button unelevated dense>${firstLetterUpperCase(exchange)}</mwc-button>
           <mwc-button outlined icon="add"
-            @click="${() => window.tradesInterface.createDialog.open(exchange)}">add pair</mwc-button>
+            @click="${() => window.tradesInterface.createDialog.open(exchange)}" style="background-color:white;border-radius:5px">add session</mwc-button>
         </div>
 
         ${sessions.map(session => this.sessionTemplate(session))}
@@ -87,7 +87,7 @@ export class SessionsView extends LitElement {
     `
   }
 
-  sessionTemplate(session: TradeSession, external = false, viewOptions = window.options.sessionViewOptions) {
+  sessionTemplate(session: TradeSession, external = false, viewOptions: Partial<SessionViewOptions> = window.options.sessionViewOptions) {
     const summary = getSummary(session)
     let profit, totalInvested;
     const total = { value: 0, quote: session.quote }
@@ -125,8 +125,12 @@ export class SessionsView extends LitElement {
       }
     }
 
+    viewOptions = Object.assign({}, window.options.sessionViewOptions, viewOptions)
+
     return html`
-    <div class="session" style="cursor:${viewOptions.events ? 'pointer' : 'initial'};transition:${viewOptions.events ? 'background-color linear .2s;' : 'none'};"
+    <div class="session"
+        ?external="${external}"
+        ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
         @mousedown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}">
       <div>
@@ -138,7 +142,7 @@ export class SessionsView extends LitElement {
       <div style="display:flex;flex-direction:column;align-items:${viewOptions.showPercent ? 'center' : 'flex-end' };flex:1">
 
         <!-- GAIN -->
-        <div style="display:flex;align-items:center;margin-bottom:5px">
+        <div style="display:flex;align-items:center;${viewOptions.showTotalValue ? 'margin-bottom:5px' : ''}">
           ${viewOptions.showSourceProfit || !profitConverted ? html`
           <div>${outputPriceTemplate(profit, session.quote)}</div>
           ` : nothing }
@@ -185,7 +189,7 @@ export class SessionsView extends LitElement {
     `
   }
 
-  sessionExternalTemplate(session: TradeSession, viewOptions?: SessionViewOptions) {
+  sessionExternalTemplate(session: TradeSession, viewOptions?: Partial<SessionViewOptions>) {
     return this.sessionTemplate(session, true, viewOptions)
   }
 

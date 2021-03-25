@@ -13,6 +13,7 @@ import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { sortAlphabetically } from "./util";
 import './trades-interface'
 import { tradesInterface } from "./trades-interface";
+import sessionsStyles from "./styles/sessions-styles";
 
 // type FormData = {
 //   exchange: AvailableExchanges,
@@ -94,45 +95,46 @@ export class SessionsInterface extends LitElement {
   }
 
 
-  static styles = css`
-  p {
-    margin: 20px 0 4px 0;
-  }
+  static styles = [
+    css`
+    p {
+      margin: 20px 0 4px 0;
+    }
 
-  .form-content {
-    height: 0;
-    overflow: hidden;
-  }
+    .form-content {
+      height: 0;
+      overflow: hidden;
+    }
 
-  [hide] {
-    display:none;
-  }
+    [hide] {
+      display:none;
+    }
 
-  [show] {
-    height: initial;
-    overflow: visible;
-  }
+    [show] {
+      height: initial;
+      overflow: visible;
+    }
 
-  mwc-tab[active] {
-    background-color: #eeeeee;
-  }
+    mwc-tab[active] {
+      background-color: #eeeeee;
+    }
 
-  select {
-    width: 100%;
-    padding: 10px;
-  }
+    select {
+      width: 100%;
+      padding: 10px;
+    }
 
-  sup {
-    color: red;
-  }
+    sup {
+      color: red;
+    }
 
-  #inputs-box {
-    text-align: right;
-  }
-  #inputs-box > mwc-textfield {
-    min-width: 232px;
-  }
-  `
+    #inputs-box {
+      text-align: right;
+    }
+    #inputs-box > mwc-textfield {
+      min-width: 232px;
+    }
+  `]
 
   render () {
     this.sessionsView.requestUpdate()
@@ -161,6 +163,22 @@ export class SessionsInterface extends LitElement {
     ExchangesManager.exchanges[session.exchange].updatePairs()
     window.spacesManager.save()
     return session
+  }
+
+  async cloneSession (session: TradeSession) {
+    await window.confirmDialog.open('Cloning Session', html`
+      <p>You are about to clone this session :</p>
+      ${window.sessionsView.sessionExternalTemplate(session, { events: false, showPrice: false, showSourceProfit: false })}
+      <p>A cloned session will automatically be in virtual mode, you can click on the session strip and uncheck <i>virtual</i> anytime to make it active.</p>
+      <p>A cloned session will also be inserted just below the original one in the list.</p>
+      `, false)
+
+    const cloned = this.tradesManager.cloneSession(session)
+    cloned.virtual = true
+
+    this.requestUpdate()
+
+    window.spacesManager.save()
   }
 
   async deleteSession (session: TradeSession) {

@@ -77,6 +77,14 @@ export class TradesManager {
     this.sessions.splice(this.sessions.indexOf(session), 1)
   }
 
+  cloneSession (session: TradeSession) {
+    const sessionIndex = this.sessions.indexOf(session)
+    const cloned: TradeSession = JSON.parse(JSON.stringify(session))
+    cloned.id = Date.now()
+    this.sessions.splice(sessionIndex + 1, 0, cloned)
+    return cloned;
+  }
+
   deleteTrade (trade: Trade) {
     const session = this.getTradesSession(trade)!
     const indexOfTrade = session.trades.indexOf(trade)

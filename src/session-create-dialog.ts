@@ -43,7 +43,7 @@ export class SessionCreateDialog extends LitElement {
           <mwc-formfield label="virtual">
             <mwc-checkbox name="virtual"></mwc-checkbox>
           </mwc-formfield>
-          <mwc-icon style="cursor:pointer;--mdc-icon-size:18px;margin-left:6px" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
+          <mwc-icon style="cursor:pointer;margin-left:10px" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
         </div>
 
         <p>Symbol</p>
@@ -88,6 +88,8 @@ export class SessionCreateDialog extends LitElement {
         </div>
       </div>
 
+      <mwc-button unelevated slot="secondaryAction" icon="casino"
+        @click="${() => this.randomize()}">random</mwc-button>
       <mwc-button outlined slot="secondaryAction" dialogAction="close">close</mwc-button>
       <mwc-button unelevated slot="primaryAction" ?disabled="${!this.symbol || !this.quote}"
         @click="${this.submit}">create</mwc-button>
@@ -112,6 +114,14 @@ export class SessionCreateDialog extends LitElement {
 
   onSymbolSelectChange (e) {
     this.symbol = e.target.value
+  }
+
+  async randomize () {
+    const symbols = sortAlphabetically(ExchangesManager.getAvailableSymbols(this.exchange!))
+    this.symbol = symbols[Math.floor(Math.random() * symbols.length)]
+    await this.requestUpdate()
+    const quotes = sortAlphabetically(ExchangesManager.getAvailableQuotesFromSymbol(this.exchange!, this.symbol))
+    this.quote = quotes[Math.floor(Math.random() * quotes.length)]
   }
 
   open (exchangeName: AvailableExchanges) {

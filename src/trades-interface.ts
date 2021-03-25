@@ -5,7 +5,7 @@ import '@material/mwc-button'
 import '@material/mwc-icon-button'
 import { Dialog } from "@material/mwc-dialog";
 import { nothing } from "lit-html";
-import { firstLetterUpperCase } from "./util";
+import { firstLetterUpperCase, openVirtualInfoDialog } from "./util";
 import './session-create-dialog'
 import { SessionCreateDialog } from "./session-create-dialog";
 import './trade-create-dialog'
@@ -38,11 +38,16 @@ export class tradesInterface extends LitElement {
       <div style="width:600px"></div>
       <div>
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <mwc-formfield label="virtual">
-            <mwc-checkbox ?checked="${this.session?.virtual}"
-              @change="${(e) => this.onVirtualChange(e)}"></mwc-checkbox>
-          </mwc-formfield>
+          <div style="display:flex;align-items:center">
+            <mwc-formfield label="virtual">
+              <mwc-checkbox ?checked="${this.session?.virtual}"
+                @change="${(e) => this.onVirtualChange(e)}"></mwc-checkbox>
+            </mwc-formfield>
+            <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
+          </div>
           <div>
+            <mwc-button outlined icon="show_charts"
+              @click="${() => window.tradeCreateDialog.open(this.session!)}">trade</mwc-button>
             <mwc-button outlined icon="title"
               @click="${(e) => window.tcodeInterface.open(this.session)}">tcode</mwc-button>
           </div>
@@ -60,10 +65,10 @@ export class tradesInterface extends LitElement {
           <span>Total Volume : </span><span style="font-weight:500">${this.session ? getSummary(this.session).volume : ''}</span></div>
       </div>
 
-      <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336"
-        @click="${() => window.sessionsInterface.deleteSession(this.session!)}">delete session</mwc-button>
-      <mwc-button unelevated slot="secondaryAction" icon="show_charts"
-          @click="${() => window.tradeCreateDialog.open(this.session!)}">add trade</mwc-button>
+      <mwc-button unelevated slot="secondaryAction" icon="copy_all"
+        @click="${() => this.oncloneSessionClick()}">clone</mwc-button>
+      <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336" icon="delete"
+        @click="${() => window.sessionsInterface.deleteSession(this.session!)}">delete</mwc-button>
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
 
@@ -99,6 +104,16 @@ export class tradesInterface extends LitElement {
       }
     </style>
     `
+  }
+
+  private async oncloneSessionClick () {
+    // the session interface clone session function ask for confirmation before cloning the object
+    // we make sure we catch the error in case the user cancel the operation.
+    try {
+      await window.sessionsInterface.cloneSession(this.session!)
+    } catch (e) { return /* canceled */ }
+
+    this.dialog.close()
   }
 
   private onVirtualChange(e) {
