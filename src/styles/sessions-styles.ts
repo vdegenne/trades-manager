@@ -6,7 +6,8 @@ export default css`
   flex: 1;
   align-items: center;
   padding: 11px;
-  background-color: #eeeeee;
+  /* background-color: #eeeeee; */
+  background-color: white;
   justify-content: space-between;
   margin: 8px 0;
   border-radius: 5px;
