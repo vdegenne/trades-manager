@@ -76,7 +76,7 @@ export class TCodeInterface extends LitElement {
 
   firstUpdated() {
     window.addEventListener('keypress', e => {
-      if (e.key === 't' && !e.ctrlKey && !e.altKey) {
+      if (e.code === 'KeyT' && !e.ctrlKey && !e.altKey) {
         this.open()
       }
     })

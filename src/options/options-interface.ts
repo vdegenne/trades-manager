@@ -1,4 +1,3 @@
-import { Checkbox } from "@material/mwc-checkbox";
 import { Dialog } from "@material/mwc-dialog";
 import { customElement, html, LitElement, property, query } from "lit-element";
 import { ExchangesManager } from "../ExchangesManager";
@@ -67,6 +66,10 @@ export class OptionsInterface extends LitElement {
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showWallet}"
             @change="${(e) => {this.options.exchangeViewOptions.showWallet = e.target.checked; this.requestUpdate()}}"></mwc-checkbox>
         </mwc-formfield>
+        <mwc-formfield label="Show virtual sessions [shortcut: v]">
+          <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showVirtual}"
+            @change="${(e) => {this.options.exchangeViewOptions.showVirtual = e.target.checked; this.requestUpdate()}}"></mwc-checkbox>
+        </mwc-formfield>
       </div>
 
       <mwc-button outlined slot="secondaryAction" dialogAction="close">cancel</mwc-button>
@@ -81,6 +84,16 @@ export class OptionsInterface extends LitElement {
     await ExchangesManager.addPair('kraken', 'BTC', 'USDT', false)
     await ExchangesManager.exchanges['kraken'].updatePairs()
     this.requestUpdate()
+
+
+    window.addEventListener('keypress', e => {
+      if (!e.ctrlKey && !e.altKey && e.code === 'KeyV') {
+        this.options.exchangeViewOptions.showVirtual = !this.options.exchangeViewOptions.showVirtual;
+        window.sessionsInterface.requestUpdate()
+        this.requestUpdate()
+        this.save()
+      }
+    })
   }
 
   changeSessionViewOption (e, property: string) {
@@ -92,7 +105,6 @@ export class OptionsInterface extends LitElement {
     // on opening we clone the current options object
     // so any changes are not forwarded to the main UI
     this.options = JSON.parse(JSON.stringify(this.optionsManager.options))
-    console.log(this.options)
     this.dialog.show()
   }
 

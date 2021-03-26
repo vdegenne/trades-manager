@@ -3,6 +3,7 @@ export type Options = {
   sessionViewOptions: SessionViewOptions
   exchangeViewOptions: {
     showWallet: boolean;
+    showVirtual: boolean;
   }
 }
 
@@ -36,7 +37,10 @@ export class OptionsManager {
 
   get default (): Options {
     return {
-      exchangeViewOptions: { showWallet: true },
+      exchangeViewOptions: {
+        showWallet: true,
+        showVirtual: true
+      },
       sessionViewOptions: {
         events: true,
         showPrice: true,

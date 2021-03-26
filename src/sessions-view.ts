@@ -42,7 +42,7 @@ export class SessionsView extends LitElement {
   render() {
     return html`
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
-      const sessions = window.sessions.filter(session => session.exchange === exchange)
+      const sessions = window.sessions.filter(session => session.exchange === exchange && (window.options.exchangeViewOptions.showVirtual || !session.virtual))
 
       this.profitAggregator = new Aggregator(exchange)
       this.totalValueAggregator = new Aggregator(exchange)
