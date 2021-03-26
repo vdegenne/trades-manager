@@ -164,7 +164,8 @@ export class TCodeInterface extends LitElement {
 
 
   public open (session?: TradeSession) {
-    this.requestUpdate() // used to resize the width if the screen width changes
+    this.reset()
+    // this.requestUpdate() // used to resize the width if the screen width changes
     // if a session is provided we should lock the sessions array because it's a targetted selection
     if (session) {
       this.sessions = [session]

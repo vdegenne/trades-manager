@@ -90,15 +90,12 @@ export class ImportExport extends LitElement {
     // integrity passed we load the data and close the dialog
     window.dataLoader.loadData(data)
     this.dialog.close()
+    window.app.toast('Imported successfully!')
   }
 
   private copyToClipboard() {
     clipboardCopy(this.exportTextArea.value)
     window.app.toast('copied to clipboard!')
-  }
-
-  firstUpdated () {
-    this.open()
   }
 
   open () {

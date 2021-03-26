@@ -35,9 +35,13 @@ export class DataLoader {
     }
   }
 
-  public loadData (data: AppData) {
+  public loadData (data: AppData, save = true) {
     window.optionsManager.loadOptions(data.options)
     window.spacesManager.loadSpaces(data.spaces)
+    if (save) {
+      window.spacesManager.save()
+      window.optionsManager.save()
+    }
   }
 }
 
