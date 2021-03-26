@@ -1,5 +1,5 @@
 import { Dialog } from "@material/mwc-dialog";
-import { customElement, html, LitElement, property, query } from "lit-element";
+import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { ExchangesManager } from "../ExchangesManager";
 import sessionsStyles from "../styles/sessions-styles";
 import { TradeSession } from "../TradesManager";
@@ -33,7 +33,13 @@ export class OptionsInterface extends LitElement {
   }
 
   static styles = [
-    sessionsStyles
+    sessionsStyles,
+    css`
+    h4 {
+      margin: 33px 0px 5px;
+      font-weight: 500;
+    }
+    `
   ]
 
   @query('mwc-dialog') dialog!: Dialog;
@@ -62,11 +68,13 @@ export class OptionsInterface extends LitElement {
         </mwc-formfield>
         ${window.sessionsView.sessionExternalTemplate(this.session, Object.assign({}, this.options.sessionViewOptions, { events: false }))}
 
+        <h4>General view options</h4>
         <mwc-formfield label="Show wallet at the bottom">
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showWallet}"
             @change="${(e) => {this.options.exchangeViewOptions.showWallet = e.target.checked; this.requestUpdate()}}"></mwc-checkbox>
         </mwc-formfield>
-        <mwc-formfield label="Show virtual sessions [shortcut: v]">
+        <br>
+        <mwc-formfield label="Show virtual sessions ( shortcut: v )">
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showVirtual}"
             @change="${(e) => {this.options.exchangeViewOptions.showVirtual = e.target.checked; this.requestUpdate()}}"></mwc-checkbox>
         </mwc-formfield>
