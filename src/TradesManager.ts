@@ -27,6 +27,7 @@ export type Trade = {
 
 export type TradeSession = {
   id: number,
+  title?: string;
   exchange: AvailableExchanges,
   symbol: string,
   quote: string,
@@ -56,7 +57,7 @@ export class TradesManager {
     window.sessions = this.sessions
   }
 
-  createSession (exchange: AvailableExchanges, symbol: string, quote: string, virtual = false) {
+  createSession (exchange: AvailableExchanges, symbol: string, quote: string, virtual = false, title?: string) {
     const session: TradeSession = {
       id: Date.now(),
       exchange,
@@ -64,6 +65,9 @@ export class TradesManager {
       quote,
       trades: [],
       virtual
+    }
+    if (title) {
+      session.title = title;
     }
     this.sessions.push(session)
     return session

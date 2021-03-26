@@ -434,6 +434,17 @@
     lit-html "^1.1.2"
     tslib "^2.0.1"
 
+"@material/mwc-textarea@^0.20.0":
+  version "0.20.0"
+  resolved "https://registry.yarnpkg.com/@material/mwc-textarea/-/mwc-textarea-0.20.0.tgz#529896903c4d03920a73e0f8616133db656c5194"
+  integrity sha512-NIR+F9juAkHK+lKBHfXSG+MVNxXs4pY7v2o0wGOwy06DDXq1xRqlM+V4vPXhIciDRL5y9sPza43/YWCaEjZaBg==
+  dependencies:
+    "@material/mwc-base" "^0.20.0"
+    "@material/mwc-textfield" "^0.20.0"
+    lit-element "^2.3.0"
+    lit-html "^1.1.2"
+    tslib "^2.0.1"
+
 "@material/mwc-textfield@^0.20.0":
   version "0.20.0"
   resolved "https://registry.yarnpkg.com/@material/mwc-textfield/-/mwc-textfield-0.20.0.tgz#a6f1e90e5e4fd001cf74f7e4ddac4410b3730455"
@@ -760,6 +771,11 @@ chalk@^2.0.0:
     ansi-styles "^3.2.1"
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
+
+clipboard-copy@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/clipboard-copy/-/clipboard-copy-4.0.1.tgz#326ef9726d4ffe72d9a82a7bbe19379de692017d"
+  integrity sha512-wOlqdqziE/NNTUJsfSgXmBMIrYmfd5V0HCGsR8uAKHcg+h9NENWINcfRjtWGU77wDHC8B8ijV4hMTGYbrKovng==
 
 color-convert@^1.9.0:
   version "1.9.3"

@@ -15,6 +15,10 @@ export default css`
   /* box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.1), 0px 2px 2px 0px rgba(0, 0, 0, 0.08), 0px 1px 5px 0px rgba(0, 0, 0, 0.06); */
   /* box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25); */
   box-shadow: rgb(0 0 0 / 20%) 0px 1px 4px -1px;
+  position: relative;
+}
+.session[entitled] {
+  margin-top: 30px;
 }
 .session[eventful] {
   cursor: pointer;
@@ -29,6 +33,16 @@ export default css`
 .session[virtual] {
   opacity: 0.4;
   box-shadow: none;
+}
+.session > .title {
+  position: absolute;
+  top: -21px;
+  /* left: 21px; */
+  padding: 1px 9px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px 5px 0 0;
+  z-index: -1;
 }
 .session .name {
   display: flex;

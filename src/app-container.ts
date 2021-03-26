@@ -20,7 +20,9 @@ import './about-dialog'
 import { AboutDialog } from './about-dialog';
 import { OptionsInterface } from './options/options-interface'
 import { SessionsInterface } from './sessions-interface'
-import './import-export'
+import { ImportExport } from './data/import-export';
+import './data/import-export'
+import './data/data-loader'
 
 declare global {
   interface Window {
@@ -29,6 +31,7 @@ declare global {
     textDialog: TextDialog;
     confirmDialog: ConfirmDialog;
     tcodeInterface: TCodeInterface;
+    importExportInterface: ImportExport;
   }
 }
 
@@ -42,6 +45,7 @@ class AppContainer extends LitElement {
   public sessionsInterface: SessionsInterface; // considered as the main interface
   private tCodeInterface: TCodeInterface;
   private optionsInterface: OptionsInterface;
+  private importExport: ImportExport;
 
   private confirmDialog = new ConfirmDialog()
 
@@ -62,10 +66,12 @@ class AppContainer extends LitElement {
     this.sessionsInterface = new SessionsInterface()
     this.tCodeInterface = new TCodeInterface()
     this.optionsInterface = new OptionsInterface()
+    this.importExport = new ImportExport()
 
     this.walletsManager = new WalletsManager() // deprecated ?
 
     window.tcodeInterface = this.tCodeInterface;
+    window.importExportInterface = this.importExport;
   }
 
   static styles = css`
@@ -93,7 +99,7 @@ class AppContainer extends LitElement {
         <!-- <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
           @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button> -->
         <mwc-icon-button icon="title" @click="${() => this.tCodeInterface.open()}"></mwc-icon-button>
-        <mwc-icon-button icon="save" @click="${e => this.toast('next feature to implement')}"></mwc-icon-button>
+        <mwc-icon-button icon="save" @click="${e => this.importExport.open()}"></mwc-icon-button>
         <!-- <mwc-icon-button icon="help_outline" @click="${() => this.aboutDialog.open()}"></mwc-icon-button> -->
         <mwc-icon-button icon="settings" @click="${() => this.optionsInterface.open()}"></mwc-icon-button>
       </div>
@@ -107,10 +113,9 @@ class AppContainer extends LitElement {
 
     ${this.tCodeInterface}
     ${this.optionsInterface}
+    ${this.importExport}
 
     <about-dialog></about-dialog>
-
-    <import-export></import-export>
 
     <mwc-dialog heading="Options">
       <div style="width:800px"></div>

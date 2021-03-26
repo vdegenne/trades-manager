@@ -129,10 +129,17 @@ export class SessionsView extends LitElement {
 
     return html`
     <div class="session"
+        ?entitled="${session.title}"
         ?external="${external}"
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
         @mousedown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}">
+
+      <!-- TITLE -->
+      ${ session.title ? html`
+      <div class="title">${session.title}</div>
+      ` : nothing }
+
       <div>
         <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
         ${viewOptions.showPrice ? html`<div class="price">${price}</div>` : nothing }

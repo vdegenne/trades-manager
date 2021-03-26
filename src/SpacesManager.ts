@@ -9,7 +9,7 @@ export type Space = {
   name: string;
   currency: Currency;
   sessions: TradeSession[];
-  wallets: WalletsData
+  // wallets: WalletsData
 }
 
 export type WalletsData = {
@@ -25,7 +25,7 @@ declare global {
 
 @customElement('spaces-manager')
 export class SpacesManager extends LitElement {
-  private spaces: Space[] = [];
+  public spaces: Space[] = [];
 
   space!: Space;
 
@@ -78,13 +78,13 @@ export class SpacesManager extends LitElement {
     }
     else {
       // we make sure we convert the wallet value to the new wallet version
-      spaces.forEach((space: Space) => {
-        for (const wallet of Object.keys(space.wallets)) {
-          if (!(space.wallets[wallet] instanceof Array)) {
-            space.wallets[wallet] = []
-          }
-        }
-      })
+      // spaces.forEach((space: Space) => {
+      //   for (const wallet of Object.keys(space.wallets)) {
+      //     if (!(space.wallets[wallet] instanceof Array)) {
+      //       space.wallets[wallet] = []
+      //     }
+      //   }
+      // })
       this.spaces = spaces
     }
 
@@ -93,10 +93,16 @@ export class SpacesManager extends LitElement {
     this.loadSpace(this.getDefaultSpace())
   }
 
+  loadSpaces(spaces: Space[]) {
+    this.spaces = spaces;
+    // loading the default space by default
+    this.loadSpace(this.getDefaultSpace())
+  }
+
   loadSpace (space: Space) {
     window.sessionsInterface.loadSessions(space.sessions)
 
-    window.walletsManager.loadWallets(space.wallets)
+    // window.walletsManager.loadWallets(space.wallets)
 
     this.space = space;
     window.app.requestUpdate()

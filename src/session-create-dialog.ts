@@ -1,5 +1,6 @@
 import { Checkbox } from "@material/mwc-checkbox";
 import { Dialog } from "@material/mwc-dialog";
+import { TextField } from "@material/mwc-textfield";
 import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { nothing } from "lit-html";
 import { ifDefined } from "lit-html/directives/if-defined";
@@ -17,6 +18,7 @@ export class SessionCreateDialog extends LitElement {
 
   @query('mwc-dialog') dialog!: Dialog;
   @query('[name=virtual]') virtualCheckbox!: Checkbox;
+  @query('mwc-textfield') titleTextfield!: TextField;
 
   static styles = css`
     mwc-select, select {
@@ -39,6 +41,7 @@ export class SessionCreateDialog extends LitElement {
         @opened="${this.fixOverflow}">
       <div style="width:400px"></div>
       <div>
+        <mwc-textfield label="title" placeholder="optional..." style="width:100%;margin-bottom:10px;" @keypress="${e => e.stopPropagation()}" dialogInitialFocus></mwc-textfield>
         <div style="display:flex;align-items:center">
           <mwc-formfield label="virtual">
             <mwc-checkbox name="virtual"></mwc-checkbox>
@@ -104,7 +107,7 @@ export class SessionCreateDialog extends LitElement {
 
   submit () {
     if (!this.symbol || !this.quote) { return }
-    window.sessionsInterface.createSession(this.exchange!, this.symbol!, this.quote!, this.virtualCheckbox.checked)
+    window.sessionsInterface.createSession(this.exchange!, this.symbol!, this.quote!, this.virtualCheckbox.checked, this.titleTextfield.value || undefined)
     // const session = window.tradesManager.createSession(this.exchange!, this.symbol!, this.quote!)
     // window.sessionsInterface.requestUpdate()
     // window.sessionsInterface.requestUpdate()
