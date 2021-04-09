@@ -10,16 +10,18 @@ export class TextDialog extends LitElement {
   @property()
   private buttonTitle;
 
+  private resolveFunction;
+
   @query('mwc-dialog') dialog!: Dialog;
 
   render () {
     return html`
-    <mwc-dialog heading="${this.heading ?? ''}">
+    <mwc-dialog heading="${this.heading ?? ''}" escapeKeyAction="" scrimClickAction="">
       <div>
         ${this.message}
       </div>
 
-      <mwc-button outlined slot="primaryAction" dialogAction="close">${this.buttonTitle}</mwc-button>
+      <mwc-button outlined slot="primaryAction" @click="${() => {this.resolveFunction(); this.dialog.close()}}">${this.buttonTitle}</mwc-button>
     </mwc-dialog>
     `
   }
@@ -29,5 +31,8 @@ export class TextDialog extends LitElement {
     this.message = message;
     this.buttonTitle = buttonTitle || 'close';
     this.dialog.show()
+    return new Promise(resolve => {
+      this.resolveFunction = resolve;
+    })
   }
 }

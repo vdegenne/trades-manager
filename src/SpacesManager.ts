@@ -51,7 +51,7 @@ export class SpacesManager extends LitElement {
       <div style="height:100px"></div>
 
       <mwc-button unelevated slot="primaryAction"
-        ?disabled="${!this.currency}" @click="${() => this.askCurrencyResolve(this.currency)}">continue</mwc-button>
+        ?disabled="${!this.currency}" @click="${() => {this.askCurrencyResolve(this.currency); this.currencyDialog.close()}}">continue</mwc-button>
     </mwc-dialog>
     `
   }
@@ -109,10 +109,20 @@ export class SpacesManager extends LitElement {
     // console.log(this.toString());
   }
 
+  async createSpace (name: string) {
+    const currency = await this.askCurrency()
+    const space: Space = {
+      name,
+      currency,
+      sessions: []
+    }
+
+    this.spaces.push(space)
+    return space;
+  }
 
   private async createDefaultSpace (sessions?: TradeSession[]) {
     const currency = await this.askCurrency()
-    this.currencyDialog.close()
     this.spaces.push({
       name: 'default',
       sessions: sessions || [],

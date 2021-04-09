@@ -6,7 +6,7 @@ import { terser } from 'rollup-plugin-terser'
 
 export default {
   input: 'src/app-container.ts',
-  output: { file: 'app.js', format: 'esm', sourcemap: true},
+  output: { file: 'public/app.js', format: 'esm', sourcemap: true},
   plugins: [
     typescript({
       sourceMap: true

@@ -23,6 +23,7 @@ import { SessionsInterface } from './sessions-interface'
 import { ImportExport } from './data/import-export';
 import './data/import-export'
 import './data/data-loader'
+import { nothing } from 'lit-html'
 
 declare global {
   interface Window {
@@ -52,10 +53,14 @@ class AppContainer extends LitElement {
   @property()
   private walletsManager: WalletsManager;
 
+  @property({type:Boolean})
+  private static = true;
+
   @query('mwc-snackbar') snackbar!: Snackbar;
   @query('mwc-dialog[heading=Options]') optionsDialog!: Dialog;
   @query('text-dialog') textDialog!: TextDialog;
   @query('about-dialog') aboutDialog!: AboutDialog;
+  @query('spaces-interface') spacesInterface!: any;
 
   constructor() {
     super()
@@ -72,6 +77,28 @@ class AppContainer extends LitElement {
 
     window.tcodeInterface = this.tCodeInterface;
     window.importExportInterface = this.importExport;
+
+    // we should check if the app is static or server side
+    this.constructServerScript()
+  }
+
+  /**
+   * This function is used to determine if the website is in static mode or not.
+   * static means the site is loaded from a static context (e.g. github)
+   * whereas non-static is when the site is loaded from the server.
+   * When the site is loaded from the server we should give more feature to the user ($)
+   */
+  private constructServerScript () {
+    const script = document.createElement('script')
+    script.type = 'module'
+    script.src = './spaces-interface.js'
+    script.onerror = () => {
+      this.static = true;
+    }
+    script.onload = () => {
+      this.static = false;
+    }
+    document.head.appendChild(script)
   }
 
   static styles = css`
@@ -96,14 +123,18 @@ class AppContainer extends LitElement {
         <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.appTitle}</span>
       </div>
       <div style="display:flex;align-items:center">
-        <!-- <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
-          @click="${() => this.toast('Space feature coming soon ;-)')}">${window.spacesManager.space?.name}</mwc-button> -->
         <mwc-icon-button icon="title" @click="${() => this.tCodeInterface.open()}"></mwc-icon-button>
-        <mwc-icon-button icon="save" @click="${e => this.importExport.open()}"></mwc-icon-button>
+        <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
+          @click="${() => this.onSpaceButtonClick()}">${window.spacesManager.space?.name}</mwc-button>
+        <!-- <mwc-icon-button icon="save" @click="${e => this.importExport.open()}"></mwc-icon-button> -->
         <!-- <mwc-icon-button icon="help_outline" @click="${() => this.aboutDialog.open()}"></mwc-icon-button> -->
         <mwc-icon-button icon="settings" @click="${() => this.optionsInterface.open()}"></mwc-icon-button>
       </div>
     </header>
+
+    ${!this.static ? html`
+      <spaces-interface></spaces-interface>
+    ` : nothing}
 
     ${this.spacesManager}
 
@@ -137,6 +168,21 @@ class AppContainer extends LitElement {
 
     <mwc-snackbar leading></mwc-snackbar>
     `
+  }
+
+  private async onSpaceButtonClick() {
+    if (this.static) {
+      await window.textDialog.open('Static version', html`
+      <p>You are using the static version of ${window.appTitle}, that means you can only <i>manually</i> import and export the default space between your devices.</p>
+      <p>If you want to create more spaces and <i>automatically</i> synchronise your data across your device, please visit this link instead :</p>
+      <p><b>coming soon</b></p>
+      `, 'I got it')
+      this.importExport.open()
+    }
+    else {
+      // non-static we open the spaces feature
+      this.spacesInterface.open()
+    }
   }
 
   firstUpdated() {
