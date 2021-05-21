@@ -71,9 +71,9 @@ class AppContainer extends LitElement {
     window.appTitle = 'Tradon'
     window.confirmDialog = this.confirmDialog
 
+    this.optionsInterface = new OptionsInterface()
     this.sessionsInterface = new SessionsInterface()
     this.tCodeInterface = new TCodeInterface()
-    this.optionsInterface = new OptionsInterface()
     this.importExport = new ImportExport()
     this.sessionAlert = new SessionAlert()
 
@@ -137,6 +137,8 @@ class AppContainer extends LitElement {
       </div>
     </header>
 
+    ${this.optionsInterface}
+
     ${!this.static ? html`
       <spaces-interface></spaces-interface>
     ` : nothing}
@@ -146,7 +148,6 @@ class AppContainer extends LitElement {
     ${this.sessionsInterface}
 
     ${this.tCodeInterface}
-    ${this.optionsInterface}
     ${this.importExport}
 
     ${this.sessionAlert}

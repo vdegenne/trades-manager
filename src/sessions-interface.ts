@@ -13,6 +13,7 @@ import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { sortAlphabetically } from "./util";
 import './trades-interface'
 import { tradesInterface } from "./trades-interface";
+import { SessionStrip } from "./session-strip";
 
 // type FormData = {
 //   exchange: AvailableExchanges,
@@ -37,9 +38,9 @@ export class SessionsInterface extends LitElement {
   @property()
   private formType: 'form'|'text' = 'form';
 
-  @property()
+  @property({type:Object})
   private session?: TradeSession;
-  @property()
+  @property({type:Object})
   private trade?: Trade;
 
   @property()
@@ -167,7 +168,7 @@ export class SessionsInterface extends LitElement {
   async cloneSession (session: TradeSession) {
     await window.confirmDialog.open('Cloning Session', html`
       <p>You are about to clone this session :</p>
-      ${window.sessionsView.sessionExternalTemplate(session, { events: false, showPrice: false, showSourceProfit: false })}
+      ${new SessionStrip(session, { events: false, showPrice: false, showSourceProfit: false })}
       <p>A cloned session will automatically be in virtual mode, you can click on the session strip and uncheck <i>virtual</i> anytime to make it active.</p>
       <p>A cloned session will also be inserted just below the original one in the list.</p>
       `, false)

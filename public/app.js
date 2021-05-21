@@ -2326,7 +2326,76 @@ limitations under the License.
 
       <mwc-button outlined slot="primaryAction" @click="${()=>{this.resolveFunction(),this.dialog.close()}}">${this.buttonTitle}</mwc-button>
     </mwc-dialog>
-    `}open(e,t,i){return this.heading=e,this.message=t,this.buttonTitle=i||"close",this.dialog.show(),new Promise((e=>{this.resolveFunction=e}))}};function validateTCode(e){if("string"==typeof e){if(e.split(":").length>7)throw new Error("Invalid tcode (length)");e=resolveTCode(e)}if(void 0===e)throw new Error("Invalid tcode (not defined)");if("exchange"in e&&!Object.keys(ExchangesManager.exchanges).includes(e.exchange))throw new Error("The exchange doesn't exist");const t=ExchangesManager.exchanges[e.exchange];if("symbol"in e&&!t.getAvailableSymbols().includes(e.symbol))throw new Error("The symbol is not available in this exchange");if("quote"in e&&!ExchangesManager.exchanges[e.exchange].getAvailableQuotesFromSymbol(e.symbol).includes(e.quote))throw new Error("The quote is not available for this symbol");if("type"in e&&"buy"!==e.type&&"sell"!==e.type)throw new Error("The type should be either 'buy' or 'sell'");if("price"in e&&isNaN(e.price))throw new Error("The price should be a number");if("quantity"in e&&isNaN(e.quantity))throw new Error("The quantity should be a number");if("fees"in e&&isNaN(e.fees))throw new Error("The fees should be a number");return e}function resolveTCode(e){const t=e.split(":");if(""===t[t.length-1]&&t.pop(),0===t.length)return{};const i=["exchange","symbol","quote","type","price","quantity","fees"];return Object.fromEntries(t.map(((e,t)=>{const s=i[t];let o=e;return"exchange"===s&&(o=e.toLowerCase()),"symbol"!==s&&"quote"!==s||(o=e.toUpperCase()),"type"===s&&("b"===e&&(o="buy"),"s"===e&&(o="sell")),"price"!==s&&"quantity"!==s&&"fees"!==s||(o=parseFloat(e)),[i[t],o]})))}function isTCodeComplete(e){return"exchange"in e&&"symbol"in e&&"quote"in e&&"type"in e&&"price"in e&&"quantity"in e}__decorate([property$h()],TextDialog.prototype,"heading",void 0),__decorate([property$h()],TextDialog.prototype,"message",void 0),__decorate([property$h()],TextDialog.prototype,"buttonTitle",void 0),__decorate([query$i("mwc-dialog")],TextDialog.prototype,"dialog",void 0),TextDialog=__decorate([customElement$j("text-dialog")],TextDialog);let TCodeInterface=class extends LitElement$5{constructor(){super(...arguments),this.validity=!1,this.sessions=[],this.lockSessions=!1}render(){let e=-1;return html`
+    `}open(e,t,i){return this.heading=e,this.message=t,this.buttonTitle=i||"close",this.dialog.show(),new Promise((e=>{this.resolveFunction=e}))}};__decorate([property$h()],TextDialog.prototype,"heading",void 0),__decorate([property$h()],TextDialog.prototype,"message",void 0),__decorate([property$h()],TextDialog.prototype,"buttonTitle",void 0),__decorate([query$i("mwc-dialog")],TextDialog.prototype,"dialog",void 0),TextDialog=__decorate([customElement$j("text-dialog")],TextDialog);class TradesManager{constructor(e){this.sessions=e||[],window.tradesManager=this,window.sessions=this.sessions}createSession(e,t,i,s=!1,o){const n={id:Date.now(),exchange:e,symbol:t,quote:i,trades:[],virtual:s};return o&&(n.title=o),this.sessions.push(n),n}addTrade(e,t){e.trades.push(t)}deleteSession(e){this.sessions.splice(this.sessions.indexOf(e),1)}cloneSession(e){const t=this.sessions.indexOf(e),i=JSON.parse(JSON.stringify(e));return i.id=Date.now(),this.sessions.splice(t+1,0,i),i}deleteTrade(e){const t=this.getTradesSession(e),i=t.trades.indexOf(e);return-1!==i&&(t.trades.splice(i,1),!0)}getTradesSession(e){return this.sessions.find((t=>t.trades.indexOf(e)>=0))}getSessions(e,t,i){return this.sessions.filter((s=>s.exchange===e&&s.symbol===t&&s.quote===i))}getSessionFromId(e){return this.sessions.find((t=>t.id===e))}getPairTrades(e){return this.sessions[e]}getSummarizedSessionTrades(e){return summarizeSessionTrades(e)}toString(){return JSON.stringify(this.sessions)}}function summarizeSessionTrades(e){return e.trades.reduce(((e,t)=>("buy"===t.type?(e.invested+=t.price*t.volume,e.volume+=t.volume):(e.invested-=t.price*t.volume,e.volume-=t.volume),e)),{invested:0,volume:0})}const getSummary=summarizeSessionTrades;let SessionStrip=class SessionStrip extends LitElement$5{constructor(e,t){super(),this.profit=0,this.session=e,this.viewOptions=t||{}}render(){return this.stripTemplate(this.session)}updated(){this.checkAlert()}stripTemplate(e){const t=getSummary(e),i={value:0,quote:e.quote};let s,o;const n=ExchangesManager.getPrice(e.exchange,e.symbol,e.quote);let d;if(n){i.value=n*t.volume,this.profit=i.value-t.invested,d=(i.value-t.invested)/t.invested*100;const r=ExchangesManager.getConversionPrice(e.quote,window.spacesManager.space.currency,e.exchange);r.price&&r.quote===window.spacesManager.space.currency&&(s={value:i.value*r.price,quote:r.quote},o={value:this.profit*r.price,quote:r.quote})}const r=Object.assign({},window.options.sessionViewOptions,this.viewOptions);return html`
+    <div class="session"
+        ?entitled="${e.title}"
+        ?eventful="${r.events}"
+        ?virtual="${e.virtual}"
+        @mousedown="${t=>r.events&&this.onSessionElementClick(t,e)}">
+
+      <!-- TITLE -->
+      ${e.title?html`
+      <div class="title">${e.title}</div>
+      `:nothing}
+
+      <div>
+        <div style="display:flex;align-items:center">
+          <div class="name">${e.symbol}<mwc-icon>sync_alt</mwc-icon>${e.quote}</div>
+          ${e.alert?html`<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${e.alert.notified?"#f44336":"inherit"}" title="${e.alert.limit} ${e.alert.value}%"
+              @mousedown="${t=>{t.stopPropagation(),window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(e))}}">notifications</mwc-icon>`:nothing}
+        </div>
+        ${r.showPrice?html`<div class="price">${n}</div>`:nothing}
+      </div>
+
+      <!-- middle part -->
+      <div style="display:flex;flex-direction:column;align-items:${r.showPercent?"center":"flex-end"};flex:1">
+
+        <!-- GAIN -->
+        <div style="display:flex;align-items:center;${r.showTotalValue?"margin-bottom:5px":""}">
+          ${r.showSourceProfit||!o?html`
+          <div>${outputPriceTemplate(this.profit,e.quote)}</div>
+          `:nothing}
+          ${o?html`
+          <div style="display:flex;align-items:center;margin-left:4px;">
+            ${r.showSourceProfit?html`<span style="color:#00000033">(</span>`:nothing}
+            ${outputPriceTemplate(o.value,o.quote)}
+            ${r.showSourceProfit?html`<span style="color:#00000033">)</span>`:nothing}
+          </div>
+          `:nothing}
+        </div>
+
+        <!-- TOTAL VALUE -->
+        ${r.showTotalValue?html`
+          <div class="total-value">
+            <span>${formatOutputPrice(i.value,i.quote)}</span>
+            ${i.quote!==window.spacesManager.space.currency&&void 0!==s?html`
+            <span>(${formatOutputPrice(s.value,s.quote)})</span>
+            `:nothing}
+          </div>
+        `:nothing}
+      </div>
+
+      <!-- PERCENT -->
+        ${r.showPercent?html`
+        <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
+          <span class="percent"
+            style="background-color:${d?d>0?"var(--green)":"red":"grey"}">${round(d,2)||"0"}%</span>
+        <!-- </div> -->
+        `:nothing}
+
+      ${r.showCross?html`
+        <mwc-icon-button icon="close"
+          style="color:#bdbdbd"
+          @mousedown="${e=>e.stopPropagation()}"
+          @click="${()=>r.events&&window.sessionsInterface.deleteSession(e)}"></mwc-icon-button>
+      `:nothing}
+    </div>
+    <style>
+      [hide] {
+        display:none;
+      }
+    </style>
+    `}onSessionElementClick(e,t){2===e.button?openCryptowatchLink(t):window.tradesInterface.openSession(t)}async checkAlert(){if(!this.session.alert||0===this.profit||this.session.alert.notified)return;if("granted"!==Notification.permission&&"denied"!==Notification.permission&&Notification.requestPermission(),"granted"!==Notification.permission)return;const shouldNotify=eval(`${this.profit} ${this.session.alert.limit} ${this.session.alert.value}`);if(shouldNotify){const e=new Notification(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`,{silent:!1,requireInteraction:!0});e.onclick=()=>{openCryptowatchLink(this.session),e.close()},this.session.alert.notified=!0,this.requestUpdate(),window.spacesManager.save()}}};function validateTCode(e){if("string"==typeof e){if(e.split(":").length>7)throw new Error("Invalid tcode (length)");e=resolveTCode(e)}if(void 0===e)throw new Error("Invalid tcode (not defined)");if("exchange"in e&&!Object.keys(ExchangesManager.exchanges).includes(e.exchange))throw new Error("The exchange doesn't exist");const t=ExchangesManager.exchanges[e.exchange];if("symbol"in e&&!t.getAvailableSymbols().includes(e.symbol))throw new Error("The symbol is not available in this exchange");if("quote"in e&&!ExchangesManager.exchanges[e.exchange].getAvailableQuotesFromSymbol(e.symbol).includes(e.quote))throw new Error("The quote is not available for this symbol");if("type"in e&&"buy"!==e.type&&"sell"!==e.type)throw new Error("The type should be either 'buy' or 'sell'");if("price"in e&&isNaN(e.price))throw new Error("The price should be a number");if("quantity"in e&&isNaN(e.quantity))throw new Error("The quantity should be a number");if("fees"in e&&isNaN(e.fees))throw new Error("The fees should be a number");return e}function resolveTCode(e){const t=e.split(":");if(""===t[t.length-1]&&t.pop(),0===t.length)return{};const i=["exchange","symbol","quote","type","price","quantity","fees"];return Object.fromEntries(t.map(((e,t)=>{const s=i[t];let o=e;return"exchange"===s&&(o=e.toLowerCase()),"symbol"!==s&&"quote"!==s||(o=e.toUpperCase()),"type"===s&&("b"===e&&(o="buy"),"s"===e&&(o="sell")),"price"!==s&&"quantity"!==s&&"fees"!==s||(o=parseFloat(e)),[i[t],o]})))}function isTCodeComplete(e){return"exchange"in e&&"symbol"in e&&"quote"in e&&"type"in e&&"price"in e&&"quantity"in e}SessionStrip.styles=[sessionsStyles],__decorate([property$h({type:Object})],SessionStrip.prototype,"session",void 0),__decorate([property$h({type:Object})],SessionStrip.prototype,"viewOptions",void 0),SessionStrip=__decorate([customElement$j("session-strip")],SessionStrip);let TCodeInterface=class extends LitElement$5{constructor(){super(...arguments),this.validity=!1,this.sessions=[],this.lockSessions=!1}render(){let e=-1;return html`
     <mwc-dialog heading="T-Code" style="--mdc-dialog-min-width:${window.innerWidth>560?`${Math.min(window.innerWidth-40,900)}px`:"280px"}">
       <div>
         <p>Use a <b>t-code</b> to quickly add a trade entry (learn more)</p>
@@ -2340,7 +2409,7 @@ limitations under the License.
             <!-- <mwc-formfield label=""> -->
             <div style="display:flex;align-items:center;">
               <mwc-radio name="session" value="${t.id}" ?checked="${0===e}"></mwc-radio>
-              ${window.sessionsView.sessionExternalTemplate(t,Object.assign({},window.options.sessionViewOptions,{events:!1,showCross:!1,showPrice:!1}))}
+              ${new SessionStrip(t,{events:!1,showCross:!1,showPrice:!1})}
             </div>
             <!-- </mwc-formfield> -->`)))}
           ${this.sessions.length&&!this.lockSessions?html`<mwc-formfield label="new session"><mwc-radio name="session" value=""></mwc-radio></mwc-formfield>`:nothing}
@@ -2385,7 +2454,7 @@ limitations under the License.
 
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
-    `}open(){this.dialog.show()}};__decorate([query$i("mwc-dialog")],AboutDialog.prototype,"dialog",void 0),AboutDialog=__decorate([customElement$j("about-dialog")],AboutDialog);class OptionsManager{constructor(e){this.options=e||(localStorage.getItem("options")?JSON.parse(localStorage.getItem("options")):this.default),window.optionsManager=this,window.options=this.options}loadOptions(e){window.options=this.options=e}get default(){return{exchangeViewOptions:{showWallet:!0,showVirtual:!0},sessionViewOptions:{events:!0,showPrice:!0,showSourceProfit:!1,showTotalValue:!0,showPercent:!0,showCross:!1}}}save(){localStorage.setItem("options",JSON.stringify(this.options))}}let OptionsInterface=class extends LitElement$5{constructor(e){super(),this.session={id:0,exchange:"kraken",symbol:"BTC",quote:"USDT",trades:[{type:"buy",price:55800,volume:.01}],virtual:!1},window.optionsInterface=this,this.optionsManager=new OptionsManager(e),this.options=JSON.parse(JSON.stringify(this.optionsManager.options))}render(){return html`
+    `}open(){this.dialog.show()}};__decorate([query$i("mwc-dialog")],AboutDialog.prototype,"dialog",void 0),AboutDialog=__decorate([customElement$j("about-dialog")],AboutDialog);class OptionsManager{constructor(e){this.options=e||(localStorage.getItem("options")?JSON.parse(localStorage.getItem("options")):this.default),window.optionsManager=this,window.options=this.options}loadOptions(e){window.options=this.options=e}get default(){return{exchangeViewOptions:{showWallet:!0,showVirtual:!0},sessionViewOptions:{events:!0,showPrice:!0,showSourceProfit:!1,showTotalValue:!0,showPercent:!0,showCross:!1}}}save(){localStorage.setItem("options",JSON.stringify(this.options))}}let OptionsInterface=class extends LitElement$5{constructor(e){super(),this.session={id:0,exchange:"kraken",symbol:"BTC",quote:"USDT",trades:[{type:"buy",price:55800,volume:.01}],virtual:!1},this.strip=new SessionStrip(this.session),window.optionsInterface=this,this.optionsManager=new OptionsManager(e),this.options=JSON.parse(JSON.stringify(this.optionsManager.options))}render(){return this.strip.viewOptions=Object.assign({},this.options.sessionViewOptions,{events:!1}),html`
     <mwc-dialog heading="Options">
       <div style="width:600px"></div>
       <div>
@@ -2406,7 +2475,8 @@ limitations under the License.
           <mwc-checkbox ?checked="${this.options.sessionViewOptions.showPercent}"
             @change="${e=>this.changeSessionViewOption(e,"showPercent")}"></mwc-checkbox>
         </mwc-formfield>
-        ${window.sessionsView.sessionExternalTemplate(this.session,Object.assign({},this.options.sessionViewOptions,{events:!1}))}
+
+        ${this.strip}
 
         <h4>General view options</h4>
         <mwc-formfield label="Show wallet at the bottom">
@@ -2424,12 +2494,12 @@ limitations under the License.
       <mwc-button unelevated slot="primaryAction"
         @click="${()=>this.saveAndClose()}">save</mwc-button>
     </mwc-dialog>
-    `}async firstUpdated(){await ExchangesManager.addPair("kraken","BTC","USDT",!1),await ExchangesManager.exchanges.kraken.updatePairs(),this.requestUpdate(),window.addEventListener("keypress",(e=>{e.ctrlKey||e.altKey||"KeyV"!==e.code||(this.options.exchangeViewOptions.showVirtual=!this.options.exchangeViewOptions.showVirtual,window.sessionsInterface.requestUpdate(),this.requestUpdate(),this.save())}))}changeSessionViewOption(e,t){this.options.sessionViewOptions[t]=e.target.checked,this.requestUpdate()}open(){this.options=JSON.parse(JSON.stringify(this.optionsManager.options)),this.dialog.show()}saveAndClose(){this.save(),this.dialog.close(),window.sessionsInterface.requestUpdate(),window.app.toast("settings updated")}save(){this.optionsManager.loadOptions(this.options),this.optionsManager.save()}};OptionsInterface.styles=[sessionsStyles,css$j`
+    `}requestUpdate(){return this.strip.requestUpdate(),super.requestUpdate()}async firstUpdated(){await ExchangesManager.addPair("kraken","BTC","USDT",!1),await ExchangesManager.exchanges.kraken.updatePairs(),this.requestUpdate(),window.addEventListener("keypress",(e=>{e.ctrlKey||e.altKey||"KeyV"!==e.code||(this.options.exchangeViewOptions.showVirtual=!this.options.exchangeViewOptions.showVirtual,window.sessionsInterface.requestUpdate(),this.requestUpdate(),this.save())}))}changeSessionViewOption(e,t){this.options.sessionViewOptions[t]=e.target.checked,this.requestUpdate()}open(){this.options=JSON.parse(JSON.stringify(this.optionsManager.options)),this.dialog.show()}saveAndClose(){this.save(),this.dialog.close(),window.sessionsInterface.requestUpdate(),window.app.toast("settings updated")}save(){this.optionsManager.loadOptions(this.options),this.optionsManager.save()}};OptionsInterface.styles=[sessionsStyles,css$j`
     h4 {
       margin: 33px 0px 5px;
       font-weight: 500;
     }
-    `],__decorate([property$h()],OptionsInterface.prototype,"optionsManager",void 0),__decorate([property$h()],OptionsInterface.prototype,"options",void 0),__decorate([query$i("mwc-dialog")],OptionsInterface.prototype,"dialog",void 0),OptionsInterface=__decorate([customElement$j("options-interface")],OptionsInterface);class TradesManager{constructor(e){this.sessions=e||[],window.tradesManager=this,window.sessions=this.sessions}createSession(e,t,i,s=!1,o){const n={id:Date.now(),exchange:e,symbol:t,quote:i,trades:[],virtual:s};return o&&(n.title=o),this.sessions.push(n),n}addTrade(e,t){e.trades.push(t)}deleteSession(e){this.sessions.splice(this.sessions.indexOf(e),1)}cloneSession(e){const t=this.sessions.indexOf(e),i=JSON.parse(JSON.stringify(e));return i.id=Date.now(),this.sessions.splice(t+1,0,i),i}deleteTrade(e){const t=this.getTradesSession(e),i=t.trades.indexOf(e);return-1!==i&&(t.trades.splice(i,1),!0)}getTradesSession(e){return this.sessions.find((t=>t.trades.indexOf(e)>=0))}getSessions(e,t,i){return this.sessions.filter((s=>s.exchange===e&&s.symbol===t&&s.quote===i))}getSessionFromId(e){return this.sessions.find((t=>t.id===e))}getPairTrades(e){return this.sessions[e]}getSummarizedSessionTrades(e){return summarizeSessionTrades(e)}toString(){return JSON.stringify(this.sessions)}}function summarizeSessionTrades(e){return e.trades.reduce(((e,t)=>("buy"===t.type?(e.invested+=t.price*t.volume,e.volume+=t.volume):(e.invested-=t.price*t.volume,e.volume-=t.volume),e)),{invested:0,volume:0})}const getSummary=summarizeSessionTrades;
+    `],__decorate([property$h({type:Object})],OptionsInterface.prototype,"optionsManager",void 0),__decorate([property$h({type:Object})],OptionsInterface.prototype,"options",void 0),__decorate([query$i("mwc-dialog")],OptionsInterface.prototype,"dialog",void 0),OptionsInterface=__decorate([customElement$j("options-interface")],OptionsInterface),
 /**
  * @license
  * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
@@ -2442,7 +2512,8 @@ limitations under the License.
  * Code distributed by Google as part of the polymer project is also
  * subject to an additional IP rights grant found at
  * http://polymer.github.io/PATENTS.txt
- */window.JSCompiler_renameProperty=(e,t)=>e
+ */
+window.JSCompiler_renameProperty=(e,t)=>e
 /**
  * @license
  * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
@@ -3159,76 +3230,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-const style$1=css$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{height:72px}:host{display:block}.mdc-tab-bar{flex:1}mwc-tab{--mdc-tab-height: 48px;--mdc-tab-stacked-height: 72px}`;let TabBar=class extends TabBarBase{};TabBar.styles=style$1,TabBar=__decorate([customElement$4("mwc-tab-bar")],TabBar);let SessionStrip=class SessionStrip extends LitElement$5{constructor(e){super(),this.profit=0,this.session=e}render(){return this.stripTemplate(this.session)}updated(){this.checkAlert()}stripTemplate(e,t=window.options.sessionViewOptions){const i=getSummary(e),s={value:0,quote:e.quote};let o,n;const d=ExchangesManager.getPrice(e.exchange,e.symbol,e.quote);let r;if(d){s.value=d*i.volume,this.profit=s.value-i.invested,r=(s.value-i.invested)/i.invested*100;const t=ExchangesManager.getConversionPrice(e.quote,window.spacesManager.space.currency,e.exchange);t.price&&t.quote===window.spacesManager.space.currency&&(o={value:s.value*t.price,quote:t.quote},n={value:this.profit*t.price,quote:t.quote})}return t=Object.assign({},window.options.sessionViewOptions,t),html`
-    <div class="session"
-        ?entitled="${e.title}"
-        ?eventful="${t.events}"
-        ?virtual="${e.virtual}"
-        @mousedown="${i=>t.events&&this.onSessionElementClick(i,e)}">
-
-      <!-- TITLE -->
-      ${e.title?html`
-      <div class="title">${e.title}</div>
-      `:nothing}
-
-      <div>
-        <div style="display:flex;align-items:center">
-          <div class="name">${e.symbol}<mwc-icon>sync_alt</mwc-icon>${e.quote}</div>
-          ${e.alert?html`<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${e.alert.notified?"#f44336":"inherit"}" title="${e.alert.limit} ${e.alert.value}%"
-              @mousedown="${t=>{t.stopPropagation(),window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(e))}}">notifications</mwc-icon>`:nothing}
-        </div>
-        ${t.showPrice?html`<div class="price">${d}</div>`:nothing}
-      </div>
-
-      <!-- middle part -->
-      <div style="display:flex;flex-direction:column;align-items:${t.showPercent?"center":"flex-end"};flex:1">
-
-        <!-- GAIN -->
-        <div style="display:flex;align-items:center;${t.showTotalValue?"margin-bottom:5px":""}">
-          ${t.showSourceProfit||!n?html`
-          <div>${outputPriceTemplate(this.profit,e.quote)}</div>
-          `:nothing}
-          ${n?html`
-          <div style="display:flex;align-items:center;margin-left:4px;">
-            ${t.showSourceProfit?html`<span style="color:#00000033">(</span>`:nothing}
-            ${outputPriceTemplate(n.value,n.quote)}
-            ${t.showSourceProfit?html`<span style="color:#00000033">)</span>`:nothing}
-          </div>
-          `:nothing}
-        </div>
-
-        <!-- TOTAL VALUE -->
-        ${t.showTotalValue?html`
-          <div class="total-value">
-            <span>${formatOutputPrice(s.value,s.quote)}</span>
-            ${s.quote!==window.spacesManager.space.currency&&void 0!==o?html`
-            <span>(${formatOutputPrice(o.value,o.quote)})</span>
-            `:nothing}
-          </div>
-        `:nothing}
-      </div>
-
-      <!-- PERCENT -->
-        ${t.showPercent?html`
-        <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
-          <span class="percent"
-            style="background-color:${r?r>0?"var(--green)":"red":"grey"}">${round(r,2)||"0"}%</span>
-        <!-- </div> -->
-        `:nothing}
-
-      ${t.showCross?html`
-        <mwc-icon-button icon="close"
-          style="color:#bdbdbd"
-          @mousedown="${e=>e.stopPropagation()}"
-          @click="${()=>t.events&&window.sessionsInterface.deleteSession(e)}"></mwc-icon-button>
-      `:nothing}
-    </div>
-    <style>
-      [hide] {
-        display:none;
-      }
-    </style>
-    `}onSessionElementClick(e,t){2===e.button?openCryptowatchLink(t):window.tradesInterface.openSession(t)}async checkAlert(){if(!this.session.alert||0===this.profit||this.session.alert.notified)return;if("granted"!==Notification.permission&&"denied"!==Notification.permission&&Notification.requestPermission(),"granted"!==Notification.permission)return;const shouldNotify=eval(`${this.profit} ${this.session.alert.limit} ${this.session.alert.value}`);if(shouldNotify){const e=new Notification(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`,{silent:!1,requireInteraction:!0});e.onclick=()=>{openCryptowatchLink(this.session),e.close()},this.session.alert.notified=!0,this.requestUpdate(),window.spacesManager.save()}}};SessionStrip.styles=[sessionsStyles],__decorate([property$h({type:Object})],SessionStrip.prototype,"session",void 0),SessionStrip=__decorate([customElement$j("session-strip")],SessionStrip);let SessionsView=class extends LitElement$5{constructor(){super(),window.sessionsView=this}render(){return html`
+const style$1=css$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacked{height:72px}:host{display:block}.mdc-tab-bar{flex:1}mwc-tab{--mdc-tab-height: 48px;--mdc-tab-stacked-height: 72px}`;let TabBar=class extends TabBarBase{};TabBar.styles=style$1,TabBar=__decorate([customElement$4("mwc-tab-bar")],TabBar);let SessionsView=class extends LitElement$5{constructor(){super(),window.sessionsView=this}render(){return html`
     ${ExchangesManager.getAvailableExchanges().map((e=>{const t=window.sessions.filter((t=>t.exchange===e&&(window.options.exchangeViewOptions.showVirtual||!t.virtual)));return this.profitAggregator=new Aggregator(e),this.totalValueAggregator=new Aggregator(e),this.walletAggregator=new Aggregator(e),html`
       <div class="exchange-frame">
         <div style="display:flex;align-items:center;justify-content:space-between">
@@ -3478,7 +3480,7 @@ const style$1=css$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stack
     ${this.tradesInterface}
     `}createSession(e,t,i,s=!1,o){const n=this.tradesManager.createSession(e,t,i,s,o);return this.requestUpdate(),ExchangesManager.addPair(n.exchange,n.symbol,n.quote,!1),ExchangesManager.exchanges[n.exchange].updatePairs(),window.spacesManager.save(),n}async cloneSession(e){await window.confirmDialog.open("Cloning Session",html`
       <p>You are about to clone this session :</p>
-      ${window.sessionsView.sessionExternalTemplate(e,{events:!1,showPrice:!1,showSourceProfit:!1})}
+      ${new SessionStrip(e,{events:!1,showPrice:!1,showSourceProfit:!1})}
       <p>A cloned session will automatically be in virtual mode, you can click on the session strip and uncheck <i>virtual</i> anytime to make it active.</p>
       <p>A cloned session will also be inserted just below the original one in the list.</p>
       `,!1);this.tradesManager.cloneSession(e).virtual=!0,this.requestUpdate(),window.spacesManager.save()}async deleteSession(e){try{await window.confirmDialog.open("Deleting Session",html`The session and all the trades inside will be lost.<br>Are you sure to continue?`)}catch(e){return}this.tradesManager.deleteSession(e),this.requestUpdate();try{window.tradesInterface.dialog.close()}catch(e){}window.app.toast("session deleted"),window.spacesManager.save()}refreshUI(){this.refreshTimeout&&(clearTimeout(this.refreshTimeout),this.refreshTimeout=void 0),this.refreshTimeout=setTimeout((()=>this.requestUpdate()),500)}};SessionsInterface.styles=[css$j`
@@ -3519,7 +3521,7 @@ const style$1=css$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stack
     #inputs-box > mwc-textfield {
       min-width: 232px;
     }
-  `],__decorate([property$h()],SessionsInterface.prototype,"formType",void 0),__decorate([property$h()],SessionsInterface.prototype,"session",void 0),__decorate([property$h()],SessionsInterface.prototype,"trade",void 0),__decorate([property$h()],SessionsInterface.prototype,"exchange",void 0),__decorate([property$h()],SessionsInterface.prototype,"symbol",void 0),__decorate([property$h()],SessionsInterface.prototype,"quote",void 0),__decorate([property$h()],SessionsInterface.prototype,"price",void 0),__decorate([property$h()],SessionsInterface.prototype,"volume",void 0),__decorate([query$i("mwc-dialog#trade")],SessionsInterface.prototype,"tradeDialog",void 0),SessionsInterface=__decorate([customElement$j("sessions-interface")],SessionsInterface),
+  `],__decorate([property$h()],SessionsInterface.prototype,"formType",void 0),__decorate([property$h({type:Object})],SessionsInterface.prototype,"session",void 0),__decorate([property$h({type:Object})],SessionsInterface.prototype,"trade",void 0),__decorate([property$h()],SessionsInterface.prototype,"exchange",void 0),__decorate([property$h()],SessionsInterface.prototype,"symbol",void 0),__decorate([property$h()],SessionsInterface.prototype,"quote",void 0),__decorate([property$h()],SessionsInterface.prototype,"price",void 0),__decorate([property$h()],SessionsInterface.prototype,"volume",void 0),__decorate([query$i("mwc-dialog#trade")],SessionsInterface.prototype,"tradeDialog",void 0),SessionsInterface=__decorate([customElement$j("sessions-interface")],SessionsInterface),
 /**
  * @license
  * Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
@@ -3712,7 +3714,7 @@ var clipboardCopy_1=clipboardCopy;function makeError(){return new DOMException("
     p {
       margin-bottom: 10px;
     }
-    `],__decorate([property$h({type:Object})],SessionAlert.prototype,"strip",void 0),__decorate([query$i("mwc-dialog")],SessionAlert.prototype,"dialog",void 0),__decorate([queryAll("mwc-radio")],SessionAlert.prototype,"radios",void 0),__decorate([query$i("mwc-textfield")],SessionAlert.prototype,"valueTextField",void 0),SessionAlert=__decorate([customElement$j("session-alert")],SessionAlert);const Currencies=["EUR","USD"];let AppContainer=class extends LitElement$5{constructor(){super(),this.spacesManager=new SpacesManager,this.confirmDialog=new ConfirmDialog,this.static=!0,window.app=this,window.appTitle="Tradon",window.confirmDialog=this.confirmDialog,this.sessionsInterface=new SessionsInterface,this.tCodeInterface=new TCodeInterface,this.optionsInterface=new OptionsInterface,this.importExport=new ImportExport,this.sessionAlert=new SessionAlert,this.walletsManager=new WalletsManager,window.tcodeInterface=this.tCodeInterface,window.importExportInterface=this.importExport,window.sessionAlert=this.sessionAlert,this.constructServerScript()}constructServerScript(){const e=document.createElement("script");e.type="module",e.src="./spaces-interface.js",e.onerror=()=>{this.static=!0},e.onload=()=>{this.static=!1},document.head.appendChild(e)}render(){return html`
+    `],__decorate([property$h({type:Object})],SessionAlert.prototype,"strip",void 0),__decorate([query$i("mwc-dialog")],SessionAlert.prototype,"dialog",void 0),__decorate([queryAll("mwc-radio")],SessionAlert.prototype,"radios",void 0),__decorate([query$i("mwc-textfield")],SessionAlert.prototype,"valueTextField",void 0),SessionAlert=__decorate([customElement$j("session-alert")],SessionAlert);const Currencies=["EUR","USD"];let AppContainer=class extends LitElement$5{constructor(){super(),this.spacesManager=new SpacesManager,this.confirmDialog=new ConfirmDialog,this.static=!0,window.app=this,window.appTitle="Tradon",window.confirmDialog=this.confirmDialog,this.optionsInterface=new OptionsInterface,this.sessionsInterface=new SessionsInterface,this.tCodeInterface=new TCodeInterface,this.importExport=new ImportExport,this.sessionAlert=new SessionAlert,this.walletsManager=new WalletsManager,window.tcodeInterface=this.tCodeInterface,window.importExportInterface=this.importExport,window.sessionAlert=this.sessionAlert,this.constructServerScript()}constructServerScript(){const e=document.createElement("script");e.type="module",e.src="./spaces-interface.js",e.onerror=()=>{this.static=!0},e.onload=()=>{this.static=!1},document.head.appendChild(e)}render(){return html`
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017;flex:1">
         <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.appTitle}</span>
@@ -3727,6 +3729,8 @@ var clipboardCopy_1=clipboardCopy;function makeError(){return new DOMException("
       </div>
     </header>
 
+    ${this.optionsInterface}
+
     ${this.static?nothing:html`
       <spaces-interface></spaces-interface>
     `}
@@ -3736,7 +3740,6 @@ var clipboardCopy_1=clipboardCopy;function makeError(){return new DOMException("
     ${this.sessionsInterface}
 
     ${this.tCodeInterface}
-    ${this.optionsInterface}
     ${this.importExport}
 
     ${this.sessionAlert}

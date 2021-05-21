@@ -11,11 +11,15 @@ export class SessionStrip extends LitElement {
   @property({type:Object})
   public session: TradeSession;
 
+  @property({type: Object})
+  public viewOptions!: Partial<SessionViewOptions>;
+
   public profit: number = 0;
 
-  constructor (session: TradeSession) {
+  constructor (session: TradeSession, options?: Partial<SessionViewOptions>) {
     super()
     this.session = session;
+    this.viewOptions = options || {}
   }
 
   static styles = [
@@ -30,7 +34,7 @@ export class SessionStrip extends LitElement {
     this.checkAlert()
   }
 
-  stripTemplate(session: TradeSession, viewOptions: Partial<SessionViewOptions> = window.options.sessionViewOptions) {
+  stripTemplate(session: TradeSession) {
     const summary = getSummary(session)
     const total = { value: 0, quote: session.quote }
     let totalConverted: { value: number, quote: string } | undefined = undefined
@@ -59,7 +63,7 @@ export class SessionStrip extends LitElement {
       }
     }
 
-    viewOptions = Object.assign({}, window.options.sessionViewOptions, viewOptions)
+    const viewOptions = Object.assign({}, window.options.sessionViewOptions, this.viewOptions)
 
     return html`
     <div class="session"

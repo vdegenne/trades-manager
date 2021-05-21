@@ -4,6 +4,7 @@ import { TextField } from "@material/mwc-textfield";
 import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { nothing } from "lit-html";
 import { SessionViewOptions } from "./options/options";
+import { SessionStrip } from "./session-strip";
 import sessionsStyles from "./styles/sessions-styles";
 import { isTCodeComplete, resolveTCode, TCode, validateTCode } from "./tcode";
 import { TradeSession } from "./TradesManager";
@@ -57,8 +58,7 @@ export class TCodeInterface extends LitElement {
             <!-- <mwc-formfield label=""> -->
             <div style="display:flex;align-items:center;">
               <mwc-radio name="session" value="${session.id}" ?checked="${sessionIndex === 0}"></mwc-radio>
-              ${window.sessionsView.sessionExternalTemplate(session,
-                Object.assign({}, window.options.sessionViewOptions, { events: false, showCross: false, showPrice: false } as Partial<SessionViewOptions>))}
+              ${new SessionStrip(session, { events: false, showCross: false, showPrice: false })}
             </div>
             <!-- </mwc-formfield> -->`
           })}

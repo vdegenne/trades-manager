@@ -1,6 +1,7 @@
 import { Dialog } from "@material/mwc-dialog";
 import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { ExchangesManager } from "../ExchangesManager";
+import { SessionStrip } from "../session-strip";
 import sessionsStyles from "../styles/sessions-styles";
 import { TradeSession } from "../TradesManager";
 import { Options, OptionsManager, SessionViewOptions } from "./options";
@@ -8,10 +9,10 @@ import { Options, OptionsManager, SessionViewOptions } from "./options";
 
 @customElement('options-interface')
 export class OptionsInterface extends LitElement {
-  @property()
+  @property({type:Object})
   private optionsManager: OptionsManager;
 
-  @property()
+  @property({type:Object})
   private options: Options; // clone object for the interface
 
   /* Fake element to show how the display settings affect a session element */
@@ -22,6 +23,7 @@ export class OptionsInterface extends LitElement {
     trades: [{ type: 'buy', price: 55800, volume: 0.01 }],
     virtual: false
   };
+  private strip = new SessionStrip(this.session)
 
   constructor (options?: Options) {
     super()
@@ -45,6 +47,9 @@ export class OptionsInterface extends LitElement {
   @query('mwc-dialog') dialog!: Dialog;
 
   render () {
+
+    this.strip.viewOptions = Object.assign({}, this.options.sessionViewOptions, { events: false });
+
     return html`
     <mwc-dialog heading="Options">
       <div style="width:600px"></div>
@@ -66,7 +71,8 @@ export class OptionsInterface extends LitElement {
           <mwc-checkbox ?checked="${this.options.sessionViewOptions.showPercent}"
             @change="${(e) => this.changeSessionViewOption(e, 'showPercent')}"></mwc-checkbox>
         </mwc-formfield>
-        ${window.sessionsView.sessionExternalTemplate(this.session, Object.assign({}, this.options.sessionViewOptions, { events: false }))}
+
+        ${this.strip}
 
         <h4>General view options</h4>
         <mwc-formfield label="Show wallet at the bottom">
@@ -85,6 +91,11 @@ export class OptionsInterface extends LitElement {
         @click="${() => this.saveAndClose()}">save</mwc-button>
     </mwc-dialog>
     `
+  }
+
+  requestUpdate() {
+    this.strip.requestUpdate()
+    return super.requestUpdate()
   }
 
   async firstUpdated() {
