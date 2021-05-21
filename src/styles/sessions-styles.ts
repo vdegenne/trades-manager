@@ -49,7 +49,7 @@ export default css`
   align-items: center;
   font-size: 16px;
   font-weight: 500;
-  width: 60px;
+  /* width: 60px; */
   text-align: left
 }
 .session .name > mwc-icon {

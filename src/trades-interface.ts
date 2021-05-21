@@ -45,12 +45,6 @@ export class tradesInterface extends LitElement {
             </mwc-formfield>
             <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
           </div>
-          <div>
-            <mwc-button outlined icon="show_charts"
-              @click="${() => window.tradeCreateDialog.open(this.session!)}">trade</mwc-button>
-            <mwc-button outlined icon="title"
-              @click="${(e) => window.tcodeInterface.open(this.session)}">tcode</mwc-button>
-          </div>
         </div>
         <div style="max-height: 500px;overflow: auto;">
         ${this.session ? html`
@@ -62,7 +56,16 @@ export class tradesInterface extends LitElement {
         </div>
 
         <div style="padding: 7px 12px;background: #e0e0e0;color: #212121;border-radius: 0 0 5px 5px;">
-          <span>Total Volume : </span><span style="font-weight:500">${this.session ? getSummary(this.session).volume : ''}</span></div>
+          <span>Total Volume : </span><span style="font-weight:500">${this.session ? getSummary(this.session).volume : ''}</span>
+        </div>
+      </div>
+      <div>
+        <mwc-button outlined icon="notifications"
+          @click="${() => window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(this.session!)!)}">alert</mwc-button>
+        <mwc-button outlined icon="show_charts"
+          @click="${() => window.tradeCreateDialog.open(this.session!)}">trade</mwc-button>
+        <mwc-button outlined icon="title"
+          @click="${(e) => window.tcodeInterface.open(this.session)}">tcode</mwc-button>
       </div>
 
       <mwc-button unelevated slot="secondaryAction" icon="copy_all"

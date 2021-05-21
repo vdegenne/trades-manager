@@ -24,6 +24,7 @@ import { ImportExport } from './data/import-export';
 import './data/import-export'
 import './data/data-loader'
 import { nothing } from 'lit-html'
+import { SessionAlert } from './session-alert'
 
 declare global {
   interface Window {
@@ -33,6 +34,7 @@ declare global {
     confirmDialog: ConfirmDialog;
     tcodeInterface: TCodeInterface;
     importExportInterface: ImportExport;
+    sessionAlert: SessionAlert;
   }
 }
 
@@ -47,10 +49,11 @@ class AppContainer extends LitElement {
   private tCodeInterface: TCodeInterface;
   private optionsInterface: OptionsInterface;
   private importExport: ImportExport;
+  private sessionAlert: SessionAlert;
 
   private confirmDialog = new ConfirmDialog()
 
-  @property()
+  @property({type:Object})
   private walletsManager: WalletsManager;
 
   @property({type:Boolean})
@@ -72,11 +75,13 @@ class AppContainer extends LitElement {
     this.tCodeInterface = new TCodeInterface()
     this.optionsInterface = new OptionsInterface()
     this.importExport = new ImportExport()
+    this.sessionAlert = new SessionAlert()
 
     this.walletsManager = new WalletsManager() // deprecated ?
 
     window.tcodeInterface = this.tCodeInterface;
     window.importExportInterface = this.importExport;
+    window.sessionAlert = this.sessionAlert;
 
     // we should check if the app is static or server side
     this.constructServerScript()
@@ -138,13 +143,13 @@ class AppContainer extends LitElement {
 
     ${this.spacesManager}
 
-    ${this.walletsManager}
-
     ${this.sessionsInterface}
 
     ${this.tCodeInterface}
     ${this.optionsInterface}
     ${this.importExport}
+
+    ${this.sessionAlert}
 
     <about-dialog></about-dialog>
 

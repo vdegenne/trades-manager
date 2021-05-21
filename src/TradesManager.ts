@@ -25,6 +25,12 @@ export type Trade = {
   fees?: number,
 }
 
+export type Alert = {
+  limit: '>'|'<',
+  value: number,
+  notified: boolean
+}
+
 export type TradeSession = {
   id: number,
   title?: string;
@@ -32,7 +38,8 @@ export type TradeSession = {
   symbol: string,
   quote: string,
   trades: Trade[],
-  virtual: boolean
+  virtual: boolean,
+  alert?: Alert
 }
 
 export type TradesSummary = {

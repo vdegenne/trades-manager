@@ -13,7 +13,6 @@ import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { sortAlphabetically } from "./util";
 import './trades-interface'
 import { tradesInterface } from "./trades-interface";
-import sessionsStyles from "./styles/sessions-styles";
 
 // type FormData = {
 //   exchange: AvailableExchanges,
