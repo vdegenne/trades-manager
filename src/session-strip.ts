@@ -142,7 +142,8 @@ export class SessionStrip extends LitElement {
       openCryptowatchLink(session)
     }
     else {
-      window.tradesInterface.openSession(session)
+      window.sessionsView.openPreSessionMenu(session)
+      // window.tradesInterface.openSession(session)
     }
   }
 

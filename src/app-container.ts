@@ -129,8 +129,9 @@ class AppContainer extends LitElement {
       </div>
       <div style="display:flex;align-items:center">
         <mwc-icon-button icon="title" @click="${() => this.tCodeInterface.open()}"></mwc-icon-button>
-        <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
-          @click="${() => this.onSpaceButtonClick()}">${window.spacesManager.space?.name}</mwc-button>
+        <mwc-icon-button icon="space_dashboard" @click="${() => this.onSpaceButtonClick()}"></mwc-icon-button>
+        <!-- <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
+          @click="${() => this.onSpaceButtonClick()}">${window.spacesManager.space?.name}</mwc-button> -->
         <!-- <mwc-icon-button icon="save" @click="${e => this.importExport.open()}"></mwc-icon-button> -->
         <!-- <mwc-icon-button icon="help_outline" @click="${() => this.aboutDialog.open()}"></mwc-icon-button> -->
         <mwc-icon-button icon="settings" @click="${() => this.optionsInterface.open()}"></mwc-icon-button>

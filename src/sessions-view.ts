@@ -1,5 +1,5 @@
-import { css, customElement, html, LitElement, queryAll } from "lit-element";
-import { nothing } from 'lit-html'
+import { css, customElement, html, LitElement, query, queryAll } from "lit-element";
+import { nothing, render } from 'lit-html'
 import { getSummary, Trade, TradesManager, TradeSession } from "./TradesManager";
 import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, outputPriceTemplate, round } from "./util";
 import { openCryptowatchLink } from "./util";
@@ -10,6 +10,7 @@ import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
 import './session-strip'
 import { SessionStrip } from "./session-strip";
+import { Dialog } from "@material/mwc-dialog";
 
 
 @customElement('sessions-view')
@@ -17,6 +18,8 @@ export class SessionsView extends LitElement {
   private profitAggregator!: Aggregator;
   private totalValueAggregator!: Aggregator;
   private walletAggregator!: Aggregator;
+
+  @query('mwc-dialog') dialog!: Dialog;
 
   @queryAll('session-strip') stripElements!: SessionStrip[];
 
@@ -93,6 +96,8 @@ export class SessionsView extends LitElement {
       `
     })}
 
+    <!-- pre-session menu dialog placeholder -->
+    <mwc-dialog></mwc-dialog>
     `
   }
 
@@ -226,6 +231,17 @@ export class SessionsView extends LitElement {
 
   getStripFromSessionElement (session: TradeSession) {
     return [...this.stripElements].find(el => el.session === session)
+  }
+
+  openPreSessionMenu (session: TradeSession) {
+    this.dialog.heading = session.symbol
+    render(html`
+    <mwc-button style="--mdc-theme-primary:green" unelevated>buy</mwc-button><br>
+    <mwc-button style="--mdc-theme-primary:red" unelevated>sell</mwc-button><br>
+    <mwc-button icon="history" @click="${() => window.tradesInterface.openSession(session)}">trade history</mwc-button>
+    <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>
+    `, this.dialog)
+    this.dialog.open = true
   }
 }
 

@@ -166,7 +166,9 @@ export class tradesInterface extends LitElement {
     }
 
     window.tradesManager.addTrade(session, trade)
-    window.app.toast('trade registered')
+    window.tradesInterface.dialog.close()
+    window.sessionsView.dialog.close()
+    // window.app.toast('trade registered')
     this.requestUpdate()
     window.sessionsInterface.requestUpdate()
     window.spacesManager.save()
