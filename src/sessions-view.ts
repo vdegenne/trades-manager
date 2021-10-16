@@ -1,7 +1,7 @@
 import { css, customElement, html, LitElement, query, queryAll } from "lit-element";
 import { nothing, render } from 'lit-html'
 import { getSummary, Trade, TradesManager, TradeSession } from "./TradesManager";
-import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, outputPriceTemplate, round } from "./util";
+import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, openChart, outputPriceTemplate, round } from "./util";
 import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
 import { ExchangesManager } from "./ExchangesManager";
@@ -97,7 +97,7 @@ export class SessionsView extends LitElement {
     })}
 
     <!-- pre-session menu dialog placeholder -->
-    <mwc-dialog></mwc-dialog>
+    <mwc-dialog @click="${e => console.log(e.target)}"></mwc-dialog>
     `
   }
 
@@ -236,9 +236,24 @@ export class SessionsView extends LitElement {
   openPreSessionMenu (session: TradeSession) {
     this.dialog.heading = session.symbol
     render(html`
-    <mwc-button style="--mdc-theme-primary:green" unelevated>buy</mwc-button><br>
-    <mwc-button style="--mdc-theme-primary:red" unelevated>sell</mwc-button><br>
-    <mwc-button icon="history" @click="${() => window.tradesInterface.openSession(session)}">trade history</mwc-button>
+    <style>
+      mwc-dialog > mwc-button:not([slot=primaryAction]) {
+        margin: 7px 0;
+      }
+    </style>
+    <div style="display:flex;justify-content:space-evenly;margin: 18px 0">
+      <mwc-button style="--mdc-theme-primary:#4caf50" dialogAction="close" raised
+        @click="${() => window.tradeCreateDialog.open(session, 'buy')}">buy</mwc-button>
+      <mwc-button style="--mdc-theme-primary:#f44336" dialogAction="close" raised
+        @click="${() => window.tradeCreateDialog.open(session, 'sell')}">sell</mwc-button>
+    </div>
+    <mwc-button icon="history" @click="${() => window.tradesInterface.openSession(session)}" dialogAction="close">Trade history</mwc-button><br>
+    <mwc-button icon="timeline" @click="${() => openChart(session)}">See chart</mwc-button><br>
+    <mwc-button icon="edit" dialogAction="close">Change title</mwc-button><br>
+    <mwc-button icon="title" dialogAction="close">t-code</mwc-button><br>
+    <mwc-button style="--mdc-theme-primary:red" icon="delete" dialogAction="close"
+      @click="${() => window.sessionsInterface.deleteSession(session)}">Delete session</mwc-button>
+
     <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>
     `, this.dialog)
     this.dialog.open = true

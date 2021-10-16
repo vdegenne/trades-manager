@@ -39,7 +39,7 @@ export class tradesInterface extends LitElement {
       <div>
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center">
-            <mwc-formfield label="virtual">
+            <mwc-formfield label="Virtual">
               <mwc-checkbox ?checked="${this.session?.virtual}"
                 @change="${(e) => this.onVirtualChange(e)}"></mwc-checkbox>
             </mwc-formfield>
@@ -59,19 +59,24 @@ export class tradesInterface extends LitElement {
           <span>Total Volume : </span><span style="font-weight:500">${this.session ? getSummary(this.session).volume : ''}</span>
         </div>
       </div>
+
+      <!-- trades actions -->
+      <div style="display:flex;justify-content:flex-end">
+        <a href="#" @click="${() => this.deleteAllTrades(this.session!)}">delete all trades</a>
+      </div>
       <div>
         <mwc-button outlined icon="notifications"
           @click="${() => window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(this.session!)!)}">alert</mwc-button>
-        <mwc-button outlined icon="show_charts"
-          @click="${() => window.tradeCreateDialog.open(this.session!)}">trade</mwc-button>
-        <mwc-button outlined icon="title"
-          @click="${(e) => window.tcodeInterface.open(this.session)}">tcode</mwc-button>
+        <!-- <mwc-button outlined icon="show_charts"
+          @click="${() => window.tradeCreateDialog.open(this.session!)}">trade</mwc-button> -->
+        <!-- <mwc-button outlined icon="title"
+          @click="${(e) => window.tcodeInterface.open(this.session)}">tcode</mwc-button> -->
       </div>
 
       <mwc-button unelevated slot="secondaryAction" icon="copy_all"
         @click="${() => this.oncloneSessionClick()}">clone</mwc-button>
-      <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336" icon="delete"
-        @click="${() => window.sessionsInterface.deleteSession(this.session!)}">delete</mwc-button>
+      <!-- <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336" icon="delete"
+        @click="${() => window.sessionsInterface.deleteSession(this.session!)}">delete</mwc-button> -->
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
 
@@ -146,6 +151,21 @@ export class tradesInterface extends LitElement {
 
     window.tradesManager.deleteTrade(trade)
     window.app.toast('trade deleted')
+    this.requestUpdate()
+    window.sessionsInterface.requestUpdate()
+    window.spacesManager.save()
+  }
+
+  async deleteAllTrades (session: TradeSession) {
+    try {
+      await window.confirmDialog.open('Delete trades', html`
+        Are you sure to delete all trades in this session ?
+      `)
+    } catch (e) {
+      return; // cancelled
+    }
+
+    window.tradesManager.deleteAllTrades(session)
     this.requestUpdate()
     window.sessionsInterface.requestUpdate()
     window.spacesManager.save()

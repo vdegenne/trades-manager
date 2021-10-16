@@ -105,6 +105,10 @@ export class TradesManager {
     return true
   }
 
+  deleteAllTrades (session: TradeSession) {
+    session.trades = []
+  }
+
   getTradesSession (trade: Trade) {
     return this.sessions.find(s => s.trades.indexOf(trade) >= 0)
   }

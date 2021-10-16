@@ -2,6 +2,7 @@ import { Dialog } from "@material/mwc-dialog";
 import { TextField } from "@material/mwc-textfield";
 import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { ExchangesManager } from "./ExchangesManager";
+import { globalStyles } from "./styles/global-styles";
 import { getSummary, TradeSession } from "./TradesManager";
 
 declare global {
@@ -38,7 +39,9 @@ export class TradeCreateDialog extends LitElement {
 
   @query('mwc-dialog') dialog!: Dialog;
 
-  static styles = css`
+  static styles = [
+    globalStyles,
+    css`
   mwc-tab[label=buy][active] {
     background-color: #00800022;
   }
@@ -54,17 +57,18 @@ export class TradeCreateDialog extends LitElement {
 
   .field-and-button {
     display: flex;
-    align-items: center;
+    flex-direction: column;
   }
-  .field-and-button > mwc-button {
+  /* .field-and-button > mwc-button {
     --mdc-button-horizontal-padding: 14px;
     margin: 0 0 0 6px;
-  }
+  } */
 
   mwc-tab-bar {
     --mdc-tab-height: 66px;
   }
   `
+  ]
 
   render () {
     if (this.session) {
@@ -75,11 +79,11 @@ export class TradeCreateDialog extends LitElement {
     <mwc-dialog heading="Add Trade">
       <div style="width:500px;"></div>
       <form>
-        <mwc-tab-bar activeIndex="${this.type === 'buy' ? 0 : 1}"
+        <!-- <mwc-tab-bar activeIndex="${this.type === 'buy' ? 0 : 1}"
           @MDCTabBar:activated="${(e) => this.type = e.detail.index === 0 ? 'buy' : 'sell'}">
           <mwc-tab label="buy" style="--mdc-tab-text-label-color-default:green;--mdc-theme-primary:green"></mwc-tab>
           <mwc-tab label="sell" style="--mdc-tab-text-label-color-default:red;--mdc-theme-primary:red"></mwc-tab>
-        </mwc-tab-bar>
+        </mwc-tab-bar> -->
 
         <p>Price</p>
         <div class="field-and-button">
@@ -88,8 +92,12 @@ export class TradeCreateDialog extends LitElement {
             @keyup="${(e) => this.updatePrice(e.target.value)}"
             @mousewheel="${(e) => this.updatePrice(e.target.value)}">
           </mwc-textfield>
-          <mwc-button outlined
-            @click="${() => this.insertLastPrice()}">last price</mwc-button>
+          <div style="text-align: right">
+            <span class="anchor"
+              @click="${() => this.insertLastPrice()}">last price</span>
+          </div>
+          <!-- <mwc-button outlined
+            @click="${() => this.insertLastPrice()}">last price</mwc-button> -->
         </div>
 
         <p>Quantity</p>
@@ -99,9 +107,17 @@ export class TradeCreateDialog extends LitElement {
             @keyup="${(e) => this.updateQuantity(e.target.value)}"
             @mousewheel="${(e) => this.updateQuantity(e.target.value)}">
           </mwc-textfield>
-          <mwc-button outlined
+          <div style="text-align: right">
+            <span class="anchor"
+              ?disabled="${this.type === 'buy' || this.session && !this.maxQuantity}"
+              @click="${(e) => {
+                if (e.target.hasAttribute('disabled')) return
+                this.insertAvailableVolume()
+              }}">available</span>
+          </div>
+          <!-- <mwc-button outlined
             ?disabled="${this.type === 'buy' || this.session && !this.maxQuantity}"
-            @click="${() => this.insertAvailableVolume()}">available</mwc-button>
+            @click="${() => this.insertAvailableVolume()}">available</mwc-button> -->
         </div>
 
         <p>Fees</p>
@@ -162,12 +178,13 @@ export class TradeCreateDialog extends LitElement {
     this.reset()
   }
 
-  open(session: TradeSession) {
+  open(session: TradeSession, type: 'buy'|'sell' = 'buy') {
     if (session !== this.session) {
       this.reset()
     }
     this.session = session;
     this.insertLastPrice()
+    this.type = type;
     this.dialog.show()
   }
 
