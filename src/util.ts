@@ -73,7 +73,7 @@ export function outputPriceTemplate (value: number, quote: string, light = false
   const red = light ? '#f44336' : '#ff0000'
 
   return html`
-  <span style="color:${value === 0 ? (light ? 'white': 'black') : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  <span style="font-weight:bold;color:${value === 0 ? (light ? 'white': 'black') : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
   `
 }
 

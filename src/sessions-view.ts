@@ -97,13 +97,20 @@ export class SessionsView extends LitElement {
     })}
 
     <!-- pre-session menu dialog placeholder -->
-    <mwc-dialog @click="${e => console.log(e.target)}"></mwc-dialog>
+    <mwc-dialog></mwc-dialog>
     `
   }
 
   requestUpdate(name?: PropertyKey, oldValue?: unknown) {
     this.stripElements.forEach(el => el.requestUpdate())
     return super.requestUpdate(name, oldValue)
+  }
+
+  updated() {
+    // should use for the aggregators right here ?
+    Promise.all([].map.call(this.stripElements, (e: SessionStrip) => e.updateComplete)).then(() => {
+      console.log('updated !!!!!!!!')
+    })
   }
 
 

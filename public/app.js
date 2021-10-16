@@ -61449,7 +61449,7 @@ function outputPriceTemplate(value, quote, light = false) {
     const green = light ? '#3adc41' : 'var(--green)';
     const red = light ? '#f44336' : '#ff0000';
     return html `
-  <span style="color:${value === 0 ? (light ? 'white' : 'black') : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  <span style="font-weight:bold;color:${value === 0 ? (light ? 'white' : 'black') : value > 0 ? green : red};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
   `;
 }
 function openVirtualInfoDialog() {
@@ -61713,6 +61713,7 @@ let SessionStrip = class SessionStrip extends LitElement {
         const summary = getSummary(session);
         const total = { value: 0, quote: session.quote };
         let totalConverted = undefined;
+        let profitIndex = 0; // added  (% of gain over invested)
         let profitConverted = undefined;
         const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote);
         let percent;
@@ -61720,9 +61721,14 @@ let SessionStrip = class SessionStrip extends LitElement {
             total.value = price * summary.volume;
             this.profit = total.value - summary.invested;
             percent = ((total.value - summary.invested) / summary.invested) * 100;
-            // check if we should convert the values for UI comprehension
+            profitIndex = (this.profit * 100) / summary.invested;
+            // check if we can convert the values for UI comprehension
             const quoteConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange);
             if (quoteConversion.price && quoteConversion.quote === window.spacesManager.space.currency) {
+                ({
+                    value: summary.invested * quoteConversion.price,
+                    quote: quoteConversion.quote
+                });
                 totalConverted = {
                     value: total.value * quoteConversion.price,
                     quote: quoteConversion.quote
@@ -61770,16 +61776,19 @@ let SessionStrip = class SessionStrip extends LitElement {
             ${viewOptions.showSourceProfit ? html `<span style="color:#00000033">)</span>` : nothing}
           </div>
           ` : nothing}
+          <!-- profit index -->
+          <div style="margin-left:4px;color:grey">(${round(profitIndex)}%)</div>
         </div>
 
         <!-- TOTAL VALUE -->
         ${viewOptions.showTotalValue ? html `
-          <div class="total-value">
+          <div class="total-value">${formatOutputPrice(summary.invested, session.quote)}</div>
+          <!-- <div class="total-value">
             <span>${formatOutputPrice(total.value, total.quote)}</span>
             ${total.quote !== window.spacesManager.space.currency && totalConverted !== undefined ? html `
             <span>(${formatOutputPrice(totalConverted.value, totalConverted.quote)})</span>
             ` : nothing}
-          </div>
+          </div> -->
         ` : nothing}
       </div>
 
@@ -66332,12 +66341,18 @@ let SessionsView = class SessionsView extends LitElement {
         })}
 
     <!-- pre-session menu dialog placeholder -->
-    <mwc-dialog @click="${e => console.log(e.target)}"></mwc-dialog>
+    <mwc-dialog></mwc-dialog>
     `;
     }
     requestUpdate(name, oldValue) {
         this.stripElements.forEach(el => el.requestUpdate());
         return super.requestUpdate(name, oldValue);
+    }
+    updated() {
+        // should use for the aggregators right here ?
+        Promise.all([].map.call(this.stripElements, (e) => e.updateComplete)).then(() => {
+            console.log('updated !!!!!!!!');
+        });
     }
     // sessionTemplate(session: TradeSession, external = false, viewOptions: Partial<SessionViewOptions> = window.options.sessionViewOptions) {
     //   const summary = getSummary(session)

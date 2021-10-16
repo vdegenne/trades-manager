@@ -38,6 +38,8 @@ export class SessionStrip extends LitElement {
     const summary = getSummary(session)
     const total = { value: 0, quote: session.quote }
     let totalConverted: { value: number, quote: string } | undefined = undefined
+    let investedConverted: { value: number, quote: string } | undefined = undefined // added
+    let profitIndex = 0 // added  (% of gain over invested)
     let profitConverted: { value: number, quote: string } | undefined = undefined
     const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote)
     let percent;
@@ -45,10 +47,15 @@ export class SessionStrip extends LitElement {
       total.value = price * summary.volume;
       this.profit = total.value - summary.invested
       percent = ((total.value - summary.invested) / summary.invested) * 100;
+      profitIndex = (this.profit * 100) / summary.invested;
 
-      // check if we should convert the values for UI comprehension
+      // check if we can convert the values for UI comprehension
       const quoteConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange)
       if (quoteConversion.price && quoteConversion.quote === window.spacesManager.space.currency) {
+        investedConverted = { // added
+          value: summary.invested * quoteConversion.price,
+          quote: quoteConversion.quote
+        }
         totalConverted = {
           value: total.value * quoteConversion.price,
           quote: quoteConversion.quote
@@ -101,16 +108,19 @@ export class SessionStrip extends LitElement {
             ${viewOptions.showSourceProfit ? html`<span style="color:#00000033">)</span>` : nothing }
           </div>
           ` : nothing}
+          <!-- profit index -->
+          <div style="margin-left:4px;color:grey">(${round(profitIndex)}%)</div>
         </div>
 
         <!-- TOTAL VALUE -->
         ${viewOptions.showTotalValue ? html`
-          <div class="total-value">
+          <div class="total-value">${formatOutputPrice(summary.invested, session.quote)}</div>
+          <!-- <div class="total-value">
             <span>${formatOutputPrice(total.value, total.quote)}</span>
             ${total.quote !== window.spacesManager.space.currency && totalConverted !== undefined ? html`
             <span>(${formatOutputPrice(totalConverted.value, totalConverted.quote)})</span>
             ` : nothing}
-          </div>
+          </div> -->
         ` : nothing }
       </div>
 
