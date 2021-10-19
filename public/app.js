@@ -66481,7 +66481,8 @@ let SessionsView = class SessionsView extends LitElement {
     </div>
     <mwc-button icon="history" @click="${() => window.tradesInterface.openSession(session)}" dialogAction="close">Trade history</mwc-button><br>
     <mwc-button icon="timeline" @click="${() => openChart(session)}">See chart</mwc-button><br>
-    <mwc-button icon="edit" dialogAction="close">Change title</mwc-button><br>
+    <mwc-button icon="edit" dialogAction="close"
+      @click="${() => this.changeSessionTitle(session)}">Change title</mwc-button><br>
     <mwc-button icon="title" dialogAction="close">t-code</mwc-button><br>
     <mwc-button style="--mdc-theme-primary:red" icon="delete" dialogAction="close"
       @click="${() => window.sessionsInterface.deleteSession(session)}">Delete session</mwc-button>
@@ -66489,6 +66490,16 @@ let SessionsView = class SessionsView extends LitElement {
     <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>
     `, this.dialog);
         this.dialog.open = true;
+    }
+    changeSessionTitle(session) {
+        const placeholder = session.title || '';
+        const title = prompt('title', placeholder);
+        if (title) {
+            session.title = title;
+        }
+        // else cancelled
+        this.requestUpdate();
+        window.app.spacesManager.save();
     }
 };
 SessionsView.styles = [
