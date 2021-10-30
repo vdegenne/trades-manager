@@ -1,5 +1,6 @@
+import { html, LitElement, TemplateResult } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import { Dialog } from "@material/mwc-dialog";
-import { customElement, html, LitElement, property, query, TemplateResult } from "lit-element";
 
 @customElement('text-dialog')
 export class TextDialog extends LitElement {

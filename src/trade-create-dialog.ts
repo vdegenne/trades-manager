@@ -1,6 +1,7 @@
+import { css, html, LitElement } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import { Dialog } from "@material/mwc-dialog";
 import { TextField } from "@material/mwc-textfield";
-import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { ExchangesManager } from "./ExchangesManager";
 import { globalStyles } from "./styles/global-styles";
 import { getSummary, TradeSession } from "./TradesManager";
@@ -168,7 +169,8 @@ export class TradeCreateDialog extends LitElement {
         type: this.type,
         price: parseFloat(this.priceField.value),
         volume: quantity,
-        fees: parseFloat(this.feesField.value) || 0
+        fees: parseFloat(this.feesField.value) || 0,
+        date: Date.now()
       })
     } catch (e) {
       return; // canceled

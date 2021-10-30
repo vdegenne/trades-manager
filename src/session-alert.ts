@@ -1,4 +1,5 @@
-import { css, customElement, html, LitElement, property, query, queryAll } from "lit-element";
+import { LitElement, html, css } from 'lit';
+import { customElement, property, query, queryAll } from 'lit/decorators.js'
 import '@material/mwc-dialog'
 import '@material/mwc-button'
 import '@material/mwc-radio'
@@ -6,7 +7,7 @@ import '@material/mwc-textfield'
 import '@material/mwc-formfield'
 import { SessionStrip } from "./session-strip";
 import { Dialog } from "@material/mwc-dialog";
-import { Alert } from "./TradesManager";
+// import { Alert } from "./TradesManager";
 import { TextField } from "@material/mwc-textfield";
 import { Radio } from "@material/mwc-radio";
 

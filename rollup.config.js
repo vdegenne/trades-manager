@@ -11,8 +11,8 @@ export default {
     typescript({
       sourceMap: true
     }),
-    cjs(),
     resolve(),
+    cjs(),
     json(),
     process.env.minify ? terser() : {}
   ]

@@ -1,9 +1,9 @@
+import { css, html, LitElement, nothing } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import { Dialog } from "@material/mwc-dialog";
 import { Radio } from "@material/mwc-radio";
 import { TextField } from "@material/mwc-textfield";
-import { css, customElement, html, LitElement, property, query } from "lit-element";
-import { nothing } from "lit-html";
-import { SessionViewOptions } from "./options/options";
+// import { SessionViewOptions } from "./options/options";
 import { SessionStrip } from "./session-strip";
 import sessionsStyles from "./styles/sessions-styles";
 import { isTCodeComplete, resolveTCode, TCode, validateTCode } from "./tcode";
@@ -13,7 +13,7 @@ import { firstLetterUpperCase } from "./util";
 
 @customElement('t-code-interface')
 export class TCodeInterface extends LitElement {
-  @property()
+  // @property()
   // private tcode;
 
   @property()
@@ -92,7 +92,7 @@ export class TCodeInterface extends LitElement {
     let tcode = resolveTCode(this.textfield.value)
     try {
       validateTCode(this.textfield.value)
-    } catch (e) {
+    } catch (e: any) {
       this.reportValidity(e.message)
     }
 
@@ -146,7 +146,8 @@ export class TCodeInterface extends LitElement {
         type: tcode.type,
         price: tcode.price,
         volume: tcode.quantity,
-        fees: tcode.fees || 0
+        fees: tcode.fees || 0,
+        date: Date.now()
       })
     } catch (e) {
       return; // canceled

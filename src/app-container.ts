@@ -1,4 +1,5 @@
-import {css, customElement, html, LitElement, property, query} from 'lit-element'
+import { LitElement, html, css, nothing } from 'lit'
+import { customElement, property, query } from 'lit/decorators.js'
 import '@material/mwc-dialog'
 import '@material/mwc-button'
 import '@material/mwc-select'
@@ -23,7 +24,6 @@ import { SessionsInterface } from './sessions-interface'
 import { ImportExport } from './data/import-export';
 import './data/import-export'
 import './data/data-loader'
-import { nothing } from 'lit-html'
 import { SessionAlert } from './session-alert'
 
 declare global {

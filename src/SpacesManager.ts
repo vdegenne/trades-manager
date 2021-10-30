@@ -1,5 +1,7 @@
+
+import "@material/mwc-list/mwc-list-item";import {LitElement, html} from 'lit'
+import {customElement, property, query, queryAsync} from 'lit/decorators.js'
 import { Dialog } from "@material/mwc-dialog";
-import { customElement, html, LitElement, property, query } from "lit-element";
 import { Currencies, Currency } from "./app-container";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { AggregatorUnit } from "./profit-aggregator";
@@ -42,10 +44,10 @@ export class SpacesManager extends LitElement {
 
   render() {
     return html`
-    <mwc-dialog id="currency-dialog" heading="Choose Currency" escapeKeyAction="" scrimClickAction=""
-        @change="${e => this.currency = e.target.value}">
+    <mwc-dialog id="currency-dialog" heading="Choose Currency" escapeKeyAction="" scrimClickAction="">
       <p>What currency will you trade with ?</p>
-      <mwc-select style="width:100%">
+      <mwc-select style="width:100%"
+        @change=${e => this.currency = e.target.value}>
         ${Currencies.map(c => html`<mwc-list-item value="${c}">${c}</mwc-list-item>`)}
       </mwc-select>
       <div style="height:100px"></div>
@@ -56,7 +58,7 @@ export class SpacesManager extends LitElement {
     `
   }
 
-  async firstUpdated () {
+  firstUpdated () {
     // first we get data if any
     const spaces = localStorage.getItem('spaces') ? JSON.parse(localStorage.getItem('spaces')!.toString()) : undefined;
 
@@ -64,17 +66,17 @@ export class SpacesManager extends LitElement {
     if (spaces === undefined || !(spaces instanceof Array) || spaces.length === 0) {
       // we should check if sessions is present or not in the localStorage,
       // if yes it means the data is from the old version
-      const sessions = localStorage.getItem('trades') ? JSON.parse(localStorage.getItem('trades')!.toString()) : undefined;
+      // const sessions = localStorage.getItem('trades') ? JSON.parse(localStorage.getItem('trades')!.toString()) : undefined;
 
       // if there is an id it means the data is old and is only containing sessions
-      await this.createDefaultSpace(sessions)
+      this.createDefaultSpace()
 
       // we save the spaces with the default as a starter
       this.save()
       // and we remove trades from localStorage if it exists from the previous app version
-      if (sessions) {
-        localStorage.removeItem('trades')
-      }
+      // if (sessions) {
+      //   localStorage.removeItem('trades')
+      // }
     }
     else {
       // we make sure we convert the wallet value to the new wallet version
@@ -110,10 +112,10 @@ export class SpacesManager extends LitElement {
   }
 
   async createSpace (name: string) {
-    const currency = await this.askCurrency()
+    // const currency = await this.askCurrency()
     const space: Space = {
       name,
-      currency,
+      currency: 'EUR',
       sessions: []
     }
 
@@ -121,12 +123,12 @@ export class SpacesManager extends LitElement {
     return space;
   }
 
-  private async createDefaultSpace (sessions?: TradeSession[]) {
-    const currency = await this.askCurrency()
+  private async createDefaultSpace () {
+    // const currency = await this.askCurrency()
     this.spaces.push({
       name: 'default',
-      sessions: sessions || [],
-      currency,
+      sessions: [],
+      currency: 'EUR',
       // @ts-ignore
       wallets: Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((exchangeName) => {
         return [exchangeName, []]

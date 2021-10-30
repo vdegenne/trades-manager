@@ -1,5 +1,6 @@
+import { css, html, LitElement } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import { Dialog } from "@material/mwc-dialog";
-import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { ExchangesManager } from "../ExchangesManager";
 import { SessionStrip } from "../session-strip";
 import sessionsStyles from "../styles/sessions-styles";
@@ -94,7 +95,9 @@ export class OptionsInterface extends LitElement {
   }
 
   requestUpdate() {
-    this.strip.requestUpdate()
+    try {
+      this.strip.requestUpdate()
+    } catch (e) {}
     return super.requestUpdate()
   }
 

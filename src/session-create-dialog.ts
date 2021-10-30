@@ -1,9 +1,9 @@
+import { LitElement, html, css, nothing } from 'lit'
+import {customElement, property, query } from 'lit/decorators.js'
+import {ifDefined} from 'lit/directives/if-defined.js'
 import { Checkbox } from "@material/mwc-checkbox";
 import { Dialog } from "@material/mwc-dialog";
 import { TextField } from "@material/mwc-textfield";
-import { css, customElement, html, LitElement, property, query } from "lit-element";
-import { nothing } from "lit-html";
-import { ifDefined } from "lit-html/directives/if-defined";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { firstLetterUpperCase, sortAlphabetically, openVirtualInfoDialog } from "./util";
 

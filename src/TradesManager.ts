@@ -23,6 +23,7 @@ export type Trade = {
   price: number,
   volume: number,
   fees?: number,
+  date?: number
 }
 
 export type Alert = {

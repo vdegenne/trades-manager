@@ -1,15 +1,20 @@
-import { css, customElement, html, LitElement, property, query } from "lit-element";
 import { getSummary, Trade, TradeSession } from "./TradesManager";
+import { css, html, LitElement, nothing } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import '@material/mwc-dialog'
 import '@material/mwc-button'
 import '@material/mwc-icon-button'
 import { Dialog } from "@material/mwc-dialog";
-import { nothing } from "lit-html";
 import { firstLetterUpperCase, openVirtualInfoDialog } from "./util";
 import './session-create-dialog'
 import { SessionCreateDialog } from "./session-create-dialog";
 import './trade-create-dialog'
 import { TradeCreateDialog } from "./trade-create-dialog";
+import TimeAgo from 'javascript-time-ago'
+import en from 'javascript-time-ago/locale/en.json'
+
+// --- Locale
+TimeAgo.addDefaultLocale(en)
 
 
 @customElement('trades-interface')
@@ -31,18 +36,20 @@ export class tradesInterface extends LitElement {
 
   render() {
     const trades = this.session?.trades.slice().reverse()
+    const lastTrade = trades?.length && trades[0];
 
     return html`
     <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})"
         escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
+        ${lastTrade && lastTrade.date ? `last trade : ${(new TimeAgo('en-US')).format(lastTrade.date)}` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center">
-            <mwc-formfield label="Virtual">
+            <!-- <mwc-formfield label="Virtual">
               <mwc-checkbox ?checked="${this.session?.virtual}"
                 @change="${(e) => this.onVirtualChange(e)}"></mwc-checkbox>
-            </mwc-formfield>
+            </mwc-formfield> -->
             <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
           </div>
         </div>

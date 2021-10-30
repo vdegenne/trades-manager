@@ -1,5 +1,5 @@
-import { LitElement, html, customElement, property, query, css } from 'lit-element';
-import { nothing } from 'lit-html';
+import { css, html, LitElement, nothing } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import '@material/mwc-textarea'
 import { Dialog } from '@material/mwc-dialog';
 import { TextArea } from '@material/mwc-textarea';
@@ -75,7 +75,7 @@ export class ImportExport extends LitElement {
     // then we verify the integrity of the data (is the model coherent to the app?)
     try {
       window.dataLoader.verifyIntegrity(data);
-    } catch (e) {
+    } catch (e: any) {
       window.app.toast(e.message) // report the error on the ui
       return;
     }

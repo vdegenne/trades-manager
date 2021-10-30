@@ -1,4 +1,4 @@
-import { html, nothing } from "lit-html";
+import { html, nothing } from "lit";
 import { Aggregator } from "./profit-aggregator";
 import { TradeSession } from "./TradesManager";
 

@@ -1,6 +1,7 @@
+import { html, LitElement } from 'lit';
+import { customElement, property, query } from 'lit/decorators.js';
 import { Dialog } from "@material/mwc-dialog";
 import { TextField } from "@material/mwc-textfield";
-import { customElement, html, LitElement, property, query } from "lit-element";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { Aggregator } from "./profit-aggregator";
 import { WalletsData } from "./SpacesManager";

@@ -1,5 +1,6 @@
-import { customElement, html, LitElement, property } from "lit-element";
-import { nothing } from "lit-html";
+
+import "@material/mwc-icon/mwc-icon";import { html, LitElement, nothing } from 'lit';
+import { customElement, property } from 'lit/decorators.js';
 import { ExchangesManager } from "./ExchangesManager";
 import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
@@ -109,7 +110,7 @@ export class SessionStrip extends LitElement {
           </div>
           ` : nothing}
           <!-- profit index -->
-          <div style="margin-left:4px;color:grey">(${round(profitIndex)}%)</div>
+          <!-- <div style="margin-left:4px;color:grey">(${round(profitIndex)}%)</div> -->
         </div>
 
         <!-- TOTAL VALUE -->

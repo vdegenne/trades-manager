@@ -1,12 +1,13 @@
-import { css, customElement, html, LitElement, query, queryAll } from "lit-element";
-import { nothing, render } from 'lit-html'
+import { css, html, LitElement, nothing, render } from 'lit';
+import { customElement, query, queryAll } from 'lit/decorators.js';
+import{ live } from 'lit/directives/live.js'
 import { getSummary, Trade, TradesManager, TradeSession } from "./TradesManager";
 import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, openChart, outputPriceTemplate, round } from "./util";
-import { openCryptowatchLink } from "./util";
+// import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
 import { ExchangesManager } from "./ExchangesManager";
 import { Aggregator } from "./profit-aggregator";
-import { SessionViewOptions } from "./options/options";
+// import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
 import './session-strip'
 import { SessionStrip } from "./session-strip";
@@ -50,6 +51,7 @@ export class SessionsView extends LitElement {
     return html`
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
       const sessions = window.sessions.filter(session => session.exchange === exchange && (window.options.exchangeViewOptions.showVirtual || !session.virtual))
+
 
       this.profitAggregator = new Aggregator(exchange)
       this.totalValueAggregator = new Aggregator(exchange)
@@ -102,15 +104,17 @@ export class SessionsView extends LitElement {
   }
 
   requestUpdate(name?: PropertyKey, oldValue?: unknown) {
-    this.stripElements.forEach(el => el.requestUpdate())
+    try {
+      this.stripElements.forEach(el => el.requestUpdate())
+    } catch (e) {}
     return super.requestUpdate(name, oldValue)
   }
 
   updated() {
     // should use for the aggregators right here ?
-    Promise.all([].map.call(this.stripElements, (e: SessionStrip) => e.updateComplete)).then(() => {
-      console.log('updated !!!!!!!!')
-    })
+    // Promise.all([].map.call(this.stripElements, (e: SessionStrip) => e.updateComplete)).then(() => {
+    //   console.log('updated !!!!!!!!')
+    // })
   }
 
 
@@ -241,7 +245,8 @@ export class SessionsView extends LitElement {
   }
 
   openPreSessionMenu (session: TradeSession) {
-    this.dialog.heading = session.symbol
+    this.dialog.heading = `${session.symbol} (vol: ${getSummary(session).volume})`
+
     render(html`
     <style>
       mwc-dialog > mwc-button:not([slot=primaryAction]) {
@@ -260,7 +265,16 @@ export class SessionsView extends LitElement {
       @click="${() => this.changeSessionTitle(session)}">Change title</mwc-button><br>
     <mwc-button icon="title" dialogAction="close">t-code</mwc-button><br>
     <mwc-button style="--mdc-theme-primary:red" icon="delete" dialogAction="close"
-      @click="${() => window.sessionsInterface.deleteSession(session)}">Delete session</mwc-button>
+      @click="${() => window.sessionsInterface.deleteSession(session)}">Delete session</mwc-button><br>
+
+    <mwc-formfield label="Virtual">
+      <mwc-checkbox .checked="${live(session?.virtual)}"
+        @change="${(e) => {
+          session!.virtual = e.target.checked;
+          window.sessionsInterface.requestUpdate();
+          window.spacesManager.save()
+        }}"></mwc-checkbox>
+    </mwc-formfield>
 
     <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>
     `, this.dialog)
