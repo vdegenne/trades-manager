@@ -35,6 +35,10 @@ declare global {
     tcodeInterface: TCodeInterface;
     importExportInterface: ImportExport;
     sessionAlert: SessionAlert;
+    // For non-static website
+    spacesInterface: {
+      open: Function
+    };
   }
 }
 
@@ -63,7 +67,7 @@ class AppContainer extends LitElement {
   @query('mwc-dialog[heading=Options]') optionsDialog!: Dialog;
   @query('text-dialog') textDialog!: TextDialog;
   @query('about-dialog') aboutDialog!: AboutDialog;
-  @query('spaces-interface') spacesInterface!: any;
+  // @query('spaces-interface') spacesInterface!: any;
 
   constructor() {
     super()
@@ -140,9 +144,7 @@ class AppContainer extends LitElement {
 
     ${this.optionsInterface}
 
-    ${!this.static ? html`
-      <spaces-interface></spaces-interface>
-    ` : nothing}
+    ${window.spacesInterface}
 
     ${this.spacesManager}
 
@@ -188,7 +190,7 @@ class AppContainer extends LitElement {
     }
     else {
       // non-static we open the spaces feature
-      this.spacesInterface.open()
+      window.spacesInterface.open()
     }
   }
 
