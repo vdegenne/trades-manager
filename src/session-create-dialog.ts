@@ -41,7 +41,7 @@ export class SessionCreateDialog extends LitElement {
         @opened="${this.fixOverflow}">
       <div style="width:400px"></div>
       <div>
-        <mwc-textfield label="title" placeholder="optional..." style="width:100%;margin-bottom:10px;" @keypress="${e => e.stopPropagation()}" dialogInitialFocus></mwc-textfield>
+        <mwc-textfield label="title" placeholder="optional..." style="width:100%;margin-bottom:10px;" @keypress="${e => e.stopPropagation()}"></mwc-textfield>
         <div style="display:flex;align-items:center">
           <mwc-formfield label="virtual">
             <mwc-checkbox name="virtual"></mwc-checkbox>

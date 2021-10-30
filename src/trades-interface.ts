@@ -36,14 +36,14 @@ export class tradesInterface extends LitElement {
 
   render() {
     const trades = this.session?.trades.slice().reverse()
-    const lastTrade = trades?.length && trades[0];
+    const oldestTrade = this.session?.trades.length && this.session.trades[0];
 
     return html`
     <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})"
         escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
-        ${lastTrade && lastTrade.date ? `last trade : ${(new TimeAgo('en-US')).format(lastTrade.date)}` : ''}
+        ${oldestTrade && oldestTrade.date ? `last trade : ${(new TimeAgo('en-US')).format(oldestTrade.date)}` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center">
             <!-- <mwc-formfield label="Virtual">

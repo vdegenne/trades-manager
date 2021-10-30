@@ -245,7 +245,8 @@ export class SessionsView extends LitElement {
   }
 
   openPreSessionMenu (session: TradeSession) {
-    this.dialog.heading = `${session.symbol} (vol: ${getSummary(session).volume})`
+    const summary = getSummary(session)
+    this.dialog.heading = `${session.symbol} (vol: ${summary.volume})`
 
     render(html`
     <style>
@@ -253,6 +254,7 @@ export class SessionsView extends LitElement {
         margin: 7px 0;
       }
     </style>
+    <div>invested: ${formatOutputPrice(summary.invested, session.quote)}</div>
     <div style="display:flex;justify-content:space-evenly;margin: 18px 0">
       <mwc-button style="--mdc-theme-primary:#4caf50" dialogAction="close" raised
         @click="${() => window.tradeCreateDialog.open(session, 'buy')}">buy</mwc-button>
