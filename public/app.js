@@ -73516,7 +73516,7 @@ class ServiceWorkerManager {
         this.isPushEnabled = false;
         this.serviceWorkerAvailabilityCheck = false;
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js').then(this.initialiseState.bind(this));
+            navigator.serviceWorker.register('./service-worker.js').then(this.initialiseState.bind(this));
         }
         else {
             this.notifyAboutUnavailability();
