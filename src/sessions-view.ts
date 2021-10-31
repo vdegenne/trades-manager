@@ -100,6 +100,11 @@ export class SessionsView extends LitElement {
 
     <!-- pre-session menu dialog placeholder -->
     <mwc-dialog></mwc-dialog>
+
+    <mwc-button @click=${() => {
+      navigator.serviceWorker.getRegistration().then(reg => {
+        setTimeout(() => reg?.showNotification('yoooooooooooo'), 2000)
+    })}}>test notification<mwc-button
     `
   }
 

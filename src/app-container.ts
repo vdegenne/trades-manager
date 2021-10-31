@@ -25,6 +25,7 @@ import { ImportExport } from './data/import-export';
 import './data/import-export'
 import './data/data-loader'
 import { SessionAlert } from './session-alert'
+import './service-worker-manager'
 
 declare global {
   interface Window {

@@ -129,7 +129,7 @@ export class SessionStrip extends LitElement {
         ${viewOptions.showPercent ? html`
         <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
           <span class="percent"
-            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : 'red'}">${round(percent, 2) || '0'}%</span>
+            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < 10 ? '#c62828' : 'red')}">${round(percent, 2) || '0'}%</span>
         <!-- </div> -->
         ` : nothing }
 
@@ -162,6 +162,9 @@ export class SessionStrip extends LitElement {
   private async checkAlert () {
     if (!this.session.alert || this.profit === 0 || this.session.alert.notified) return;
 
+    // This function is ignored if the notification permission is already granted
+    window.serviceWorkerManager.askNotificationPermission()
+    return
     // we should check if the user granted notifications
     if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
       Notification.requestPermission()
