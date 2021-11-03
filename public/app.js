@@ -64430,7 +64430,24 @@ let SessionStrip = class SessionStrip extends s$2 {
             return;
         // This function is ignored if the notification permission is already granted
         window.serviceWorkerManager.askNotificationPermission();
-        return;
+        if (Notification.permission !== 'granted') {
+            return;
+        }
+        const shouldNotify = eval(`${this.profit} ${this.session.alert.limit} ${this.session.alert.value}`);
+        if (shouldNotify) {
+            const notification = new Notification(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`, {
+                silent: false,
+                requireInteraction: true,
+            });
+            notification.onclick = () => {
+                openCryptowatchLink(this.session);
+                notification.close();
+            };
+            this.session.alert.notified = true;
+            this.requestUpdate();
+            // we save data to persist the notified property
+            window.spacesManager.save();
+        }
     }
 };
 SessionStrip.styles = [
@@ -68942,12 +68959,6 @@ let SessionsView = class SessionsView extends s$2 {
 
     <!-- pre-session menu dialog placeholder -->
     <mwc-dialog></mwc-dialog>
-
-    <mwc-button @click=${() => {
-            navigator.serviceWorker.getRegistration().then(reg => {
-                setTimeout(() => reg === null || reg === void 0 ? void 0 : reg.showNotification('yoooooooooooo'), 2000);
-            });
-        }}>test notification<mwc-button
     `;
     }
     requestUpdate(name, oldValue) {
@@ -73523,7 +73534,12 @@ class ServiceWorkerManager {
         }
     }
     askNotificationPermission() {
-        if ('serviceWorker' in navigator) ;
+        if ('serviceWorker' in navigator) {
+            // We should check if the user granted notifications
+            if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
+        }
         else {
             this.notifyAboutUnavailability();
         }

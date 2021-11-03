@@ -164,11 +164,7 @@ export class SessionStrip extends LitElement {
 
     // This function is ignored if the notification permission is already granted
     window.serviceWorkerManager.askNotificationPermission()
-    return
-    // we should check if the user granted notifications
-    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-      Notification.requestPermission()
-    }
+
     if (Notification.permission !== 'granted') {
       return;
     }

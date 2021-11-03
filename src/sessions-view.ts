@@ -10,6 +10,7 @@ import { Aggregator } from "./profit-aggregator";
 // import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
 import './session-strip'
+import '@material/mwc-button'
 import { SessionStrip } from "./session-strip";
 import { Dialog } from "@material/mwc-dialog";
 
@@ -100,11 +101,6 @@ export class SessionsView extends LitElement {
 
     <!-- pre-session menu dialog placeholder -->
     <mwc-dialog></mwc-dialog>
-
-    <mwc-button @click=${() => {
-      navigator.serviceWorker.getRegistration().then(reg => {
-        setTimeout(() => reg?.showNotification('yoooooooooooo'), 2000)
-    })}}>test notification<mwc-button
     `
   }
 

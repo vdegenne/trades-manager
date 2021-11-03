@@ -16,6 +16,10 @@ export class ServiceWorkerManager {
 
   public askNotificationPermission () {
     if ('serviceWorker' in navigator) {
+      // We should check if the user granted notifications
+      if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission()
+      }
     } else {
       this.notifyAboutUnavailability()
     }
