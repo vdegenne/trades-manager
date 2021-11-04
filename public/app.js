@@ -64043,7 +64043,7 @@ const precisionsMap = {
 function formatOutputPrice(value, quote, sign = false) {
     let symbol = symbolsMap[quote] || ` ${quote}`;
     let precision = precisionsMap[quote] || 5;
-    return `${sign ? value > 0 ? '+ ' : '' : ''}${round$2(value, precision)}${symbol}`;
+    return `${sign ? value > 0 ? '+' : '' : ''}${round$2(value, precision)}${symbol}`;
 }
 function outputPriceTemplate(value, quote, light = false) {
     const green = light ? '#3adc41' : 'var(--green)';
@@ -64357,7 +64357,7 @@ let SessionStrip = class SessionStrip extends s$2 {
       <div>
         <div style="display:flex;align-items:center">
           <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
-          ${session.alert ? p `<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${session.alert.notified ? '#f44336' : 'inherit'}" title="${session.alert.limit} ${session.alert.value}%"
+          ${session.alert ? p `<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${session.alert.notified ? '#f44336' : 'inherit'}" title="${session.alert.limit} ${session.alert.value}"
               @mousedown="${(e) => { e.stopPropagation(); window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(session)); }}">notifications</mwc-icon>` : T}
         </div>
         ${viewOptions.showPrice ? p `<div class="price">${price}</div>` : T}
@@ -64367,7 +64367,7 @@ let SessionStrip = class SessionStrip extends s$2 {
       <div style="display:flex;flex-direction:column;align-items:${viewOptions.showPercent ? 'center' : 'flex-end'};flex:1">
 
         <!-- GAIN -->
-        <div style="display:flex;align-items:center;${viewOptions.showTotalValue ? 'margin-bottom:5px' : ''}">
+        <div style="display:flex;align-items:center;${viewOptions.showTotalValue ? 'margin-bottom:5px' : ''}" id="gain-tag">
           ${viewOptions.showSourceProfit || !profitConverted ? p `
           <div>${outputPriceTemplate(this.profit, session.quote)}</div>
           ` : T}
@@ -64398,7 +64398,7 @@ let SessionStrip = class SessionStrip extends s$2 {
         ${viewOptions.showPercent ? p `
         <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
           <span class="percent"
-            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < 10 ? '#c62828' : 'red')}">${round$2(percent, 2) || '0'}%</span>
+            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < -10 ? '#c62828' : 'red')}">${round$2(percent, 2) || '0'}%</span>
         <!-- </div> -->
         ` : T}
 
@@ -64416,6 +64416,10 @@ let SessionStrip = class SessionStrip extends s$2 {
     </style>
     `;
     }
+    queryGainValue() {
+        var _a, _b;
+        return (_b = (_a = this.shadowRoot) === null || _a === void 0 ? void 0 : _a.querySelector('#gain-tag')) === null || _b === void 0 ? void 0 : _b.textContent;
+    }
     onSessionElementClick(e, session) {
         if (e.button === 2) {
             openCryptowatchLink(session);
@@ -64426,23 +64430,25 @@ let SessionStrip = class SessionStrip extends s$2 {
         }
     }
     async checkAlert() {
+        var _a;
+        // Only alert if there is actually an alert and ...
         if (!this.session.alert || this.profit === 0 || this.session.alert.notified)
             return;
-        // This function is ignored if the notification permission is already granted
-        window.serviceWorkerManager.askNotificationPermission();
-        if (Notification.permission !== 'granted') {
+        // This function returns false if something went wrong or the user denied notifications
+        if (!await window.notificationService.checkPermission()) {
+            // Alert not available
             return;
         }
-        const shouldNotify = eval(`${this.profit} ${this.session.alert.limit} ${this.session.alert.value}`);
+        const gainValue = parseFloat((_a = this.queryGainValue()) === null || _a === void 0 ? void 0 : _a.trim());
+        // console.log(gainValue)
+        const shouldNotify = eval(`${gainValue} ${this.session.alert.limit} ${this.session.alert.value}`);
+        // console.log(`${gainValue} ${this.session.alert.limit} ${this.session.alert.value}`)
         if (shouldNotify) {
-            const notification = new Notification(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`, {
-                silent: false,
-                requireInteraction: true,
-            });
-            notification.onclick = () => {
-                openCryptowatchLink(this.session);
-                notification.close();
-            };
+            window.notificationService.notify(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`);
+            // notification.onclick = () => {
+            //   openCryptowatchLink(this.session)
+            //   notification.close()
+            // }
             this.session.alert.notified = true;
             this.requestUpdate();
             // we save data to persist the notified property
@@ -73520,50 +73526,45 @@ SessionAlert = __decorate([
     n$1('session-alert')
 ], SessionAlert);
 
-class ServiceWorkerManager {
+class NotificationManager {
     constructor() {
-        // window.addEventListener('load', function () {
-        // })
         this.isPushEnabled = false;
-        this.serviceWorkerAvailabilityCheck = false;
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js').then(this.initialiseState.bind(this));
-        }
-        else {
-            this.notifyAboutUnavailability();
-        }
+        // Persistant variable to avoid multiple notifications on the interface
+        this._available = undefined;
+        this._reg = undefined;
     }
-    askNotificationPermission() {
+    async checkPermission() {
+        if (this._available !== undefined)
+            return this._available;
+        // Ask if permission is default
+        if (Notification.permission === 'default') {
+            await Notification.requestPermission();
+        }
+        if (Notification.permission === 'default' || Notification.permission === 'denied') {
+            return this.pushUnavailability();
+        }
         if ('serviceWorker' in navigator) {
-            // We should check if the user granted notifications
-            if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
-                Notification.requestPermission();
+            if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
+                return this.pushUnavailability();
+            }
+            try {
+                this._reg = await navigator.serviceWorker.register('./service-worker.js');
+            }
+            catch (e) {
+                return this.pushUnavailability();
             }
         }
-        else {
-            this.notifyAboutUnavailability();
-        }
-    }
-    notifyAboutUnavailability() {
-        if (this.serviceWorkerAvailabilityCheck) {
-            return;
-        }
-        window.app.toast('Notifications support not available in this browser.');
-        this.serviceWorkerAvailabilityCheck = true;
+        return this._available = true;
     }
     initialiseState() {
-        if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
-            console.warn('Notifications aren\'t supported.');
-            return;
-        }
-        if (Notification.permission === 'denied') {
-            console.warn('The user has blocked notifications.');
-            return;
-        }
-        if (!('PushManager' in window)) {
-            console.warn('Push messaging isn\'t supported.');
-            return;
-        }
+        // if (Notification.permission === 'denied') {
+        //   console.warn('The user has blocked notifications.');
+        //   return;
+        // }
+        // if (!('PushManager' in window)) {
+        //   console.warn('Push messaging isn\'t supported.');
+        //   return;
+        // }
         // navigator.serviceWorker.ready.then(ServiceWorkerRegistration => {
         //   console.log(ServiceWorkerRegistration);
         //   ServiceWorkerRegistration.pushManager.getSubscription().then(subscription => {
@@ -73572,8 +73573,24 @@ class ServiceWorkerManager {
         //   .catch(err => console.warn('Error during getSubscription()', err))
         // })
     }
+    pushUnavailability() {
+        this._available = false;
+        window.app.toast('Notifications unavailable or denied.');
+        return false;
+    }
+    get available() {
+        return this._available;
+    }
+    notify(title, options = {}) {
+        if (this._reg) {
+            this._reg.showNotification(title, {
+                silent: false,
+                requireInteraction: true
+            });
+        }
+    }
 }
-window.serviceWorkerManager = new ServiceWorkerManager;
+window.notificationService = new NotificationManager;
 
 const Currencies = ['EUR', 'USD'];
 let AppContainer = class AppContainer extends s$2 {

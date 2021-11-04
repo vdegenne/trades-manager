@@ -65,7 +65,7 @@ export function formatOutputPrice (value: number, quote: string, sign = false) {
   let symbol = symbolsMap[quote] || ` ${quote}`
   let precision = precisionsMap[quote] || 5
 
-  return `${sign ? value > 0 ? '+ ' : '' : ''}${round(value, precision)}${symbol}`
+  return `${sign ? value > 0 ? '+' : '' : ''}${round(value, precision)}${symbol}`
 }
 
 export function outputPriceTemplate (value: number, quote: string, light = false) {

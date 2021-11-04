@@ -88,7 +88,7 @@ export class SessionStrip extends LitElement {
       <div>
         <div style="display:flex;align-items:center">
           <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
-          ${session.alert ? html`<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${session.alert.notified ? '#f44336': 'inherit'}" title="${session.alert!.limit} ${session.alert!.value}%"
+          ${session.alert ? html`<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${session.alert.notified ? '#f44336': 'inherit'}" title="${session.alert!.limit} ${session.alert!.value}"
               @mousedown="${(e: MouseEvent) => {e.stopPropagation();window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(session)!)}}">notifications</mwc-icon>` : nothing}
         </div>
         ${viewOptions.showPrice ? html`<div class="price">${price}</div>` : nothing }
@@ -98,7 +98,7 @@ export class SessionStrip extends LitElement {
       <div style="display:flex;flex-direction:column;align-items:${viewOptions.showPercent ? 'center' : 'flex-end' };flex:1">
 
         <!-- GAIN -->
-        <div style="display:flex;align-items:center;${viewOptions.showTotalValue ? 'margin-bottom:5px' : ''}">
+        <div style="display:flex;align-items:center;${viewOptions.showTotalValue ? 'margin-bottom:5px' : ''}" id="gain-tag">
           ${viewOptions.showSourceProfit || !profitConverted ? html`
           <div>${outputPriceTemplate(this.profit, session.quote)}</div>
           ` : nothing }
@@ -129,7 +129,7 @@ export class SessionStrip extends LitElement {
         ${viewOptions.showPercent ? html`
         <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
           <span class="percent"
-            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < 10 ? '#c62828' : 'red')}">${round(percent, 2) || '0'}%</span>
+            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < -10 ? '#c62828' : 'red')}">${round(percent, 2) || '0'}%</span>
         <!-- </div> -->
         ` : nothing }
 
@@ -148,6 +148,10 @@ export class SessionStrip extends LitElement {
     `
   }
 
+  public queryGainValue () {
+    return this.shadowRoot?.querySelector('#gain-tag')?.textContent
+  }
+
   private onSessionElementClick(e: PointerEvent, session: TradeSession) {
     if (e.button === 2) {
       openCryptowatchLink(session)
@@ -160,26 +164,26 @@ export class SessionStrip extends LitElement {
 
 
   private async checkAlert () {
+    // Only alert if there is actually an alert and ...
     if (!this.session.alert || this.profit === 0 || this.session.alert.notified) return;
 
-    // This function is ignored if the notification permission is already granted
-    window.serviceWorkerManager.askNotificationPermission()
-
-    if (Notification.permission !== 'granted') {
+    // This function returns false if something went wrong or the user denied notifications
+    if (!await window.notificationService.checkPermission()) {
+      // Alert not available
       return;
     }
 
-    const shouldNotify = eval(`${this.profit} ${this.session.alert.limit} ${this.session.alert.value}`)
+    const gainValue = parseFloat(this.queryGainValue()?.trim()!)
+    // console.log(gainValue)
+    const shouldNotify = eval(`${gainValue} ${this.session.alert.limit} ${this.session.alert.value}`)
+    // console.log(`${gainValue} ${this.session.alert.limit} ${this.session.alert.value}`)
 
     if (shouldNotify) {
-      const notification = new Notification(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`, {
-        silent: false,
-        requireInteraction: true,
-      })
-      notification.onclick = () => {
-        openCryptowatchLink(this.session)
-        notification.close()
-      }
+      window.notificationService.notify(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`)
+      // notification.onclick = () => {
+      //   openCryptowatchLink(this.session)
+      //   notification.close()
+      // }
       this.session.alert.notified = true
       this.requestUpdate()
       // we save data to persist the notified property
