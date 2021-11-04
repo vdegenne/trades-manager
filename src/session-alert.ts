@@ -77,7 +77,7 @@ export class SessionAlert extends LitElement {
 
     const alert = {
       limit: this.selectedRadio!.value as '>'|'<',
-      value: parseInt(this.valueTextField.value),
+      value: parseFloat(this.valueTextField.value),
       notified: false
     }
 
