@@ -71,7 +71,8 @@ export class NotificationManager {
     if (this._reg) {
       this._reg.showNotification(title, {
         silent: false,
-        requireInteraction: true
+        requireInteraction: true,
+        badge: './images/logo.png'
       })
     }
   }

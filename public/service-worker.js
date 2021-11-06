@@ -9,6 +9,6 @@ self.addEventListener('push', (event) => {
   })
 })
 
-self.addEventListener('notificationclick', (e) => {
-  console.log(e)
-})
+// self.addEventListener('notificationclick', (e) => {
+//   console.log(e)
+// })
