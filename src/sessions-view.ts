@@ -65,8 +65,6 @@ export class SessionsView extends LitElement {
       <div class="exchange-frame">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <mwc-button unelevated dense>${firstLetterUpperCase(exchange)}</mwc-button>
-          <mwc-button outlined icon="add"
-            @click="${() => window.tradesInterface.createDialog.open(exchange)}" style="background-color:white;border-radius:5px">add session</mwc-button>
         </div>
 
         ${sessions.map(s => {
@@ -77,6 +75,10 @@ export class SessionsView extends LitElement {
         <!-- BOTTOM BAR -->
 
         ${window.options.exchangeViewOptions.showWallet ? window.walletsManager.walletTemplate(this.walletAggregator) : nothing}
+
+        <mwc-button unelevated icon="add"
+          @click="${() => window.tradesInterface.createDialog.open(exchange)}"
+          style="border-radius:5px;display:flex;margin-top:12px;">add session</mwc-button>
 
         ${(() => {
           this.profitAggregator.resolveQuotes(window.spacesManager.space.currency)

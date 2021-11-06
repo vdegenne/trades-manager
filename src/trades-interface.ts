@@ -79,6 +79,10 @@ export class tradesInterface extends LitElement {
           @click="${(e) => window.tcodeInterface.open(this.session)}">tcode</mwc-button> -->
       </div>
 
+      <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#4caf50"
+        @click="${() => window.tradeCreateDialog.open(this.session!, 'buy')}">buy</mwc-button>
+      <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336"
+        @click="${() => window.tradeCreateDialog.open(this.session!, 'sell')}">sell</mwc-button>
       <mwc-button unelevated slot="secondaryAction" icon="copy_all"
         @click="${() => this.oncloneSessionClick()}">clone</mwc-button>
       <!-- <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336" icon="delete"
@@ -192,8 +196,8 @@ export class tradesInterface extends LitElement {
     }
 
     window.tradesManager.addTrade(session, trade)
-    window.tradesInterface.dialog.close()
-    window.sessionsView.dialog.close()
+    window.tradesInterface.dialog.show()
+    // window.sessionsView.dialog.close()
     // window.app.toast('trade registered')
     this.requestUpdate()
     window.sessionsInterface.requestUpdate()

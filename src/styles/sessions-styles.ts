@@ -7,7 +7,8 @@ export default css`
   align-items: center;
   padding: 11px;
   /* background-color: #eeeeee; */
-  background-color: white;
+  background-color: black;
+  color: white;
   justify-content: space-between;
   margin: 8px 0;
   border-radius: 5px;
@@ -39,8 +40,8 @@ export default css`
   top: -21px;
   /* left: 21px; */
   padding: 1px 9px;
-  background: white;
-  border: 1px solid #e0e0e0;
+  background: black;
+  border: 1px solid black;
   border-radius: 5px 5px 0 0;
   z-index: -1;
 }

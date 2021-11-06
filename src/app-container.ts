@@ -115,7 +115,8 @@ class AppContainer extends LitElement {
   :host {
     display: block;
     /* --mdc-theme-primary: #004d40; */
-    --mdc-theme-primary: #3e2723;
+    --mdc-theme-primary: #263238;
+    --mdc-theme-on-primary: white;
     max-width: 700px;
     margin: 0 auto;
     padding: 10px 10px;
@@ -130,9 +131,9 @@ class AppContainer extends LitElement {
     return html`
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017;flex:1">
-        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-primary);font-family:serial">${window.appTitle}</span>
+        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute;filter:invert(1)"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-on-primary);font-family:serial">${window.appTitle}</span>
       </div>
-      <div style="display:flex;align-items:center">
+      <div style="display:flex;align-items:center;color:var(--mdc-theme-on-primary)">
         <mwc-icon-button icon="title" @click="${() => this.tCodeInterface.open()}"></mwc-icon-button>
         <mwc-icon-button icon="space_dashboard" @click="${() => this.onSpaceButtonClick()}"></mwc-icon-button>
         <!-- <mwc-button outlined icon="space_dashboard" style="margin-right:6px"

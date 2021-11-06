@@ -179,7 +179,9 @@ export class SessionStrip extends LitElement {
     // console.log(`${gainValue} ${this.session.alert.limit} ${this.session.alert.value}`)
 
     if (shouldNotify) {
-      window.notificationService.notify(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`)
+      window.notificationService.notify(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`, {
+        session: this.session
+      })
       // notification.onclick = () => {
       //   openCryptowatchLink(this.session)
       //   notification.close()

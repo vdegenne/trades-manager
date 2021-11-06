@@ -67,12 +67,14 @@ export class NotificationManager {
   }
 
 
-  public notify (title, options = {}) {
+  public notify (title, data = {}) {
     if (this._reg) {
       this._reg.showNotification(title, {
         silent: false,
+        vibrate: [300, 100, 400, 100, 400, 100, 400],
         requireInteraction: true,
-        badge: './images/logo.png'
+        badge: './images/logo.png',
+        data
       })
     }
   }
