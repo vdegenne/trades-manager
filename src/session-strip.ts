@@ -129,7 +129,7 @@ export class SessionStrip extends LitElement {
         ${viewOptions.showPercent ? html`
         <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
           <span class="percent"
-            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < 10 ? '#c62828' : 'red')}">${round(percent, 2) || '0'}%</span>
+            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < -12 ? '#971212' : 'red')}">${round(percent, 2) || '0'}%</span>
         <!-- </div> -->
         ` : nothing }
 

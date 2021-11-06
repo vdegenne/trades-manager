@@ -2,7 +2,7 @@ import { css, html, LitElement, nothing, render } from 'lit';
 import { customElement, query, queryAll } from 'lit/decorators.js';
 import{ live } from 'lit/directives/live.js'
 import { getSummary, Trade, TradesManager, TradeSession } from "./TradesManager";
-import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, openChart, outputPriceTemplate, round } from "./util";
+import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, openChart, openVirtualInfoDialog, outputPriceTemplate, round } from "./util";
 // import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
 import { ExchangesManager } from "./ExchangesManager";
@@ -13,6 +13,7 @@ import './session-strip'
 import '@material/mwc-button'
 import { SessionStrip } from "./session-strip";
 import { Dialog } from "@material/mwc-dialog";
+import '@material/mwc-icon'
 
 
 @customElement('sessions-view')
@@ -270,14 +271,17 @@ export class SessionsView extends LitElement {
     <mwc-button style="--mdc-theme-primary:red" icon="delete" dialogAction="close"
       @click="${() => window.sessionsInterface.deleteSession(session)}">Delete session</mwc-button><br>
 
-    <mwc-formfield label="Virtual">
-      <mwc-checkbox .checked="${live(session?.virtual)}"
-        @change="${(e) => {
-          session!.virtual = e.target.checked;
-          window.sessionsInterface.requestUpdate();
-          window.spacesManager.save()
-        }}"></mwc-checkbox>
-    </mwc-formfield>
+    <div style="display:flex;align-items:center">
+      <mwc-formfield label="Virtual">
+        <mwc-checkbox .checked="${live(session?.virtual)}"
+          @change="${(e) => {
+            session!.virtual = e.target.checked;
+            window.sessionsInterface.requestUpdate();
+            window.spacesManager.save()
+          }}"></mwc-checkbox>
+      </mwc-formfield>
+      <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center;--mdc-icon-size:18px" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
+    </div>
 
     <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>
     `, this.dialog)
@@ -287,7 +291,7 @@ export class SessionsView extends LitElement {
   private changeSessionTitle (session: TradeSession) {
     const placeholder = session.title || '';
     const title = prompt('title', placeholder)
-    if (title) {
+    if (title !== null) {
       session.title = title;
     }
     // else cancelled

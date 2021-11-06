@@ -1640,7 +1640,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
         ${r.showPercent?p`
         <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
           <span class="percent"
-            style="background-color:${a?a>0?"var(--green)":a<10?"#c62828":"red":"grey"}">${round$2(a,2)||"0"}%</span>
+            style="background-color:${a?a>0?"var(--green)":a<-12?"#971212":"red":"grey"}">${round$2(a,2)||"0"}%</span>
         <!-- </div> -->
         `:T}
 
@@ -2199,13 +2199,16 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
     <mwc-button style="--mdc-theme-primary:red" icon="delete" dialogAction="close"
       @click="${()=>window.sessionsInterface.deleteSession(e)}">Delete session</mwc-button><br>
 
-    <mwc-formfield label="Virtual">
-      <mwc-checkbox .checked="${l(null==e?void 0:e.virtual)}"
-        @change="${i=>{e.virtual=i.target.checked,window.sessionsInterface.requestUpdate(),window.spacesManager.save()}}"></mwc-checkbox>
-    </mwc-formfield>
+    <div style="display:flex;align-items:center">
+      <mwc-formfield label="Virtual">
+        <mwc-checkbox .checked="${l(null==e?void 0:e.virtual)}"
+          @change="${i=>{e.virtual=i.target.checked,window.sessionsInterface.requestUpdate(),window.spacesManager.save()}}"></mwc-checkbox>
+      </mwc-formfield>
+      <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center;--mdc-icon-size:18px" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
+    </div>
 
     <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>
-    `,this.dialog),this.dialog.open=!0}changeSessionTitle(e){const i=e.title||"",t=prompt("title",i);t&&(e.title=t),this.requestUpdate(),window.app.spacesManager.save()}};SessionsView.styles=[sessionsStyles,r$4`
+    `,this.dialog),this.dialog.open=!0}changeSessionTitle(e){const i=e.title||"",t=prompt("title",i);null!==t&&(e.title=t),this.requestUpdate(),window.app.spacesManager.save()}};SessionsView.styles=[sessionsStyles,r$4`
     :host {
       display: block;
       max-width: 1024px;
@@ -2365,14 +2368,13 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
         escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
-        ${n&&n.date?`last trade : ${new TimeAgo("en-US").format(n.date)}`:""}
+        ${n&&n.date?`first trade : ${new TimeAgo("en-US").format(n.date)}`:""}
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center">
             <!-- <mwc-formfield label="Virtual">
               <mwc-checkbox ?checked="${null===(o=this.session)||void 0===o?void 0:o.virtual}"
                 @change="${e=>this.onVirtualChange(e)}"></mwc-checkbox>
             </mwc-formfield> -->
-            <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
           </div>
         </div>
         <div style="max-height: 500px;overflow: auto;">

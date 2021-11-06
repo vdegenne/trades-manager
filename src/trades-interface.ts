@@ -43,14 +43,13 @@ export class tradesInterface extends LitElement {
         escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
-        ${oldestTrade && oldestTrade.date ? `last trade : ${(new TimeAgo('en-US')).format(oldestTrade.date)}` : ''}
+        ${oldestTrade && oldestTrade.date ? `first trade : ${(new TimeAgo('en-US')).format(oldestTrade.date)}` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center">
             <!-- <mwc-formfield label="Virtual">
               <mwc-checkbox ?checked="${this.session?.virtual}"
                 @change="${(e) => this.onVirtualChange(e)}"></mwc-checkbox>
             </mwc-formfield> -->
-            <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
           </div>
         </div>
         <div style="max-height: 500px;overflow: auto;">
