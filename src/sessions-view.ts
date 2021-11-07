@@ -64,7 +64,8 @@ export class SessionsView extends LitElement {
       return html`
       <div class="exchange-frame">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <mwc-button unelevated dense>${firstLetterUpperCase(exchange)}</mwc-button>
+          <mwc-button unelevated dense
+            style="">${firstLetterUpperCase(exchange)}</mwc-button>
         </div>
 
         ${sessions.map(s => {

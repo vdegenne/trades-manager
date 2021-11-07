@@ -1451,9 +1451,8 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
   flex: 1;
   align-items: center;
   padding: 11px;
-  /* background-color: #eeeeee; */
-  background-color: black;
-  color: white;
+  background-color: var(--card-color);
+  color: var(--main-text-color);
   justify-content: space-between;
   margin: 8px 0;
   border-radius: 5px;
@@ -1471,7 +1470,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
   transition: background-color .2s linear;
 }
 .session[eventful]:hover {
-  background-color: #eeeeee;
+  background-color: var(--discreet-color);
 }
 .session[external] {
   border: 2px solid #e0e0e0;
@@ -1485,8 +1484,9 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
   top: -21px;
   /* left: 21px; */
   padding: 1px 9px;
-  background: black;
-  border: 1px solid black;
+  background-color: var(--card-color);
+  border: 1px solid var(--card-color);
+  color: var(--main-text-color);
   border-radius: 5px 5px 0 0;
   z-index: -1;
 }
@@ -1546,7 +1546,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
         ?disabled="${!this.currency}" @click="${()=>{this.askCurrencyResolve(this.currency),this.currencyDialog.close()}}">continue</mwc-button>
     </mwc-dialog>
     `}firstUpdated(){const e=localStorage.getItem("spaces")?JSON.parse(localStorage.getItem("spaces").toString()):void 0;void 0!==e&&e instanceof Array&&0!==e.length?this.spaces=e:(this.createDefaultSpace(),this.save()),this.loadSpace(this.getDefaultSpace())}loadSpaces(e){this.spaces=e,this.loadSpace(this.getDefaultSpace())}loadSpace(e){window.sessionsInterface.loadSessions(e.sessions),this.space=e,window.app.requestUpdate()}async createSpace(e){const i={name:e,currency:"EUR",sessions:[]};return this.spaces.push(i),i}async createDefaultSpace(){this.spaces.push({name:"default",sessions:[],currency:"EUR",wallets:Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((e=>[e,[]])))})}getDefaultSpace(){return this.spaces.find((e=>"default"===e.name))}async askCurrency(){return await new Promise((e=>{this.askCurrencyResolve=e,this.currencyDialog.show()}))}save(){localStorage.setItem("spaces",this.toString())}toString(){return JSON.stringify(this.spaces)}};__decorate([e$5()],SpacesManager.prototype,"currency",void 0),__decorate([i$2("#currency-dialog")],SpacesManager.prototype,"currencyDialog",void 0),SpacesManager=__decorate([n$1("spaces-manager")],SpacesManager);class Aggregator{constructor(e,i){this.units=i||[],this.exchangeName=e}pushUnit(e,i){const t=this.units.find((i=>i[0]===e));t?t[1]+=i:this.units.push([e,i])}resolveQuotes(e){for(const i of this.units)if(i[0]!==e){const{quote:t,price:s}=ExchangesManager.getConversionPrice(i[0],e,this.exchangeName);t===e&&void 0!==s&&(i[0]=t,i[1]=s*i[1])}this.reduce()}reduce(){const e=[];for(const i of this.units){const t=e.find((e=>e[0]===i[0]));t?t[1]+=i[1]:e.push([i[0],i[1]])}this.units=e}isEmpty(){return!this.units.length}clone(){const e=[];for(const i of this.units)e.push([i[0],i[1]]);return new Aggregator(this.exchangeName,e)}}function round$2(e,i=2){return Math.round(e*10**i)/10**i}function openCryptowatchLink(e){window.open(`https://cryptowat.ch/charts/${e.exchange}:${e.symbol}-${e.quote}`,"_blank")}function sortAlphabetically(e){return e.sort(((e,i)=>e<i?-1:e>i?1:0))}function firstLetterUpperCase(e){if(e)return e[0].toUpperCase()+e.slice(1)}const symbolsMap={EUR:"€",USD:"$",BTC:"₿",ETH:"Ξ",USDT:"₮",BNB:"Ƀ"},precisionsMap={EUR:2,USD:2,ETH:3,BTC:3};function formatOutputPrice(e,i,t=!1){let s=symbolsMap[i]||` ${i}`;return`${t&&e>0?"+":""}${round$2(e,precisionsMap[i]||5)}${s}`}function outputPriceTemplate(e,i,t=!1){return p`
-  <span style="font-weight:bold;color:${0===e?t?"white":"black":e>0?t?"#3adc41":"var(--green)":t?"#f44336":"#ff0000"};font-weight:500">${formatOutputPrice(e,i,!0)}</span>
+  <span style="font-weight:bold;color:${0===e?"var(--main-text-color)":e>0?t?"#3adc41":"var(--green)":t?"#f44336":"#ff0000"};font-weight:500">${formatOutputPrice(e,i,!0)}</span>
   `}function openVirtualInfoDialog(){window.textDialog.open("Virtual Sessions",p`
   <p>A virtual session is like a normal session but the trades inside are not used in the calculation of the total balance.<br>
   Virtual sessions are faded on the main UI so you can distinguish them from the normal ones.</p>
@@ -2153,7 +2153,8 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
     ${ExchangesManager.getAvailableExchanges().map((e=>{const i=window.sessions.filter((i=>i.exchange===e&&(window.options.exchangeViewOptions.showVirtual||!i.virtual)));return this.profitAggregator=new Aggregator(e),this.totalValueAggregator=new Aggregator(e),this.walletAggregator=new Aggregator(e),p`
       <div class="exchange-frame">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <mwc-button unelevated dense>${firstLetterUpperCase(e)}</mwc-button>
+          <mwc-button unelevated dense
+            style="">${firstLetterUpperCase(e)}</mwc-button>
         </div>
 
         ${i.map((e=>p`<session-strip .session="${e}"></session-strip>`))}
@@ -2421,7 +2422,7 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
     `}tradeTemplate(e,i,t=!0){return p`
     <div class="trade">
       <b style="color:${"buy"===e.type?"green":"red"}">${e.type.toUpperCase()}</b>
-      <div><b>${e.volume}</b> <b style="position:relative;top:-1px;color:#bdbdbd">@</b> <span>${e.price} ${i.quote}</span></div>
+      <div><b>${e.price} ${i.quote}</b> <b style="position:relative;top:-1px;color:#bdbdbd">@</b> <span>${e.volume}</span></div>
       ${t?p`
         <mwc-icon-button icon="close"
           @click="${()=>this.deleteTrade(e)}"></mwc-icon-button>
@@ -2612,12 +2613,12 @@ var clipboardCopy_1=clipboardCopy;function makeError(){return new DOMException("
     p {
       margin-bottom: 10px;
     }
-    `],__decorate([e$5({type:Object})],SessionAlert.prototype,"strip",void 0),__decorate([i$2("mwc-dialog")],SessionAlert.prototype,"dialog",void 0),__decorate([e$3("mwc-radio")],SessionAlert.prototype,"radios",void 0),__decorate([i$2("mwc-textfield")],SessionAlert.prototype,"valueTextField",void 0),SessionAlert=__decorate([n$1("session-alert")],SessionAlert);class NotificationManager{constructor(){this.isPushEnabled=!1,this._available=void 0,this._reg=void 0}async checkPermission(){if(void 0!==this._available)return this._available;if("default"===Notification.permission&&await Notification.requestPermission(),"default"===Notification.permission||"denied"===Notification.permission)return this.pushUnavailability();if("serviceWorker"in navigator){if(!("showNotification"in ServiceWorkerRegistration.prototype))return this.pushUnavailability();try{this._reg=await navigator.serviceWorker.register("./service-worker.js")}catch(e){return this.pushUnavailability()}}return this._available=!0}initialiseState(){}pushUnavailability(){return this._available=!1,window.app.toast("Notifications unavailable or denied."),!1}get available(){return this._available}notify(e,i={}){this._reg&&this._reg.showNotification(e,{silent:!1,vibrate:[300,100,400,100,400,100,400],requireInteraction:!0,badge:"./images/logo.png",data:i})}}window.notificationService=new NotificationManager;const Currencies=["EUR","USD"];let AppContainer=class extends s$2{constructor(){super(),this.spacesManager=new SpacesManager,this.confirmDialog=new ConfirmDialog,this.static=!0,window.app=this,window.appTitle="Tradon",window.confirmDialog=this.confirmDialog,this.optionsInterface=new OptionsInterface,this.sessionsInterface=new SessionsInterface,this.tCodeInterface=new TCodeInterface,this.importExport=new ImportExport,this.sessionAlert=new SessionAlert,this.walletsManager=new WalletsManager,window.tcodeInterface=this.tCodeInterface,window.importExportInterface=this.importExport,window.sessionAlert=this.sessionAlert,this.constructServerScript()}constructServerScript(){const e=document.createElement("script");e.type="module",e.src="./spaces-interface.js",e.onerror=()=>{this.static=!0},e.onload=()=>{this.static=!1},document.head.appendChild(e)}render(){var e;return p`
+    `],__decorate([e$5({type:Object})],SessionAlert.prototype,"strip",void 0),__decorate([i$2("mwc-dialog")],SessionAlert.prototype,"dialog",void 0),__decorate([e$3("mwc-radio")],SessionAlert.prototype,"radios",void 0),__decorate([i$2("mwc-textfield")],SessionAlert.prototype,"valueTextField",void 0),SessionAlert=__decorate([n$1("session-alert")],SessionAlert);class NotificationManager{constructor(){this.isPushEnabled=!1,this._available=void 0,this._reg=void 0}async checkPermission(){if(void 0!==this._available)return this._available;if("default"===Notification.permission&&await Notification.requestPermission(),"default"===Notification.permission||"denied"===Notification.permission)return this.pushUnavailability();if("serviceWorker"in navigator){if(!("showNotification"in ServiceWorkerRegistration.prototype))return this.pushUnavailability();try{this._reg=await navigator.serviceWorker.register("./service-worker.js")}catch(e){return this.pushUnavailability()}}return this._available=!0}initialiseState(){}pushUnavailability(){return this._available=!1,window.app.toast("Notifications unavailable or denied."),!1}get available(){return this._available}notify(e,i={}){this._reg&&this._reg.showNotification(e,{silent:!1,vibrate:[300,100,400,100,400,100,400],requireInteraction:!0,badge:"./images/logo.png",data:i})}}window.notificationService=new NotificationManager;const Currencies=["EUR","USD"];let AppContainer=class extends s$2{constructor(){super(),this.spacesManager=new SpacesManager,this.confirmDialog=new ConfirmDialog,this.darkTheme=!0,this.static=!0,window.app=this,window.appTitle="Tradon",window.confirmDialog=this.confirmDialog,this.optionsInterface=new OptionsInterface,this.sessionsInterface=new SessionsInterface,this.tCodeInterface=new TCodeInterface,this.importExport=new ImportExport,this.sessionAlert=new SessionAlert,this.walletsManager=new WalletsManager,window.tcodeInterface=this.tCodeInterface,window.importExportInterface=this.importExport,window.sessionAlert=this.sessionAlert,this.constructServerScript()}constructServerScript(){const e=document.createElement("script");e.type="module",e.src="./spaces-interface.js",e.onerror=()=>{this.static=!0},e.onload=()=>{this.static=!1},document.head.appendChild(e)}render(){var e;return p`
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:#004d4017;flex:1">
-        <img src="./images/logo.png" width="60px" height="60px" style="position:absolute;filter:invert(1)"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--mdc-theme-on-primary);font-family:serial">${window.appTitle}</span>
+      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:var(--discreet-color);flex:1">
+        <img src="./images/logo.png" width="52px" height="52px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--main-text-color);">${window.appTitle}</span>
       </div>
-      <div style="display:flex;align-items:center;color:var(--mdc-theme-on-primary)">
+      <div style="display:flex;align-items:center;color:var(--main-text-color)">
         <mwc-icon-button icon="title" @click="${()=>this.tCodeInterface.open()}"></mwc-icon-button>
         <mwc-icon-button icon="space_dashboard" @click="${()=>this.onSpaceButtonClick()}"></mwc-icon-button>
         <!-- <mwc-button outlined icon="space_dashboard" style="margin-right:6px"
@@ -2670,15 +2671,19 @@ var clipboardCopy_1=clipboardCopy;function makeError(){return new DOMException("
   :host {
     display: block;
     /* --mdc-theme-primary: #004d40; */
-    --mdc-theme-primary: #263238;
-    --mdc-theme-on-primary: white;
+    /* --mdc-theme-primary: #263238;
+    --mdc-theme-on-primary: white; */
     max-width: 700px;
     margin: 0 auto;
     padding: 10px 10px;
   }
 
+  img {
+    filter: invert(var(--dark-switch));
+  }
+
   .dialog-content > p {
     margin-bottom: 6px;
   }
-  `,__decorate([e$5({type:Object})],AppContainer.prototype,"walletsManager",void 0),__decorate([e$5({type:Boolean})],AppContainer.prototype,"static",void 0),__decorate([i$2("mwc-snackbar")],AppContainer.prototype,"snackbar",void 0),__decorate([i$2("mwc-dialog[heading=Options]")],AppContainer.prototype,"optionsDialog",void 0),__decorate([i$2("text-dialog")],AppContainer.prototype,"textDialog",void 0),__decorate([i$2("about-dialog")],AppContainer.prototype,"aboutDialog",void 0),AppContainer=__decorate([n$1("app-container")],AppContainer);export{Currencies};
+  `,__decorate([e$5({type:Boolean})],AppContainer.prototype,"darkTheme",void 0),__decorate([e$5({type:Object})],AppContainer.prototype,"walletsManager",void 0),__decorate([e$5({type:Boolean})],AppContainer.prototype,"static",void 0),__decorate([i$2("mwc-snackbar")],AppContainer.prototype,"snackbar",void 0),__decorate([i$2("mwc-dialog[heading=Options]")],AppContainer.prototype,"optionsDialog",void 0),__decorate([i$2("text-dialog")],AppContainer.prototype,"textDialog",void 0),__decorate([i$2("about-dialog")],AppContainer.prototype,"aboutDialog",void 0),AppContainer=__decorate([n$1("app-container")],AppContainer);export{Currencies};
 //# sourceMappingURL=app.js.map

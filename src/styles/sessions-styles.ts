@@ -6,9 +6,8 @@ export default css`
   flex: 1;
   align-items: center;
   padding: 11px;
-  /* background-color: #eeeeee; */
-  background-color: black;
-  color: white;
+  background-color: var(--card-color);
+  color: var(--main-text-color);
   justify-content: space-between;
   margin: 8px 0;
   border-radius: 5px;
@@ -26,7 +25,7 @@ export default css`
   transition: background-color .2s linear;
 }
 .session[eventful]:hover {
-  background-color: #eeeeee;
+  background-color: var(--discreet-color);
 }
 .session[external] {
   border: 2px solid #e0e0e0;
@@ -40,8 +39,9 @@ export default css`
   top: -21px;
   /* left: 21px; */
   padding: 1px 9px;
-  background: black;
-  border: 1px solid black;
+  background-color: var(--card-color);
+  border: 1px solid var(--card-color);
+  color: var(--main-text-color);
   border-radius: 5px 5px 0 0;
   z-index: -1;
 }

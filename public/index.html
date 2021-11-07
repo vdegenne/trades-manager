@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/png" href="./images/logo.png" />
   </head>
-  <body>
+  <body dark>
     <style>
       * {
         -webkit-font-smoothing: antialiased;
@@ -18,9 +18,29 @@
         font-family: Roboto;
         margin: 0;
         overflow-y: scroll !important;
-        background: linear-gradient(180deg, #7575757d -47%, #eeeeee 11%);
-        background: #37474f;
+        /* background: linear-gradient(180deg, #7575757d -47%, #eeeeee 11%); */
         height: 100vh;
+
+      }
+      body {
+        background: #eeeeee;
+        --main-text-color: black;
+        --mdc-theme-primary: #3e2723;
+        --mdc-theme-on-primary: white;
+        --card-color: white;
+        --card-hover-color: #eeeeee;
+        --discreet-color: #eeeeee;
+        --dark-switch: 0;
+      }
+      body[dark] {
+        background: #37474f;
+        --main-text-color: white;
+        --mdc-theme-primary: #263238;
+        --mdc-theme-on-primary: white;
+        --card-color: #142730;
+        --card-hover-color: #3e2723;
+        --discreet-color: #030521;
+        --dark-switch: 1;
       }
       html {
         --green: #43a047;
