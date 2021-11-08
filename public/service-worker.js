@@ -14,10 +14,10 @@ self.addEventListener('notificationclick', (e) => {
   // if (n.data.session.exchange === 'binance') {
   //   clients.openWindow(`https://cryptowat.ch/charts/BINANCE:${n.data.session.symbol}-${n.data.session.quote}`)
   // }
-  console.log(e.notification)
-  if (clients.openWindow && e.notification.data.url) {
-    e.waitUntil(clients.openWindow('https://tradon.vdegenne.com/'))
-  }
+  // console.log(e.notification)
+  // if (clients.openWindow && e.notification.data.url) {
+  e.waitUntil(clients.openWindow('https://tradon.vdegenne.com/'))
+  // }
   n.close()
   // console.log(n.data.session)
   // e.notification.close()
