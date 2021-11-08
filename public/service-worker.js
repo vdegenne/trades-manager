@@ -17,12 +17,14 @@ self.addEventListener('notificationclick', (e) => {
   // }
   // console.log(e.notification)
   // if (clients.openWindow && e.notification.data.url) {
-  e.waitUntil(clients.matchAll({ type: 'window' }).then(clientsList => {
-    for (const client of clientsList) {
-      if (client.url === 'https://tradon.vdegenne.com/#' && 'focus' in client) {
-        return client.focus()
-      }
-    }
+  e.waitUntil(clients.matchAll({includeUncontrolled: true, type: 'window' }).then(clientsList => {
+    clientsList[0].focus()
+    // console.log(clientsList)
+    // for (const client of clientsList) {
+    //   if (client.url.startsWith('http://localhost:3000') && 'focus' in client) {
+    //     return client.focus()
+    //   }
+    // }
   }))
   // }
   // console.log(n.data.session)
