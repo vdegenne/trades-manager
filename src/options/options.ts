@@ -31,7 +31,7 @@ export class OptionsManager {
     }
 
     if (this.options.generalOptions === undefined || this.options.generalOptions.darkMode === undefined) {
-      this.options.generalOptions.darkMode = false;
+      this.options.generalOptions = { darkMode: false };
     }
 
     window.optionsManager = this;
