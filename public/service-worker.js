@@ -16,7 +16,7 @@ self.addEventListener('notificationclick', (e) => {
   // }
   console.log(e.notification)
   if (clients.openWindow && e.notification.data.url) {
-    e.waitUntil(clients.openWindow(e.notification.data.url))
+    e.waitUntil(clients.openWindow('https://tradon.vdegenne.com/'))
   }
   n.close()
   // console.log(n.data.session)
