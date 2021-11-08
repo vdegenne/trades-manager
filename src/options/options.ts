@@ -30,6 +30,10 @@ export class OptionsManager {
       this.options = localStorage.getItem('options') ? JSON.parse(localStorage.getItem('options')!) : this.default;
     }
 
+    if (this.options.generalOptions === undefined || this.options.generalOptions.darkMode === undefined) {
+      this.options.generalOptions.darkMode = false;
+    }
+
     window.optionsManager = this;
     window.options = this.options
   }
