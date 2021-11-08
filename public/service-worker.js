@@ -11,13 +11,14 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (e) => {
   const n = e.notification;
-  n.close()
   // if (n.data.session.exchange === 'binance') {
   //   clients.openWindow(`https://cryptowat.ch/charts/BINANCE:${n.data.session.symbol}-${n.data.session.quote}`)
   // }
+  console.log(e.notification)
   if (clients.openWindow && e.notification.data.url) {
     e.waitUntil(clients.openWindow(e.notification.data.url))
   }
+  n.close()
   // console.log(n.data.session)
   // e.notification.close()
   // if (e.stopImmediatePropagation.)
