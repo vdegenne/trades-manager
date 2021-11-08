@@ -1,5 +1,8 @@
 
 export type Options = {
+  generalOptions: {
+    darkMode: boolean;
+  },
   sessionViewOptions: SessionViewOptions
   exchangeViewOptions: {
     showWallet: boolean;
@@ -37,6 +40,9 @@ export class OptionsManager {
 
   get default (): Options {
     return {
+      generalOptions: {
+        darkMode: false
+      },
       exchangeViewOptions: {
         showWallet: true,
         showVirtual: true

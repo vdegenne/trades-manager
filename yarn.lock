@@ -386,7 +386,18 @@
     lit "^2.0.0"
     tslib "^2.0.1"
 
-"@material/mwc-icon-button@^0.25.2":
+"@material/mwc-icon-button-toggle@^0.25.3":
+  version "0.25.3"
+  resolved "https://registry.yarnpkg.com/@material/mwc-icon-button-toggle/-/mwc-icon-button-toggle-0.25.3.tgz#f1f3e82c9f7d1c6c925b2c4e65c4add944d5c97b"
+  integrity sha512-H3eMHHZWyqO2Dd3FXiDOArmegUBpXB3vatZLPDHVFKABdZlt0M4qusgvV7IIo53urLqqcVo6u8FMjtv9VGnXpQ==
+  dependencies:
+    "@material/mwc-base" "^0.25.3"
+    "@material/mwc-icon-button" "^0.25.3"
+    "@material/mwc-ripple" "^0.25.3"
+    lit "^2.0.0"
+    tslib "^2.0.1"
+
+"@material/mwc-icon-button@^0.25.2", "@material/mwc-icon-button@^0.25.3":
   version "0.25.3"
   resolved "https://registry.yarnpkg.com/@material/mwc-icon-button/-/mwc-icon-button-0.25.3.tgz#6058577e77526d1da7a7ed8d7fe73c7ac513b23d"
   integrity sha512-FexkMpK3ZSHh7NF+PIqvVhvAbBOgFDYPck/lqnxIDC3VGJ0rjD/1MqevDy2fY6IcHGlc8Ai7VuYbdQ6Cvw8WcQ==

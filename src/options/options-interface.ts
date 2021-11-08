@@ -1,11 +1,12 @@
 import { css, html, LitElement } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { Dialog } from "@material/mwc-dialog";
 import { ExchangesManager } from "../ExchangesManager";
 import { SessionStrip } from "../session-strip";
 import sessionsStyles from "../styles/sessions-styles";
 import { TradeSession } from "../TradesManager";
 import { Options, OptionsManager, SessionViewOptions } from "./options";
+import '@material/mwc-icon-button-toggle'
 
 
 @customElement('options-interface')
@@ -13,8 +14,11 @@ export class OptionsInterface extends LitElement {
   @property({type:Object})
   private optionsManager: OptionsManager;
 
-  @property({type:Object})
+  @state()
   private options: Options; // clone object for the interface
+
+  @state()
+  private darkMode: boolean = false;
 
   /* Fake element to show how the display settings affect a session element */
   private session: TradeSession = {
@@ -30,9 +34,11 @@ export class OptionsInterface extends LitElement {
     super()
     window.optionsInterface = this
 
+    // Options loaded from the local memory
     this.optionsManager = new OptionsManager(options)
+    this.darkMode = this.optionsManager.options.generalOptions.darkMode;
 
-    this.options = JSON.parse(JSON.stringify(this.optionsManager.options))
+    this.options = JSON.parse(JSON.stringify(this.optionsManager.options)) // cloning
   }
 
   static styles = [
@@ -48,13 +54,24 @@ export class OptionsInterface extends LitElement {
   @query('mwc-dialog') dialog!: Dialog;
 
   render () {
-
     this.strip.viewOptions = Object.assign({}, this.options.sessionViewOptions, { events: false });
+    if (this.darkMode) {
+      document.body.setAttribute('dark', '')
+    }
+    else {
+      document.body.removeAttribute('dark')
+    }
 
     return html`
     <mwc-dialog heading="Options">
       <div style="width:600px"></div>
       <div>
+        <h4>General options</h4>
+        <mwc-formfield label="${this.darkMode ? 'Dark mode' : 'Light mode'}">
+          <mwc-icon-button-toggle onIcon="dark_mode" offIcon="light_mode" style="margin-right:8px"
+            ?on=${this.darkMode}
+            @icon-button-toggle-change=${(e) => this.onDarkModeIconButtonToggleChange(e)}></mwc-icon-button-toggle>
+        </mwc-formfield>
         <h4>Session view options</h4>
         <mwc-formfield label="pair price">
           <mwc-checkbox ?checked="${this.options.sessionViewOptions.showPrice}"
@@ -92,6 +109,12 @@ export class OptionsInterface extends LitElement {
         @click="${() => this.saveAndClose()}">save</mwc-button>
     </mwc-dialog>
     `
+  }
+
+  private onDarkModeIconButtonToggleChange (e) {
+    this.darkMode = e.detail.isOn;
+    this.optionsManager.options.generalOptions.darkMode = this.darkMode;
+    this.optionsManager.save()
   }
 
   requestUpdate() {
