@@ -11,14 +11,20 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (e) => {
   const n = e.notification;
+  n.close()
   // if (n.data.session.exchange === 'binance') {
   //   clients.openWindow(`https://cryptowat.ch/charts/BINANCE:${n.data.session.symbol}-${n.data.session.quote}`)
   // }
   // console.log(e.notification)
   // if (clients.openWindow && e.notification.data.url) {
-  e.waitUntil(clients.openWindow('https://tradon.vdegenne.com/'))
+  e.waitUntil(clients.matchAll({ type: 'window' }).then(clientsList => {
+    for (const client of clientsList) {
+      if (client.url === 'https://tradon.vdegenne.com/#' && 'focus' in client) {
+        return client.focus()
+      }
+    }
+  }))
   // }
-  n.close()
   // console.log(n.data.session)
   // e.notification.close()
   // if (e.stopImmediatePropagation.)
