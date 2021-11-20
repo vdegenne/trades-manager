@@ -41,7 +41,7 @@ export class SessionCreateDialog extends LitElement {
         @opened="${this.fixOverflow}">
       <div style="width:400px"></div>
       <div>
-        <mwc-textfield label="title" placeholder="optional..." style="width:100%;margin-bottom:10px;" @keypress="${e => e.stopPropagation()}"></mwc-textfield>
+        <mwc-textfield outlined label="title" placeholder="optional..." style="width:100%;margin-bottom:10px;" @keypress="${e => e.stopPropagation()}"></mwc-textfield>
         <div style="display:flex;align-items:center">
           <mwc-formfield label="virtual">
             <mwc-checkbox name="virtual"></mwc-checkbox>
@@ -85,9 +85,9 @@ export class SessionCreateDialog extends LitElement {
         </mwc-select>
 
         <div style="display:flex;justify-content:center;align-items:center;margin:42px 0 10px;font-size:32px">
-         <span style="color:black;">${this.symbol || '??'}</span>
-         <mwc-icon style="--mdc-icon-size:32px;margin:10px;">sync_alt</mwc-icon>
-         <span style="color:black">${this.quote || '??'}</span>
+         <span>${this.symbol || '??'}</span>
+         <mwc-icon style="--mdc-icon-size:32px;margin:10px;color:var(--main-color)">sync_alt</mwc-icon>
+         <span>${this.quote || '??'}</span>
         </div>
       </div>
 

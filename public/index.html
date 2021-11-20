@@ -23,32 +23,85 @@
 
       }
       body {
+        /* Background */
+        background: var(--background-color);
+        --mdc-theme-surface: var(--background-color);
+
+        /* Text */
+        --mdc-theme-text-primary-on-background: var(--main-text-color);
+
+
+        /* Personality colors */
+        --mdc-theme-primary: var(--main-color);
+
+        /* Buttons */
+        --mdc-button-outline-color: var(--mdc-theme-primary);
+
+        /* Textfield */
+        --mdc-text-field-outlined-idle-border-color: var(--light-text-color);
+        --mdc-text-field-outlined-hover-border-color: var(--main-text-color);
+        --mdc-text-field-ink-color: var(--main-text-color);
+        --mdc-text-field-label-ink-color: var(--light-text-color);
+        /* --mdc-text-field-fill-color: var(--light-text-color); */
+
+        /* Select */
+        --mdc-select-outlined-idle-border-color: var(--light-text-color);
+        --mdc-select-outlined-hover-border-color: var(--main-text-color);
+        --mdc-select-ink-color: var(--main-text-color);
+        --mdc-select-outlined-disabled-border-color: var(--disabled-color);
+      }
+
+      body:not([dark]) {
         background: #eeeeee;
         --main-text-color: black;
-        --mdc-theme-primary: #3e2723;
+        --mdc-theme-primary: #6200ee;
         --mdc-theme-on-primary: white;
         --card-color: white;
         --card-hover-color: #eeeeee;
         --discreet-color: #e7e7e6;
         --dark-switch: 0;
+
+        /* Personality colors */
+        --main-color: #6200ee;
       }
+
+
       body[dark] {
-        background: #37474f;
+        /* Background */
+        /* --background-color: #37474f; */
+        /* --background-color: #363636; */
+        --background-color: #212121;
+        /* background: var(--background-color);
+        --mdc-theme-surface: var(--background-color); */
+
+        /* Text */
         --main-text-color: white;
-        --mdc-theme-primary: white;
+        --light-text-color: #9e9e9e;
+
+        /* Personality colors */
+        --main-color: #22e82a;
         --mdc-theme-on-primary: black;
+        /* --mdc-theme-secondary: #ffc107; */
+        --mdc-theme-secondary: #22e82a;
+        --mdc-theme-on-secondary: red;
         --card-color: #142730;
         --card-hover-color: #3e2723;
+
+        --disabled-color: #424242;
+
         --discreet-color: #030521;
         --dark-switch: 1;
-        --mdc-theme-surface: #263238;
-        --mdc-theme-on-surface: red;
-        --mdc-theme-on-secondary: yellow;
+        --mdc-theme-on-surface: white;
         --mdc-dialog-heading-ink-color: white;
         --mdc-dialog-content-ink-color: white;
-        --mdc-theme-text-primary-on-background: white;
-        --mdc-button-outline-color: white;
+        /* checkbox */
+        /* --mdc-checkbox-checked-color: var(--main-color); */
+        --mdc-checkbox-unchecked-color: white;
+        --mdc-checkbox-disabled-color: #adadad;
+        --mdc-checkbox-ink-color: var(--background-color);
       }
+
+
       html {
         --green: #43a047;
       }

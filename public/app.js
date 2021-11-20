@@ -1802,7 +1802,7 @@ let IconButtonToggle=class extends IconButtonToggleBase{};IconButtonToggle.style
       <mwc-button unelevated slot="primaryAction"
         @click="${()=>this.saveAndClose()}">save</mwc-button>
     </mwc-dialog>
-    `}onDarkModeIconButtonToggleChange(e){this.darkMode=e.detail.isOn,this.optionsManager.options.generalOptions.darkMode=this.darkMode,this.optionsManager.save()}requestUpdate(){try{this.strip.requestUpdate()}catch(e){}return super.requestUpdate()}async firstUpdated(){await ExchangesManager.addPair("kraken","BTC","USDT",!1),await ExchangesManager.exchanges.kraken.updatePairs(),this.requestUpdate(),window.addEventListener("keypress",(e=>{e.ctrlKey||e.altKey||"KeyV"!==e.code||(this.options.exchangeViewOptions.showVirtual=!this.options.exchangeViewOptions.showVirtual,window.sessionsInterface.requestUpdate(),this.requestUpdate(),this.save())}))}changeSessionViewOption(e,i){this.options.sessionViewOptions[i]=e.target.checked,this.requestUpdate()}open(){this.options=JSON.parse(JSON.stringify(this.optionsManager.options)),this.dialog.show()}saveAndClose(){this.save(),this.dialog.close(),window.sessionsInterface.requestUpdate(),window.app.toast("settings updated")}save(){this.optionsManager.loadOptions(this.options),this.optionsManager.save()}};OptionsInterface.styles=[sessionsStyles,r$4`
+    `}onDarkModeIconButtonToggleChange(e){this.darkMode=e.detail.isOn,this.options.generalOptions.darkMode=this.darkMode,this.optionsManager.save()}requestUpdate(){try{this.strip.requestUpdate()}catch(e){}return super.requestUpdate()}async firstUpdated(){await ExchangesManager.addPair("kraken","BTC","USDT",!1),await ExchangesManager.exchanges.kraken.updatePairs(),this.requestUpdate(),window.addEventListener("keypress",(e=>{e.ctrlKey||e.altKey||"KeyV"!==e.code||(this.options.exchangeViewOptions.showVirtual=!this.options.exchangeViewOptions.showVirtual,window.sessionsInterface.requestUpdate(),this.requestUpdate(),this.save())}))}changeSessionViewOption(e,i){this.options.sessionViewOptions[i]=e.target.checked,this.requestUpdate()}open(){this.options=JSON.parse(JSON.stringify(this.optionsManager.options)),this.dialog.show()}saveAndClose(){this.save(),this.dialog.close(),window.sessionsInterface.requestUpdate(),window.app.toast("settings updated")}save(){this.optionsManager.loadOptions(this.options),this.optionsManager.save()}};OptionsInterface.styles=[sessionsStyles,r$4`
     h4 {
       margin: 33px 0px 5px;
       font-weight: 500;
@@ -2276,7 +2276,7 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
         @opened="${this.fixOverflow}">
       <div style="width:400px"></div>
       <div>
-        <mwc-textfield label="title" placeholder="optional..." style="width:100%;margin-bottom:10px;" @keypress="${e=>e.stopPropagation()}"></mwc-textfield>
+        <mwc-textfield outlined label="title" placeholder="optional..." style="width:100%;margin-bottom:10px;" @keypress="${e=>e.stopPropagation()}"></mwc-textfield>
         <div style="display:flex;align-items:center">
           <mwc-formfield label="virtual">
             <mwc-checkbox name="virtual"></mwc-checkbox>
@@ -2312,9 +2312,9 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
         </mwc-select>
 
         <div style="display:flex;justify-content:center;align-items:center;margin:42px 0 10px;font-size:32px">
-         <span style="color:black;">${this.symbol||"??"}</span>
-         <mwc-icon style="--mdc-icon-size:32px;margin:10px;">sync_alt</mwc-icon>
-         <span style="color:black">${this.quote||"??"}</span>
+         <span>${this.symbol||"??"}</span>
+         <mwc-icon style="--mdc-icon-size:32px;margin:10px;color:var(--main-color)">sync_alt</mwc-icon>
+         <span>${this.quote||"??"}</span>
         </div>
       </div>
 
@@ -2502,7 +2502,7 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
 
       <p>If you continue, your session will show inconsistent values.<br>
       A good practice is to always sell what you have, or delete a session if it shows negative values or else the totals will also have bad results.</p>
-      `),window.tradesManager.addTrade(e,i),window.tradesInterface.dialog.show(),this.requestUpdate(),window.sessionsInterface.requestUpdate(),window.spacesManager.save()}};tradesInterface.styles=r$4`
+      `),window.tradesManager.addTrade(e,i),this.openSession(e),this.requestUpdate(),window.sessionsInterface.requestUpdate(),window.spacesManager.save()}};tradesInterface.styles=r$4`
   `,__decorate([e$5()],tradesInterface.prototype,"session",void 0),__decorate([i$2("mwc-dialog")],tradesInterface.prototype,"dialog",void 0),__decorate([i$2("session-create-dialog")],tradesInterface.prototype,"createDialog",void 0),__decorate([i$2("trade-create-dialog")],tradesInterface.prototype,"createTradeDialog",void 0),tradesInterface=__decorate([n$1("trades-interface")],tradesInterface);let SessionsInterface=class extends s$2{constructor(){super(),this.formType="form",this.tradesInterface=new tradesInterface,this.sessionsView=new SessionsView,window.sessionsInterface=this}loadSessions(e){this.tradesManager=new TradesManager(e),ExchangesManager.initializeExchangesFromSessions(this.tradesManager.sessions),ExchangesManager.startUpdateRoutines(),this.requestUpdate()}render(){return this.sessionsView.requestUpdate(),ExchangesManager.getAvailableExchanges(),this.exchange&&(sortAlphabetically(ExchangesManager.getAvailableSymbols(this.exchange)),this.symbol&&sortAlphabetically(ExchangesManager.getAvailableQuotesFromSymbol(this.exchange,this.symbol))),p`
     ${this.sessionsView}
 

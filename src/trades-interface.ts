@@ -141,7 +141,7 @@ export class tradesInterface extends LitElement {
     window.spacesManager.save()
   }
 
-  openSession (session: TradeSession) {
+  public openSession (session: TradeSession) {
     this.session = session
     this.dialog.show();
   }
@@ -196,7 +196,8 @@ export class tradesInterface extends LitElement {
     }
 
     window.tradesManager.addTrade(session, trade)
-    window.tradesInterface.dialog.show()
+    // window.tradesInterface.dialog.show()
+    this.openSession(session)
     // window.sessionsView.dialog.close()
     // window.app.toast('trade registered')
     this.requestUpdate()

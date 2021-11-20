@@ -113,7 +113,7 @@ export class OptionsInterface extends LitElement {
 
   private onDarkModeIconButtonToggleChange (e) {
     this.darkMode = e.detail.isOn;
-    this.optionsManager.options.generalOptions.darkMode = this.darkMode;
+    this.options.generalOptions.darkMode = this.darkMode;
     this.optionsManager.save()
   }
 
