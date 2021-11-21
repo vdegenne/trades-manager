@@ -41,7 +41,7 @@ export class TCodeInterface extends LitElement {
     return html`
     <mwc-dialog heading="T-Code" style="--mdc-dialog-min-width:${window.innerWidth > 560 ? `${Math.min(window.innerWidth - 40, 900)}px`: '280px'}">
       <div>
-        <p>Use a <b>t-code</b> to quickly add a trade entry (learn more)</p>
+        <p>Use a <span>t-code</span> to quickly add a trade entry (learn more)</p>
         <mwc-textfield type="text" outlined style="width:100%" initialFocusAttribute
           helperPersistent helper="${this.textfield ? ['exchange', 'symbol', 'quote', 'type', 'price', 'quantity', 'fees (optional)'][this.textfield.value.split(':').length - 1] : 'exchange'}"
           @keyup="${() => this.onTextFieldKeypress()}"></mwc-textfield>
@@ -130,7 +130,7 @@ export class TCodeInterface extends LitElement {
       if (this.checkedSession === null) {
         try {
           await window.confirmDialog.open('Create New Session', html`
-            <p style="margin-right:12px">The session <b>${tcode.symbol}-${tcode.quote}</b> on <b>${firstLetterUpperCase(tcode.exchange)}</b> doesn't exist.<br>
+            <p style="margin-right:12px">The session <span>${tcode.symbol}-${tcode.quote}</span> on <span>${firstLetterUpperCase(tcode.exchange)}</span> doesn't exist.<br>
             Do you want to create it ?</p>
           `)
         } catch (e) { return /* canceled */ }

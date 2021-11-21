@@ -100,7 +100,7 @@ export class tradesInterface extends LitElement {
     return html`
     <div class="trade">
       <b style="color:${trade.type === 'buy' ? 'green' : 'red'}">${trade.type.toUpperCase()}</b>
-      <div><b>${trade.price} ${session.quote}</b> <b style="position:relative;top:-1px;color:#bdbdbd">@</b> <span>${trade.volume}</span></div>
+      <div><span>${trade.price} ${session.quote}</span> <b style="position:relative;top:-1px;color:#bdbdbd">@</b> <span>${trade.volume}</span></div>
       ${eventful ? html`
         <mwc-icon-button icon="close"
           @click="${() => this.deleteTrade(trade)}"></mwc-icon-button>
@@ -111,7 +111,7 @@ export class tradesInterface extends LitElement {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: #eeeeee;
+        background-color: var(--on-background-color);
         padding: 6px 6px 6px 12px;
         cursor: pointer;
         margin: 4px 0;

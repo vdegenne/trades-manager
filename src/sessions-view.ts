@@ -79,7 +79,7 @@ export class SessionsView extends LitElement {
 
         <mwc-button unelevated icon="add"
           @click="${() => window.tradesInterface.createDialog.open(exchange)}"
-          style="--mdc-theme-primary:var(--discreet-color);--mdc-theme-on-primary:var(--main-text-color);border-radius:5px;display:flex;margin-top:12px;">add session</mwc-button>
+          style="--mdc-theme-primary:var(--on-background-color);--mdc-theme-on-primary:var(--main-text-color);border-radius:5px;display:flex;margin-top:12px;">add session</mwc-button>
 
         ${(() => {
           this.profitAggregator.resolveQuotes(window.spacesManager.space.currency)

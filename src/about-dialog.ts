@@ -20,10 +20,10 @@ export class AboutDialog extends LitElement {
         <p>${window.appTitle} is not a portfolio manager.<br>
         You can use ${window.appTitle} to make a quick porfolio based on your recent tradings, but chances are things will get a little clunky as new trades happen.
         Because pairs are not connected.</p>
-        <p>Let's say you buy 10 ETH on the pair <b>ETH-EUR</b> and 10 more ETH on the pair <b>ETH-USD</b>.<br>
+        <p>Let's say you buy 10 ETH on the pair <span>ETH-EUR</span> and 10 more ETH on the pair <span>ETH-USD</span>.<br>
         First of all, you have 20 ETH but they are organized in different pairs.
-        But things get more complicated if you decide to create the pair <b>CVC-ETH</b> and buy some CVC with the ETH you have.<br>
-        If you do so, now the pair <b>ETH-EUR</b> and <b>ETH-USD</b> are still updating and showing you the profit you make but from the original state (the 20 ETH you bought are still in the system.)<br>
+        But things get more complicated if you decide to create the pair <span>CVC-ETH</span> and buy some CVC with the ETH you have.<br>
+        If you do so, now the pair <span>ETH-EUR</span> and <span>ETH-USD</span> are still updating and showing you the profit you make but from the original state (the 20 ETH you bought are still in the system.)<br>
         You should know that.
 
         <h3>Ideally</h3>

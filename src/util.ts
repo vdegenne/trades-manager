@@ -82,8 +82,8 @@ export function openVirtualInfoDialog () {
   window.textDialog.open('Virtual Sessions', html`
   <p>A virtual session is like a normal session but the trades inside are not used in the calculation of the total balance.<br>
   Virtual sessions are faded on the main UI so you can distinguish them from the normal ones.</p>
-  <p><b>In short</b>: Use a virtual session when you want to experiment a pair or if you want to archive your profits.</p>
-  <p><b>Note</b>: After you create a session you can always toggle this feature on and off from the trades interface (by clicking on the session strip)</p>
+  <p><span>In short</span>: Use a virtual session when you want to experiment a pair or if you want to archive your profits.</p>
+  <p><span>Note</span>: After you create a session you can always toggle this feature on and off from the trades interface (by clicking on the session strip)</p>
   `, 'I got it')
 }
 

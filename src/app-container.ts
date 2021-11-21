@@ -137,7 +137,7 @@ class AppContainer extends LitElement {
   render () {
     return html`
     <header style="margin:7px 0 42px 10px;display:flex;align-items:center;justify-content:space-between">
-      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:var(--discreet-color);flex:1">
+      <div style="display:flex;align-items:center;padding:4px 18px 4px 10px;border-radius:7px;background-color:var(--on-background-color);flex:1">
         <img src="./images/logo.png" width="52px" height="52px" style="position:absolute"><span style="margin-left:66px;font-size:24px;font-weight:500;color:var(--main-text-color);">${window.appTitle}</span>
       </div>
       <div style="display:flex;align-items:center;color:var(--main-text-color)">
@@ -193,7 +193,7 @@ class AppContainer extends LitElement {
       await window.textDialog.open('Static version', html`
       <p>You are using the static version of ${window.appTitle}, that means you can only <i>manually</i> import and export the default space between your devices.</p>
       <p>If you want to create more spaces and <i>automatically</i> synchronise your data across your device, please visit this link instead :</p>
-      <p><b>coming soon</b></p>
+      <p><span>coming soon</span></p>
       `, 'I got it')
       this.importExport.open()
     }
