@@ -83,8 +83,8 @@ export class tradesInterface extends LitElement {
         @click="${() => window.tradeCreateDialog.open(this.session!, 'buy')}">buy</mwc-button>
       <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336"
         @click="${() => window.tradeCreateDialog.open(this.session!, 'sell')}">sell</mwc-button>
-      <mwc-button unelevated slot="secondaryAction" icon="copy_all"
-        @click="${() => this.oncloneSessionClick()}">clone</mwc-button>
+      <!-- <mwc-button unelevated slot="secondaryAction" icon="copy_all"
+        @click="${() => this.oncloneSessionClick()}">clone</mwc-button> -->
       <!-- <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336" icon="delete"
         @click="${() => window.sessionsInterface.deleteSession(this.session!)}">delete</mwc-button> -->
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>

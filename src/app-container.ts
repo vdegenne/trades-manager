@@ -26,6 +26,7 @@ import './data/import-export'
 import './data/data-loader'
 import { SessionAlert } from './session-alert'
 import './notification-manager'
+import clipboardCopy from 'clipboard-copy'
 
 declare global {
   interface Window {
@@ -185,6 +186,12 @@ class AppContainer extends LitElement {
     <text-dialog></text-dialog>
 
     <mwc-snackbar leading></mwc-snackbar>
+
+    <mwc-button unelevated dense icon="savings" style="--mdc-theme-primary:#424242;--mdc-theme-on-primary:white;font-size:9px;--mdc-typography-button-font-size:0.6rem;--mdc-button-horizontal-padding:10px"
+      @click=${() => {
+        clipboardCopy('1As8RCPmDgQXmwxeuitnhsamcNfKCppGzM');
+        this.toast('bitcoin address copied. Thanks!')
+      }}>support (btc): 1As8RCPmDgQXmwxeuitnhsamcNfKCppGzM</mwc-button>
     `
   }
 

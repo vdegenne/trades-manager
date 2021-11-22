@@ -1451,7 +1451,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
   flex: 1;
   align-items: center;
   padding: 11px;
-  background-color: var(--card-color);
+  background-color: var(--on-background-color);
   color: var(--main-text-color);
   justify-content: space-between;
   margin: 8px 0;
@@ -1484,8 +1484,8 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
   top: -21px;
   /* left: 21px; */
   padding: 1px 9px;
-  background-color: var(--card-color);
-  border: 1px solid var(--card-color);
+  background-color: var(--on-background-color);
+  border: 1px solid var(--on-background-color);
   color: var(--main-text-color);
   border-radius: 5px 5px 0 0;
   z-index: -1;
@@ -1547,6 +1547,9 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
     </mwc-dialog>
     `}firstUpdated(){const e=localStorage.getItem("spaces")?JSON.parse(localStorage.getItem("spaces").toString()):void 0;void 0!==e&&e instanceof Array&&0!==e.length?this.spaces=e:(this.createDefaultSpace(),this.save()),this.loadSpace(this.getDefaultSpace())}loadSpaces(e){this.spaces=e,this.loadSpace(this.getDefaultSpace())}loadSpace(e){window.sessionsInterface.loadSessions(e.sessions),this.space=e,window.app.requestUpdate()}async createSpace(e){const i={name:e,currency:"EUR",sessions:[]};return this.spaces.push(i),i}async createDefaultSpace(){this.spaces.push({name:"default",sessions:[],currency:"EUR",wallets:Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((e=>[e,[]])))})}getDefaultSpace(){return this.spaces.find((e=>"default"===e.name))}async askCurrency(){return await new Promise((e=>{this.askCurrencyResolve=e,this.currencyDialog.show()}))}save(){localStorage.setItem("spaces",this.toString())}toString(){return JSON.stringify(this.spaces)}};__decorate([e$5()],SpacesManager.prototype,"currency",void 0),__decorate([i$2("#currency-dialog")],SpacesManager.prototype,"currencyDialog",void 0),SpacesManager=__decorate([n$1("spaces-manager")],SpacesManager);class Aggregator{constructor(e,i){this.units=i||[],this.exchangeName=e}pushUnit(e,i){const t=this.units.find((i=>i[0]===e));t?t[1]+=i:this.units.push([e,i])}resolveQuotes(e){for(const i of this.units)if(i[0]!==e){const{quote:t,price:s}=ExchangesManager.getConversionPrice(i[0],e,this.exchangeName);t===e&&void 0!==s&&(i[0]=t,i[1]=s*i[1])}this.reduce()}reduce(){const e=[];for(const i of this.units){const t=e.find((e=>e[0]===i[0]));t?t[1]+=i[1]:e.push([i[0],i[1]])}this.units=e}isEmpty(){return!this.units.length}clone(){const e=[];for(const i of this.units)e.push([i[0],i[1]]);return new Aggregator(this.exchangeName,e)}}function round$2(e,i=2){return Math.round(e*10**i)/10**i}function openCryptowatchLink(e){window.open(`https://cryptowat.ch/charts/${e.exchange}:${e.symbol}-${e.quote}`,"_blank")}function sortAlphabetically(e){return e.sort(((e,i)=>e<i?-1:e>i?1:0))}function firstLetterUpperCase(e){if(e)return e[0].toUpperCase()+e.slice(1)}const symbolsMap={EUR:"€",USD:"$",BTC:"₿",ETH:"Ξ",USDT:"₮",BNB:"Ƀ"},precisionsMap={EUR:2,USD:2,ETH:3,BTC:3};function formatOutputPrice(e,i,t=!1){let s=symbolsMap[i]||` ${i}`;return`${t&&e>0?"+":""}${round$2(e,precisionsMap[i]||5)}${s}`}function outputPriceTemplate(e,i,t=!1){return p`
   <span style="font-weight:bold;color:${0===e?"var(--main-text-color)":e>0?t?"#3adc41":"var(--green)":t?"#f44336":"#ff0000"};font-weight:500">${formatOutputPrice(e,i,!0)}</span>
+  `}function percentTemplate(e){const t=i({backgroundColor:e?e>0?"var(--green)":e<-12?"#971212":"red":"grey",color:"var(--text-on-background-color, white)"});return p`
+  <span class="percent" style=${t}>${round$2(e)||"0"}%</span>
+        <!-- style="background-color:${e?e>0?"var(--green)":e<-12?"#971212":"red":"grey"};color:var(--text-on-background-color, white)">${round$2(e,2)||"0"}%</span> -->
   `}function openVirtualInfoDialog(){window.textDialog.open("Virtual Sessions",p`
   <p>A virtual session is like a normal session but the trades inside are not used in the calculation of the total balance.<br>
   Virtual sessions are faded on the main UI so you can distinguish them from the normal ones.</p>
@@ -1638,12 +1641,9 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
       </div>
 
       <!-- PERCENT -->
-        ${r.showPercent?p`
+        ${r.showPercent?percentTemplate(a):T}
         <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
-          <span class="percent"
-            style="background-color:${a?a>0?"var(--green)":a<-12?"#971212":"red":"grey"}">${round$2(a,2)||"0"}%</span>
         <!-- </div> -->
-        `:T}
 
       ${r.showCross?p`
         <mwc-icon-button icon="close"
@@ -2230,10 +2230,15 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
     <mwc-dialog></mwc-dialog>
     `}requestUpdate(e,i){try{this.stripElements.forEach((e=>e.requestUpdate()))}catch(e){}return super.requestUpdate(e,i)}updated(){}getStripFromSessionElement(e){return[...this.stripElements].find((i=>i.session===e))}openPreSessionMenu(e){const i=getSummary(e);this.dialog.heading=`${e.symbol} (vol: ${i.volume})`,w$1(p`
     <style>
-      mwc-dialog > mwc-button:not([slot=primaryAction]) {
+      /* mwc-dialog > mwc-button:not([slot=primaryAction]) {
+        margin: 7px 0;
+      } */
+      #pre-menu > mwc-button {
+        --mdc-theme-primary: var(--main-text-color);
         margin: 7px 0;
       }
     </style>
+    <div id="pre-menu">
     <div>invested: ${formatOutputPrice(i.invested,e.quote)}</div>
     <div style="display:flex;justify-content:space-evenly;margin: 18px 0">
       <mwc-button style="--mdc-theme-primary:#4caf50" dialogAction="close" raised
@@ -2255,6 +2260,7 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
           @change="${i=>{e.virtual=i.target.checked,window.sessionsInterface.requestUpdate(),window.spacesManager.save()}}"></mwc-checkbox>
       </mwc-formfield>
       <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center;--mdc-icon-size:18px" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
+    </div>
     </div>
 
     <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>
@@ -2455,8 +2461,8 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
         @click="${()=>window.tradeCreateDialog.open(this.session,"buy")}">buy</mwc-button>
       <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336"
         @click="${()=>window.tradeCreateDialog.open(this.session,"sell")}">sell</mwc-button>
-      <mwc-button unelevated slot="secondaryAction" icon="copy_all"
-        @click="${()=>this.oncloneSessionClick()}">clone</mwc-button>
+      <!-- <mwc-button unelevated slot="secondaryAction" icon="copy_all"
+        @click="${()=>this.oncloneSessionClick()}">clone</mwc-button> -->
       <!-- <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336" icon="delete"
         @click="${()=>window.sessionsInterface.deleteSession(this.session)}">delete</mwc-button> -->
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
@@ -2709,6 +2715,9 @@ var clipboardCopy_1=clipboardCopy;function makeError(){return new DOMException("
     <text-dialog></text-dialog>
 
     <mwc-snackbar leading></mwc-snackbar>
+
+    <mwc-button unelevated dense icon="savings" style="--mdc-theme-primary:#424242;--mdc-theme-on-primary:white;font-size:9px;--mdc-typography-button-font-size:0.6rem;--mdc-button-horizontal-padding:10px"
+      @click=${()=>{clipboardCopy_1("1As8RCPmDgQXmwxeuitnhsamcNfKCppGzM"),this.toast("bitcoin address copied. Thanks!")}}>support (btc): 1As8RCPmDgQXmwxeuitnhsamcNfKCppGzM</mwc-button>
     `}async onSpaceButtonClick(){this.static?(await window.textDialog.open("Static version",p`
       <p>You are using the static version of ${window.appTitle}, that means you can only <i>manually</i> import and export the default space between your devices.</p>
       <p>If you want to create more spaces and <i>automatically</i> synchronise your data across your device, please visit this link instead :</p>

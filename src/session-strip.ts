@@ -5,7 +5,7 @@ import { ExchangesManager } from "./ExchangesManager";
 import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
 import { getSummary, TradeSession } from "./TradesManager";
-import { formatOutputPrice, openCryptowatchLink, outputPriceTemplate, round } from "./util";
+import { formatOutputPrice, openCryptowatchLink, outputPriceTemplate, percentTemplate, round } from "./util";
 
 @customElement('session-strip')
 export class SessionStrip extends LitElement {
@@ -126,12 +126,9 @@ export class SessionStrip extends LitElement {
       </div>
 
       <!-- PERCENT -->
-        ${viewOptions.showPercent ? html`
+        ${viewOptions.showPercent ? percentTemplate(percent) : nothing}
         <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
-          <span class="percent"
-            style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < -12 ? '#971212' : 'red')}">${round(percent, 2) || '0'}%</span>
         <!-- </div> -->
-        ` : nothing }
 
       ${viewOptions.showCross ? html`
         <mwc-icon-button icon="close"

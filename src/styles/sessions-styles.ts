@@ -6,7 +6,7 @@ export default css`
   flex: 1;
   align-items: center;
   padding: 11px;
-  background-color: var(--card-color);
+  background-color: var(--on-background-color);
   color: var(--main-text-color);
   justify-content: space-between;
   margin: 8px 0;
@@ -39,8 +39,8 @@ export default css`
   top: -21px;
   /* left: 21px; */
   padding: 1px 9px;
-  background-color: var(--card-color);
-  border: 1px solid var(--card-color);
+  background-color: var(--on-background-color);
+  border: 1px solid var(--on-background-color);
   color: var(--main-text-color);
   border-radius: 5px 5px 0 0;
   z-index: -1;

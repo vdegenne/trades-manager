@@ -255,10 +255,15 @@ export class SessionsView extends LitElement {
 
     render(html`
     <style>
-      mwc-dialog > mwc-button:not([slot=primaryAction]) {
+      /* mwc-dialog > mwc-button:not([slot=primaryAction]) {
+        margin: 7px 0;
+      } */
+      #pre-menu > mwc-button {
+        --mdc-theme-primary: var(--main-text-color);
         margin: 7px 0;
       }
     </style>
+    <div id="pre-menu">
     <div>invested: ${formatOutputPrice(summary.invested, session.quote)}</div>
     <div style="display:flex;justify-content:space-evenly;margin: 18px 0">
       <mwc-button style="--mdc-theme-primary:#4caf50" dialogAction="close" raised
@@ -284,6 +289,7 @@ export class SessionsView extends LitElement {
           }}"></mwc-checkbox>
       </mwc-formfield>
       <mwc-icon style="cursor:pointer;margin-left:10px;vertical-align:center;--mdc-icon-size:18px" @click="${openVirtualInfoDialog}">help_outline</mwc-icon>
+    </div>
     </div>
 
     <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>

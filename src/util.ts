@@ -1,4 +1,5 @@
-import { html, nothing } from "lit";
+import { html, nothing } from 'lit';
+import {styleMap} from 'lit/directives/style-map.js';
 import { Aggregator } from "./profit-aggregator";
 import { TradeSession } from "./TradesManager";
 
@@ -74,6 +75,17 @@ export function outputPriceTemplate (value: number, quote: string, light = false
 
   return html`
   <span style="font-weight:bold;color:${value === 0 ? 'var(--main-text-color)' : (value > 0 ? green : red)};font-weight:500">${formatOutputPrice(value, quote, true)}</span>
+  `
+}
+
+export function percentTemplate (percent: number) {
+  const styles = styleMap({
+    backgroundColor: !percent ? 'grey' : (percent > 0 ? 'var(--green)' : (percent < -12 ? '#971212' : 'red')),
+    color: 'var(--text-on-background-color, white)'
+  })
+  return html`
+  <span class="percent" style=${styles}>${round(percent) || '0'}%</span>
+        <!-- style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < -12 ? '#971212' : 'red')};color:var(--text-on-background-color, white)">${round(percent, 2) || '0'}%</span> -->
   `
 }
 
