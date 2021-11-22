@@ -81,7 +81,7 @@ export function outputPriceTemplate (value: number, quote: string, light = false
 export function percentTemplate (percent: number) {
   const styles = styleMap({
     backgroundColor: !percent ? 'grey' : (percent > 0 ? 'var(--green)' : (percent < -12 ? '#971212' : 'red')),
-    color: 'var(--text-on-background-color, white)'
+    color: percent <= 0 ? 'white' : 'var(--text-on-background-color, white)'
   })
   return html`
   <span class="percent" style=${styles}>${round(percent) || '0'}%</span>
