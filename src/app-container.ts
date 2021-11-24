@@ -187,7 +187,7 @@ class AppContainer extends LitElement {
 
     <mwc-snackbar leading></mwc-snackbar>
 
-    <mwc-button unelevated dense icon="savings" style="--mdc-theme-primary:#424242;--mdc-theme-on-primary:white;font-size:9px;--mdc-typography-button-font-size:0.6rem;--mdc-button-horizontal-padding:10px"
+    <mwc-button unelevated dense icon="savings" style="--mdc-theme-primary:#181414;--mdc-theme-on-primary:#ffc107;font-size:9px;--mdc-typography-button-font-size:0.6rem;--mdc-button-horizontal-padding:10px"
       @click=${() => {
         clipboardCopy('1As8RCPmDgQXmwxeuitnhsamcNfKCppGzM');
         this.toast('bitcoin address copied. Thanks!')
