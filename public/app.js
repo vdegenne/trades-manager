@@ -1,4 +1,3 @@
-import"@material/mwc-icon-button-toggle";
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
 
@@ -12,7 +11,8 @@ INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
 LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */var extendStatics=function(e,i){return extendStatics=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,i){e.__proto__=i}||function(e,i){for(var t in i)Object.prototype.hasOwnProperty.call(i,t)&&(e[t]=i[t])},extendStatics(e,i)};function __extends(e,i){if("function"!=typeof i&&null!==i)throw new TypeError("Class extends value "+String(i)+" is not a constructor or null");function t(){this.constructor=e}extendStatics(e,i),e.prototype=null===i?Object.create(i):(t.prototype=i.prototype,new t)}var __assign=function(){return __assign=Object.assign||function(e){for(var i,t=1,s=arguments.length;t<s;t++)for(var o in i=arguments[t])Object.prototype.hasOwnProperty.call(i,o)&&(e[o]=i[o]);return e},__assign.apply(this,arguments)};function __decorate(e,i,t,s){var o,d=arguments.length,n=d<3?i:null===s?s=Object.getOwnPropertyDescriptor(i,t):s;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)n=Reflect.decorate(e,i,t,s);else for(var a=e.length-1;a>=0;a--)(o=e[a])&&(n=(d<3?o(n):d>3?o(i,t,n):o(i,t))||n);return d>3&&n&&Object.defineProperty(i,t,n),n}function __values(e){var i="function"==typeof Symbol&&Symbol.iterator,t=i&&e[i],s=0;if(t)return t.call(e);if(e&&"number"==typeof e.length)return{next:function(){return e&&s>=e.length&&(e=void 0),{value:e&&e[s++],done:!e}}};throw new TypeError(i?"Object is not iterable.":"Symbol.iterator is not defined.")}function __read(e,i){var t="function"==typeof Symbol&&e[Symbol.iterator];if(!t)return e;var s,o,d=t.call(e),n=[];try{for(;(void 0===i||i-- >0)&&!(s=d.next()).done;)n.push(s.value)}catch(e){o={error:e}}finally{try{s&&!s.done&&(t=d.return)&&t.call(d)}finally{if(o)throw o.error}}return n}
+***************************************************************************** */
+var extendStatics=function(e,i){return extendStatics=Object.setPrototypeOf||{__proto__:[]}instanceof Array&&function(e,i){e.__proto__=i}||function(e,i){for(var t in i)Object.prototype.hasOwnProperty.call(i,t)&&(e[t]=i[t])},extendStatics(e,i)};function __extends(e,i){if("function"!=typeof i&&null!==i)throw new TypeError("Class extends value "+String(i)+" is not a constructor or null");function t(){this.constructor=e}extendStatics(e,i),e.prototype=null===i?Object.create(i):(t.prototype=i.prototype,new t)}var __assign=function(){return __assign=Object.assign||function(e){for(var i,t=1,s=arguments.length;t<s;t++)for(var o in i=arguments[t])Object.prototype.hasOwnProperty.call(i,o)&&(e[o]=i[o]);return e},__assign.apply(this,arguments)};function __decorate(e,i,t,s){var o,d=arguments.length,n=d<3?i:null===s?s=Object.getOwnPropertyDescriptor(i,t):s;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)n=Reflect.decorate(e,i,t,s);else for(var a=e.length-1;a>=0;a--)(o=e[a])&&(n=(d<3?o(n):d>3?o(i,t,n):o(i,t))||n);return d>3&&n&&Object.defineProperty(i,t,n),n}function __values(e){var i="function"==typeof Symbol&&Symbol.iterator,t=i&&e[i],s=0;if(t)return t.call(e);if(e&&"number"==typeof e.length)return{next:function(){return e&&s>=e.length&&(e=void 0),{value:e&&e[s++],done:!e}}};throw new TypeError(i?"Object is not iterable.":"Symbol.iterator is not defined.")}function __read(e,i){var t="function"==typeof Symbol&&e[Symbol.iterator];if(!t)return e;var s,o,d=t.call(e),n=[];try{for(;(void 0===i||i-- >0)&&!(s=d.next()).done;)n.push(s.value)}catch(e){o={error:e}}finally{try{s&&!s.done&&(t=d.return)&&t.call(d)}finally{if(o)throw o.error}}return n}
 /**
  * @license
  * Copyright 2019 Google LLC
@@ -1716,7 +1716,47 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
 
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
-    `}open(){this.dialog.show()}};__decorate([i$2("mwc-dialog")],AboutDialog.prototype,"dialog",void 0),AboutDialog=__decorate([n$1("about-dialog")],AboutDialog);class OptionsManager{constructor(e){this.options=e||(localStorage.getItem("options")?JSON.parse(localStorage.getItem("options")):this.default),void 0!==this.options.generalOptions&&void 0!==this.options.generalOptions.darkMode||(this.options.generalOptions={darkMode:!1}),window.optionsManager=this,window.options=this.options}loadOptions(e){window.options=this.options=e}get default(){return{generalOptions:{darkMode:!1},exchangeViewOptions:{showWallet:!0,showVirtual:!0},sessionViewOptions:{events:!0,showPrice:!0,showSourceProfit:!1,showTotalValue:!0,showPercent:!0,showCross:!1}}}save(){localStorage.setItem("options",JSON.stringify(this.options))}}let OptionsInterface=class extends s$2{constructor(e){super(),this.darkMode=!1,this.session={id:0,exchange:"kraken",symbol:"BTC",quote:"USDT",trades:[{type:"buy",price:55800,volume:.01}],virtual:!1},this.strip=new SessionStrip(this.session),window.optionsInterface=this,this.optionsManager=new OptionsManager(e),this.darkMode=this.optionsManager.options.generalOptions.darkMode,this.options=JSON.parse(JSON.stringify(this.optionsManager.options))}render(){return this.strip.viewOptions=Object.assign({},this.options.sessionViewOptions,{events:!1}),this.darkMode?document.body.setAttribute("dark",""):document.body.removeAttribute("dark"),p`
+    `}open(){this.dialog.show()}};__decorate([i$2("mwc-dialog")],AboutDialog.prototype,"dialog",void 0),AboutDialog=__decorate([n$1("about-dialog")],AboutDialog);class OptionsManager{constructor(e){this.options=e||(localStorage.getItem("options")?JSON.parse(localStorage.getItem("options")):this.default),void 0!==this.options.generalOptions&&void 0!==this.options.generalOptions.darkMode||(this.options.generalOptions={darkMode:!1}),window.optionsManager=this,window.options=this.options}loadOptions(e){window.options=this.options=e}get default(){return{generalOptions:{darkMode:!1},exchangeViewOptions:{showWallet:!0,showVirtual:!0},sessionViewOptions:{events:!0,showPrice:!0,showSourceProfit:!1,showTotalValue:!0,showPercent:!0,showCross:!1}}}save(){localStorage.setItem("options",JSON.stringify(this.options))}}
+/**
+ * @license
+ * Copyright 2019 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */class IconButtonToggleBase extends s$2{constructor(){super(...arguments),this.disabled=!1,this.onIcon="",this.offIcon="",this.on=!1,this.shouldRenderRipple=!1,this.rippleHandlers=new RippleHandlers((()=>(this.shouldRenderRipple=!0,this.ripple)))}handleClick(){this.on=!this.on,this.dispatchEvent(new CustomEvent("icon-button-toggle-change",{detail:{isOn:this.on},bubbles:!0}))}click(){this.mdcRoot.focus(),this.mdcRoot.click()}focus(){this.rippleHandlers.startFocus(),this.mdcRoot.focus()}blur(){this.rippleHandlers.endFocus(),this.mdcRoot.blur()}renderRipple(){return this.shouldRenderRipple?p`
+            <mwc-ripple
+                .disabled="${this.disabled}"
+                unbounded>
+            </mwc-ripple>`:""}render(){const e={"mdc-icon-button--on":this.on},i=void 0!==this.ariaLabelOn&&void 0!==this.ariaLabelOff,t=i?void 0:this.on,s=i?this.on?this.ariaLabelOn:this.ariaLabelOff:this.ariaLabel;return p`<button
+          class="mdc-icon-button mdc-icon-button--display-flex ${o$1(e)}"
+          aria-pressed="${l$2(t)}"
+          aria-label="${l$2(s)}"
+          @click="${this.handleClick}"
+          ?disabled="${this.disabled}"
+          @focus="${this.handleRippleFocus}"
+          @blur="${this.handleRippleBlur}"
+          @mousedown="${this.handleRippleMouseDown}"
+          @mouseenter="${this.handleRippleMouseEnter}"
+          @mouseleave="${this.handleRippleMouseLeave}"
+          @touchstart="${this.handleRippleTouchStart}"
+          @touchend="${this.handleRippleDeactivate}"
+          @touchcancel="${this.handleRippleDeactivate}"
+        >${this.renderRipple()}
+        <span class="mdc-icon-button__icon"
+          ><slot name="offIcon"
+            ><i class="material-icons">${this.offIcon}</i
+          ></slot
+        ></span>
+        <span class="mdc-icon-button__icon mdc-icon-button__icon--on"
+          ><slot name="onIcon"
+            ><i class="material-icons">${this.onIcon}</i
+          ></slot
+        ></span>
+      </button>`}handleRippleMouseDown(e){const i=()=>{window.removeEventListener("mouseup",i),this.handleRippleDeactivate()};window.addEventListener("mouseup",i),this.rippleHandlers.startPress(e)}handleRippleTouchStart(e){this.rippleHandlers.startPress(e)}handleRippleDeactivate(){this.rippleHandlers.endPress()}handleRippleMouseEnter(){this.rippleHandlers.startHover()}handleRippleMouseLeave(){this.rippleHandlers.endHover()}handleRippleFocus(){this.rippleHandlers.startFocus()}handleRippleBlur(){this.rippleHandlers.endFocus()}}__decorate([i$2(".mdc-icon-button")],IconButtonToggleBase.prototype,"mdcRoot",void 0),__decorate([ariaProperty,e$5({type:String,attribute:"aria-label"})],IconButtonToggleBase.prototype,"ariaLabel",void 0),__decorate([e$5({type:Boolean,reflect:!0})],IconButtonToggleBase.prototype,"disabled",void 0),__decorate([e$5({type:String})],IconButtonToggleBase.prototype,"onIcon",void 0),__decorate([e$5({type:String})],IconButtonToggleBase.prototype,"offIcon",void 0),__decorate([e$5({type:String})],IconButtonToggleBase.prototype,"ariaLabelOn",void 0),__decorate([e$5({type:String})],IconButtonToggleBase.prototype,"ariaLabelOff",void 0),__decorate([e$5({type:Boolean,reflect:!0})],IconButtonToggleBase.prototype,"on",void 0),__decorate([e$2("mwc-ripple")],IconButtonToggleBase.prototype,"ripple",void 0),__decorate([t$1()],IconButtonToggleBase.prototype,"shouldRenderRipple",void 0),__decorate([e$4({passive:!0})],IconButtonToggleBase.prototype,"handleRippleMouseDown",null),__decorate([e$4({passive:!0})],IconButtonToggleBase.prototype,"handleRippleTouchStart",null);
+/**
+ * @license
+ * Copyright 2019 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+let IconButtonToggle=class extends IconButtonToggleBase{};IconButtonToggle.styles=[styles$7],IconButtonToggle=__decorate([n$1("mwc-icon-button-toggle")],IconButtonToggle);let OptionsInterface=class extends s$2{constructor(e){super(),this.darkMode=!1,this.session={id:0,exchange:"kraken",symbol:"BTC",quote:"USDT",trades:[{type:"buy",price:55800,volume:.01}],virtual:!1},this.strip=new SessionStrip(this.session),window.optionsInterface=this,this.optionsManager=new OptionsManager(e),this.darkMode=this.optionsManager.options.generalOptions.darkMode,this.options=JSON.parse(JSON.stringify(this.optionsManager.options))}render(){return this.strip.viewOptions=Object.assign({},this.options.sessionViewOptions,{events:!1}),this.darkMode?document.body.setAttribute("dark",""):document.body.removeAttribute("dark"),p`
     <mwc-dialog heading="Options">
       <div style="width:600px"></div>
       <div>
