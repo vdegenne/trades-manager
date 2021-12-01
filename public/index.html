@@ -114,5 +114,10 @@
     </style>
     <app-container></app-container>
     <script type="module" src="./app.js"></script>
+    <script>
+      (async function () {
+        window.BinancePairs = await (await fetch('/binance-pairs.json')).json()
+      })()
+    </script>
   </body>
 </html>

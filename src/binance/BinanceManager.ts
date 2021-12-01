@@ -1,12 +1,18 @@
 import ms from "ms";
 import { PairsManager, PairsManagerInterface } from "../PairsManager";
-import binancePairs from './binance-pairs.json'
+// import binancePairs from './binance-pairs.json'
+
+declare global {
+  interface Window {
+    BinancePairs: { s: string, q: string }[]
+  }
+}
 
 export class BinanceManager extends PairsManager implements PairsManagerInterface {
   protected timeoutMs = ms('5s')
 
   isPairAvailable (symbol: string, quote: string) {
-    return binancePairs.some(p => {
+    return window.BinancePairs.some(p => {
       return p.s === symbol && p.q === quote;
     })
   }
@@ -26,10 +32,10 @@ export class BinanceManager extends PairsManager implements PairsManagerInterfac
   }
 
   getAvailableSymbols () {
-    return [...new Set(binancePairs.map(p => p.s))]
+    return [...new Set(window.BinancePairs.map(p => p.s))]
   }
 
   getAvailableQuotesFromSymbol (symbol: string) {
-    return [...new Set(binancePairs.filter(p => p.s === symbol).map(p => p.q))]
+    return [...new Set(window.BinancePairs.filter(p => p.s === symbol).map(p => p.q))]
   }
 }
