@@ -58,7 +58,7 @@ export class SpacesManager extends LitElement {
     `
   }
 
-  firstUpdated () {
+  async firstUpdated () {
     // first we get data if any
     const spaces = localStorage.getItem('spaces') ? JSON.parse(localStorage.getItem('spaces')!.toString()) : undefined;
 
@@ -88,6 +88,11 @@ export class SpacesManager extends LitElement {
       //   }
       // })
       this.spaces = spaces
+    }
+
+    // Before anything else we make sure the pairs are served before trying to display the user's sessions.
+    while (window.BinancePairs === undefined) {
+      await new Promise(resolve => setTimeout(resolve, 200))
     }
 
     // we should load the space indentified in the url or default

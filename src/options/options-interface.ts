@@ -1,4 +1,4 @@
-import { css, html, LitElement } from 'lit';
+import { css, html, LitElement, nothing } from 'lit';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { Dialog } from "@material/mwc-dialog";
 import { ExchangesManager } from "../ExchangesManager";
@@ -28,7 +28,8 @@ export class OptionsInterface extends LitElement {
     trades: [{ type: 'buy', price: 55800, volume: 0.01 }],
     virtual: false
   };
-  private strip = new SessionStrip(this.session)
+  private strip?: SessionStrip;
+  // private strip = new SessionStrip(this.session)
 
   constructor (options?: Options) {
     super()
@@ -39,6 +40,13 @@ export class OptionsInterface extends LitElement {
     this.darkMode = this.optionsManager.options.generalOptions.darkMode;
 
     this.options = JSON.parse(JSON.stringify(this.optionsManager.options)) // cloning
+
+    new Promise(async resolve => {
+      while (window.BinancePairs === undefined) {
+        await new Promise(r => setTimeout(r, 200))
+      }
+      resolve(null)
+    }).then(_ => this.strip = new SessionStrip(this.session))
   }
 
   static styles = [
@@ -54,6 +62,10 @@ export class OptionsInterface extends LitElement {
   @query('mwc-dialog') dialog!: Dialog;
 
   render () {
+    if (this.strip === undefined) {
+      return nothing;
+    }
+
     this.strip.viewOptions = Object.assign({}, this.options.sessionViewOptions, { events: false });
     if (this.darkMode) {
       document.body.setAttribute('dark', '')

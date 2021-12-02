@@ -50,6 +50,11 @@ export class SessionsView extends LitElement {
   ]
 
   render() {
+
+    if (window.sessions === undefined) {
+      return nothing;
+    }
+
     return html`
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
       const sessions = window.sessions.filter(session => session.exchange === exchange && (window.options.exchangeViewOptions.showVirtual || !session.virtual))
