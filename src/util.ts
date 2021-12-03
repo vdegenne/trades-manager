@@ -1,7 +1,7 @@
 import { html, nothing } from 'lit';
 import {styleMap} from 'lit/directives/style-map.js';
 import { Aggregator } from "./profit-aggregator";
-import { TradeSession } from "./TradesManager";
+import { SessionSummary, TradeSession } from "./TradesManager";
 
 export function round(value: number, precision = 2) {
   return Math.round(value * (10**precision)) / (10**precision);
@@ -78,13 +78,28 @@ export function outputPriceTemplate (value: number, quote: string, light = false
   `
 }
 
-export function percentTemplate (percent: number) {
+export function percentTemplate (summary: SessionSummary) {
+  const percent = summary.percent!;
+  let backgroundColor = 'grey', color, text = `${round(percent) || '0'}%`;
+  if (percent) {
+    if (percent === -100 && summary.volume === 0) {
+      text = '$$$'
+      backgroundColor = '#ffeb3b'
+    }
+    else if (percent > 0) backgroundColor = 'var(--green)'
+    else if (percent < -12) backgroundColor = '#971212'
+    else backgroundColor = 'red'
+
+    if (percent === -100 && summary.volume === 0) color = 'black'
+    else if (percent <= 0) color = 'white'
+    else color = 'var(--text-on-background-color, white)'
+  }
   const styles = styleMap({
-    backgroundColor: !percent ? 'grey' : (percent > 0 ? 'var(--green)' : (percent < -12 ? '#971212' : 'red')),
-    color: percent <= 0 ? 'white' : 'var(--text-on-background-color, white)'
+    backgroundColor,
+    color
   })
   return html`
-  <span class="percent" style=${styles}>${round(percent) || '0'}%</span>
+  <span class="percent" style=${styles}>${text}</span>
         <!-- style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < -12 ? '#971212' : 'red')};color:var(--text-on-background-color, white)">${round(percent, 2) || '0'}%</span> -->
   `
 }
