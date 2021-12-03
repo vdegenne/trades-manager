@@ -1,4 +1,5 @@
-import { AvailableExchanges } from "./ExchangesManager"
+import { AvailableExchanges, ExchangesManager } from "./ExchangesManager"
+import { SessionStrip } from "./session-strip"
 
 export type KrakenTradeObject = {
   pair: string,
@@ -46,6 +47,14 @@ export type TradeSession = {
 export type TradesSummary = {
   invested: number,
   volume: number,
+}
+export type SessionSummary = {
+  invested: number,
+  volume: number,
+  price: number|undefined,
+  total: number|undefined,
+  profit: number|undefined,
+  percent: number|undefined,
 }
 
 declare global {
@@ -182,3 +191,18 @@ export const getSummary = summarizeSessionTrades; // alias
 //     })
 //   )
 // }
+
+export function summarizeSession (session: TradeSession): SessionSummary {
+  const summary = summarizeSessionTrades(session)
+  const ssummary: Partial<SessionSummary> = {...summary}
+  const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote)
+  if (price) {
+    ssummary.price = price;
+    ssummary.total = price * summary.volume;
+    ssummary.profit = ssummary.total - summary.invested
+    ssummary.percent = ((ssummary.total - summary.invested) / summary.invested) * 100;
+  }
+
+  return ssummary as SessionSummary;
+}
+export const getSessionSummary = summarizeSession;

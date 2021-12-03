@@ -1,7 +1,7 @@
 import { css, html, LitElement, nothing, render } from 'lit';
 import { customElement, query, queryAll } from 'lit/decorators.js';
 import{ live } from 'lit/directives/live.js'
-import { getSummary, Trade, TradesManager, TradeSession } from "./TradesManager";
+import { getSummary, Trade, TradesManager, TradeSession, getSessionSummary } from "./TradesManager";
 import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, openChart, openVirtualInfoDialog, outputPriceTemplate, round } from "./util";
 // import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
@@ -59,12 +59,17 @@ export class SessionsView extends LitElement {
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
       const sessions = window.sessions.filter(session => session.exchange === exchange && (window.options.exchangeViewOptions.showVirtual || !session.virtual))
 
-
       this.profitAggregator = new Aggregator(exchange)
       this.totalValueAggregator = new Aggregator(exchange)
       this.walletAggregator = new Aggregator(exchange)
 
       // if (sessions.length === 0) return nothing
+
+      const ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
+        return b.percent! - a.percent!
+      })
+      // ordered by percent for now
+      console.log(ordered)
 
       return html`
       <div class="exchange-frame">
@@ -73,10 +78,11 @@ export class SessionsView extends LitElement {
             style="">${firstLetterUpperCase(exchange)}</mwc-button>
         </div>
 
-        ${sessions.map(s => {
-          // const session = new SessionStrip(s)
-          return html`<session-strip .session="${s}"></session-strip>`;
+
+        ${ordered.map(o => {
+          return html`<session-strip .session=${o.s}></session-strip>`
         })}
+
 
         <!-- BOTTOM BAR -->
 
@@ -122,9 +128,10 @@ export class SessionsView extends LitElement {
 
   updated() {
     // should use for the aggregators right here ?
-    // Promise.all([].map.call(this.stripElements, (e: SessionStrip) => e.updateComplete)).then(() => {
-    //   console.log('updated !!!!!!!!')
-    // })
+    Promise.all([].map.call(this.stripElements, (e: SessionStrip) => e.updateComplete)).then((els) => {
+      // console.log('updated !!!!!!!!')
+      // console.log([...this.stripElements].map(el => el.summary))
+    })
   }
 
 
