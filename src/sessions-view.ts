@@ -57,6 +57,8 @@ export class SessionsView extends LitElement {
       return nothing;
     }
 
+    let zIndex = window.sessions.length;
+
     return html`
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
       const sessions = window.sessions.filter(session => session.exchange === exchange && (window.options.exchangeViewOptions.showVirtual || !session.virtual))
@@ -82,7 +84,8 @@ export class SessionsView extends LitElement {
 
 
         ${ordered.map(o => {
-          return html`<session-strip .session=${o.s}></session-strip>`
+          zIndex--;
+          return html`<session-strip .session=${o.s} .zIndex=${zIndex}></session-strip>`
         })}
 
 

@@ -1,5 +1,5 @@
 
-import "@material/mwc-icon/mwc-icon";import { html, LitElement, nothing } from 'lit';
+import "@material/mwc-icon/mwc-icon";import { css, html, LitElement, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ExchangesManager } from "./ExchangesManager";
 import { SessionViewOptions } from "./options/options";
@@ -17,6 +17,8 @@ export class SessionStrip extends LitElement {
 
   public summary?: SessionSummary;
 
+  private zIndex!: number;
+
   constructor (session: TradeSession, options?: Partial<SessionViewOptions>) {
     super()
     this.session = session;
@@ -25,6 +27,11 @@ export class SessionStrip extends LitElement {
   }
 
   static styles = [
+    css`
+    :host {
+      display: block;
+    }
+    `,
     sessionsStyles,
   ]
 
@@ -72,6 +79,7 @@ export class SessionStrip extends LitElement {
 
     return html`
     <div class="session"
+        style="z-index:${this.zIndex}"
         ?entitled="${session.title}"
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
