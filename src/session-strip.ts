@@ -164,8 +164,9 @@ export class SessionStrip extends LitElement {
 
 
   private async checkAlert () {
+    console.log(this.session)
     // Only alert if there is actually an alert and ...
-    if (this.session.alert === undefined || this.session.alert.notified) return;
+    if (this.session === undefined || this.session.alert === undefined || this.session.alert.notified) return;
 
     // This function returns false if something went wrong or the user denied notifications
     if (!await window.notificationService.checkPermission()) {
