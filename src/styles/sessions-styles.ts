@@ -14,7 +14,8 @@ export default css`
   line-height: normal;
   /* box-shadow:0px 3px 1px -2px rgba(0, 0, 0, 0.1), 0px 2px 2px 0px rgba(0, 0, 0, 0.08), 0px 1px 5px 0px rgba(0, 0, 0, 0.06); */
   /* box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25); */
-  box-shadow: rgb(0 0 0 / 20%) 0px 1px 4px -1px;
+  /* box-shadow: rgb(0 0 0 / 20%) 0px 1px 4px -1px; */
+  box-shadow: rgb(0 0 0 / 20%) 0px 35px 15px -29px;
   position: relative;
 }
 .session[entitled] {
@@ -25,7 +26,8 @@ export default css`
   transition: background-color .2s linear;
 }
 .session[eventful]:hover {
-  background-color: var(--discreet-color);
+  /*background-color: var(--discreet-color);*/
+  opacity: 0.7;
 }
 .session[external] {
   border: 2px solid #e0e0e0;
