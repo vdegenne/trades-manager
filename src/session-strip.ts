@@ -164,6 +164,7 @@ export class SessionStrip extends LitElement {
 
 
   private async checkAlert () {
+    await this.updateComplete;
     console.log(this.session)
     // Only alert if there is actually an alert and ...
     if (this.session === undefined || this.session.alert === undefined || this.session.alert.notified) return;
