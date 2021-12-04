@@ -249,7 +249,8 @@ export class SessionsView extends LitElement {
 
   openPreSessionMenu (session: TradeSession) {
     const summary = getSummary(session)
-    this.dialog.heading = `${session.symbol} (vol: ${summary.volume})`
+    const sessionSummary = getSessionSummary(session)
+    this.dialog.heading = `${session.symbol} (${sessionSummary.price})`
 
     render(html`
     <style>
@@ -262,6 +263,7 @@ export class SessionsView extends LitElement {
       }
     </style>
     <div id="pre-menu">
+    <div>volume: ${summary.volume}</div>
     <div>invested: ${formatOutputPrice(summary.invested, session.quote)}</div>
     <div style="display:flex;justify-content:space-evenly;margin: 18px 0">
       <mwc-button style="--mdc-theme-primary:#4caf50" dialogAction="close" raised
