@@ -114,21 +114,6 @@ export function openVirtualInfoDialog () {
   `, 'I got it')
 }
 
-export function formatOutputAggregation (aggregator: Aggregator) {
-  return aggregator.units.map(agg => formatOutputPrice(agg[1], agg[0], false)).join(' + ')
-}
-
-export function aggregationTemplate (aggregator: Aggregator, light = false) {
-  return html`
-  <div>
-  ${aggregator.units.map((agg, i) => {
-    return html`${outputPriceTemplate(agg[1], agg[0], light)}
-    ${i < aggregator.units.length - 1 ? html`<span> + </span>` : nothing }
-    `
-  })}
-  </div>
-  `
-}
 
 export function openChart(session: TradeSession) {
   if (session.exchange === 'binance') {

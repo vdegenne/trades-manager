@@ -5,7 +5,7 @@ import { TextField } from "@material/mwc-textfield";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { Aggregator } from "./profit-aggregator";
 import { WalletsData } from "./SpacesManager";
-import { firstLetterUpperCase, formatOutputAggregation, formatOutputPrice } from "./util";
+import { firstLetterUpperCase, formatOutputPrice } from "./util";
 
 export type Wallets = {
   [key in AvailableExchanges]: Aggregator
@@ -61,14 +61,14 @@ export class WalletsManager extends LitElement {
     `
   }
 
-  walletTemplate (walletAggregator: Aggregator) {
-    return html`
-    <div style="display:flex;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
-        <div style="font-weight:500">Wallet :</div>
-        <div style="color:#3f51b5;margin-left:12px">${formatOutputAggregation(walletAggregator) || 'empty'}</div>
-    </div>
-    `
-  }
+  // walletTemplate (walletAggregator: Aggregator) {
+  //   return html`
+  //   <div style="display:flex;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
+  //       <div style="font-weight:500">Wallet :</div>
+  //       <div style="color:#3f51b5;margin-left:12px">${formatOutputAggregation(walletAggregator) || 'empty'}</div>
+  //   </div>
+  //   `
+  // }
 
   loadWallets (wallets: WalletsData) {
     this.wallets = Object.fromEntries(Object.entries(wallets).map(([exchangeName, units]) => {

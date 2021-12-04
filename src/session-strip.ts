@@ -21,6 +21,7 @@ export class SessionStrip extends LitElement {
     super()
     this.session = session;
     this.viewOptions = options || {}
+    console.log('new strip created')
   }
 
   static styles = [
@@ -36,7 +37,6 @@ export class SessionStrip extends LitElement {
   }
 
   stripTemplate(session: TradeSession) {
-    console.log(`strip rendered (${session.symbol})`)
     // const summary = getSummary(session)
     const ss = this.summary = getSessionSummary(session)
     // const total = { value: 0, quote: session.quote }

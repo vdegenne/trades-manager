@@ -1,5 +1,7 @@
+import { html, nothing } from 'lit';
 import { Currency } from './app-container';
 import {AvailableExchanges, ExchangesManager, Exchange} from './ExchangesManager'
+import { formatOutputPrice, outputPriceTemplate } from './util';
 
 export type AggregatorUnit = [string, number]
 
@@ -70,4 +72,24 @@ export class Aggregator {
     }
     return new Aggregator(this.exchangeName, cloned)
   }
+
+  toHtml () {
+    return html`
+      <div>
+      ${this.units.map((agg, i) => {
+        return html`${outputPriceTemplate(agg[1], agg[0])}
+        ${i < this.units.length - 1 ? html`<span> + </span>` : nothing }
+        `
+      })}
+      </div>
+      `
+  }
+}
+
+
+export function formatOutputAggregation (aggregator: Aggregator) {
+  return aggregator.units.map(agg => formatOutputPrice(agg[1], agg[0], false)).join(' + ')
+}
+
+export function aggregationTemplate (aggregator: Aggregator, light = false) {
 }

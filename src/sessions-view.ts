@@ -2,7 +2,7 @@ import { css, html, LitElement, nothing, render } from 'lit';
 import { customElement, query, queryAll } from 'lit/decorators.js';
 import{ live } from 'lit/directives/live.js'
 import { getSummary, Trade, TradesManager, TradeSession, getSessionSummary } from "./TradesManager";
-import { aggregationTemplate, firstLetterUpperCase, formatOutputAggregation, formatOutputPrice, openChart, openVirtualInfoDialog, outputPriceTemplate, round } from "./util";
+import { firstLetterUpperCase, formatOutputPrice, openChart, openVirtualInfoDialog, outputPriceTemplate, round } from "./util";
 // import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
 import { ExchangesManager } from "./ExchangesManager";
@@ -14,17 +14,19 @@ import '@material/mwc-button'
 import { SessionStrip } from "./session-strip";
 import { Dialog } from "@material/mwc-dialog";
 import '@material/mwc-icon'
-
+import './total-strip'
+import { TotalStrip } from './total-strip';
 
 @customElement('sessions-view')
 export class SessionsView extends LitElement {
-  private profitAggregator!: Aggregator;
-  private totalValueAggregator!: Aggregator;
-  private walletAggregator!: Aggregator;
+  // private profitAggregator!: Aggregator;
+  // private totalValueAggregator!: Aggregator;
+  // private walletAggregator!: Aggregator;
 
   @query('mwc-dialog') dialog!: Dialog;
 
   @queryAll('session-strip') stripElements!: SessionStrip[];
+  @queryAll('total-strip') totalStripElements!: TotalStrip[];
 
   constructor () {
     super()
@@ -59,9 +61,9 @@ export class SessionsView extends LitElement {
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
       const sessions = window.sessions.filter(session => session.exchange === exchange && (window.options.exchangeViewOptions.showVirtual || !session.virtual))
 
-      this.profitAggregator = new Aggregator(exchange)
-      this.totalValueAggregator = new Aggregator(exchange)
-      this.walletAggregator = new Aggregator(exchange)
+      // this.profitAggregator = new Aggregator(exchange)
+      // this.totalValueAggregator = new Aggregator(exchange)
+      // this.walletAggregator = new Aggregator(exchange)
 
       // if (sessions.length === 0) return nothing
 
@@ -69,7 +71,7 @@ export class SessionsView extends LitElement {
         return b.percent! - a.percent!
       })
       // ordered by percent for now
-      console.log(ordered)
+      // console.log(ordered)
 
       return html`
       <div class="exchange-frame">
@@ -86,30 +88,11 @@ export class SessionsView extends LitElement {
 
         <!-- BOTTOM BAR -->
 
-        ${window.options.exchangeViewOptions.showWallet ? window.walletsManager.walletTemplate(this.walletAggregator) : nothing}
+        <total-strip .exchange=${exchange}></total-strip>
 
         <mwc-button unelevated icon="add"
           @click="${() => window.tradesInterface.createDialog.open(exchange)}"
           style="--mdc-theme-primary:var(--on-background-color);--mdc-theme-on-primary:var(--main-text-color);border-radius:5px;display:flex;margin-top:12px;">add session</mwc-button>
-
-        ${(() => {
-          this.profitAggregator.resolveQuotes(window.spacesManager.space.currency)
-          this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency)
-          this.walletAggregator.resolveQuotes(window.spacesManager.space.currency)
-
-          if (this.totalValueAggregator.units.length === 0) return nothing;
-
-          return html`
-          <div style="display:flex;align-items:center;justify-content:space-between;background-color:var(--mdc-theme-primary);padding:12px;border-radius:5px">
-            <div style="color:white">
-              <span>Total : </span><span style="color:#9bf1e5">${formatOutputAggregation(this.totalValueAggregator)}</span>
-            </div>
-            <div>
-            ${aggregationTemplate(this.profitAggregator, true)}
-            </div>
-          </div>
-          `
-        })()}
       </div>
       `
     })}
@@ -126,12 +109,15 @@ export class SessionsView extends LitElement {
     return super.requestUpdate(name, oldValue)
   }
 
-  updated() {
-    // should use for the aggregators right here ?
-    Promise.all([].map.call(this.stripElements, (e: SessionStrip) => e.updateComplete)).then((els) => {
-      // console.log('updated !!!!!!!!')
-      // console.log([...this.stripElements].map(el => el.summary))
-    })
+  async updated() {
+    for (const exchange of ExchangesManager.getAvailableExchanges()) {
+      const strips = [...this.stripElements].filter(el => el.session.exchange === exchange && !el.session.virtual);
+      if (strips.length === 0) continue
+      await Promise.all([].map.call(strips, (e: SessionStrip) => e.updateComplete));
+
+      const totalStrip = [...this.totalStripElements].find(s => s.exchange === exchange)!
+      totalStrip.aggregateFromStrips(strips)
+    }
   }
 
 

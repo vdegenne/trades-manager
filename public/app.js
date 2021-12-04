@@ -1545,7 +1545,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
       <mwc-button unelevated slot="primaryAction"
         ?disabled="${!this.currency}" @click="${()=>{this.askCurrencyResolve(this.currency),this.currencyDialog.close()}}">continue</mwc-button>
     </mwc-dialog>
-    `}async firstUpdated(){const e=localStorage.getItem("spaces")?JSON.parse(localStorage.getItem("spaces").toString()):void 0;for(void 0!==e&&e instanceof Array&&0!==e.length?this.spaces=e:(this.createDefaultSpace(),this.save());void 0===window.BinancePairs;)await new Promise((e=>setTimeout(e,200)));this.loadSpace(this.getDefaultSpace())}loadSpaces(e){this.spaces=e,this.loadSpace(this.getDefaultSpace())}loadSpace(e){window.sessionsInterface.loadSessions(e.sessions),this.space=e,window.app.requestUpdate()}async createSpace(e){const i={name:e,currency:"EUR",sessions:[]};return this.spaces.push(i),i}async createDefaultSpace(){this.spaces.push({name:"default",sessions:[],currency:"EUR",wallets:Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((e=>[e,[]])))})}getDefaultSpace(){return this.spaces.find((e=>"default"===e.name))}async askCurrency(){return await new Promise((e=>{this.askCurrencyResolve=e,this.currencyDialog.show()}))}save(){localStorage.setItem("spaces",this.toString())}toString(){return JSON.stringify(this.spaces)}};__decorate([e$5()],SpacesManager.prototype,"currency",void 0),__decorate([i$2("#currency-dialog")],SpacesManager.prototype,"currencyDialog",void 0),SpacesManager=__decorate([n$1("spaces-manager")],SpacesManager);class Aggregator{constructor(e,i){this.units=i||[],this.exchangeName=e}pushUnit(e,i){const t=this.units.find((i=>i[0]===e));t?t[1]+=i:this.units.push([e,i])}resolveQuotes(e){for(const i of this.units)if(i[0]!==e){const{quote:t,price:s}=ExchangesManager.getConversionPrice(i[0],e,this.exchangeName);t===e&&void 0!==s&&(i[0]=t,i[1]=s*i[1])}this.reduce()}reduce(){const e=[];for(const i of this.units){const t=e.find((e=>e[0]===i[0]));t?t[1]+=i[1]:e.push([i[0],i[1]])}this.units=e}isEmpty(){return!this.units.length}clone(){const e=[];for(const i of this.units)e.push([i[0],i[1]]);return new Aggregator(this.exchangeName,e)}}function round$2(e,i=2){return Math.round(e*10**i)/10**i}function openCryptowatchLink(e){window.open(`https://cryptowat.ch/charts/${e.exchange}:${e.symbol}-${e.quote}`,"_blank")}function sortAlphabetically(e){return e.sort(((e,i)=>e<i?-1:e>i?1:0))}function firstLetterUpperCase(e){if(e)return e[0].toUpperCase()+e.slice(1)}const symbolsMap={EUR:"€",USD:"$",BTC:"₿",ETH:"Ξ",USDT:"₮",BNB:"Ƀ"},precisionsMap={EUR:2,USD:2,ETH:3,BTC:3};function formatOutputPrice(e,i,t=!1){let s=symbolsMap[i]||` ${i}`;return`${t&&e>0?"+":""}${round$2(e,precisionsMap[i]||5)}${s}`}function outputPriceTemplate(e,i,t=!1){return p`
+    `}async firstUpdated(){const e=localStorage.getItem("spaces")?JSON.parse(localStorage.getItem("spaces").toString()):void 0;for(void 0!==e&&e instanceof Array&&0!==e.length?this.spaces=e:(this.createDefaultSpace(),this.save());void 0===window.BinancePairs;)await new Promise((e=>setTimeout(e,200)));this.loadSpace(this.getDefaultSpace())}loadSpaces(e){this.spaces=e,this.loadSpace(this.getDefaultSpace())}loadSpace(e){window.sessionsInterface.loadSessions(e.sessions),this.space=e,window.app.requestUpdate()}async createSpace(e){const i={name:e,currency:"EUR",sessions:[]};return this.spaces.push(i),i}async createDefaultSpace(){this.spaces.push({name:"default",sessions:[],currency:"EUR",wallets:Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((e=>[e,[]])))})}getDefaultSpace(){return this.spaces.find((e=>"default"===e.name))}async askCurrency(){return await new Promise((e=>{this.askCurrencyResolve=e,this.currencyDialog.show()}))}save(){localStorage.setItem("spaces",this.toString())}toString(){return JSON.stringify(this.spaces)}};function round$2(e,i=2){return Math.round(e*10**i)/10**i}function openCryptowatchLink(e){window.open(`https://cryptowat.ch/charts/${e.exchange}:${e.symbol}-${e.quote}`,"_blank")}function sortAlphabetically(e){return e.sort(((e,i)=>e<i?-1:e>i?1:0))}function firstLetterUpperCase(e){if(e)return e[0].toUpperCase()+e.slice(1)}__decorate([e$5()],SpacesManager.prototype,"currency",void 0),__decorate([i$2("#currency-dialog")],SpacesManager.prototype,"currencyDialog",void 0),SpacesManager=__decorate([n$1("spaces-manager")],SpacesManager);const symbolsMap={EUR:"€",USD:"$",BTC:"₿",ETH:"Ξ",USDT:"₮",BNB:"Ƀ"},precisionsMap={EUR:2,USD:2,ETH:3,BTC:3};function formatOutputPrice(e,i,t=!1){let s=symbolsMap[i]||` ${i}`;return`${t&&e>0?"+":""}${round$2(e,precisionsMap[i]||5)}${s}`}function outputPriceTemplate(e,i,t=!1){return p`
   <span style="font-weight:bold;color:${0===e?"var(--main-text-color)":e>0?t?"#3adc41":"var(--green)":t?"#f44336":"#ff0000"};font-weight:500">${formatOutputPrice(e,i,!0)}</span>
   `}function percentTemplate(e){const t=e.percent;let s,o="grey",d=`${round$2(t)||"0"}%`;t&&(-100===t&&0===e.volume?(d="$$$",o="#ffeb3b"):o=t>0?"var(--green)":t<-12?"#971212":"red",s=-100===t&&0===e.volume?"black":t<=0?"white":"var(--text-on-background-color, white)");const n=i({backgroundColor:o,color:s});return p`
   <span class="percent" style=${n}>${d}</span>
@@ -1555,13 +1555,13 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
   Virtual sessions are faded on the main UI so you can distinguish them from the normal ones.</p>
   <p><span>In short</span>: Use a virtual session when you want to experiment a pair or if you want to archive your profits.</p>
   <p><span>Note</span>: After you create a session you can always toggle this feature on and off from the trades interface (by clicking on the session strip)</p>
-  `,"I got it")}function formatOutputAggregation(e){return e.units.map((e=>formatOutputPrice(e[1],e[0],!1))).join(" + ")}function aggregationTemplate(e,i=!1){return p`
-  <div>
-  ${e.units.map(((t,s)=>p`${outputPriceTemplate(t[1],t[0],i)}
-    ${s<e.units.length-1?p`<span> + </span>`:T}
-    `))}
-  </div>
-  `}function openChart(e){"binance"===e.exchange&&window.open(`https://www.binance.com/en/trade/${e.symbol}_${e.quote}`,"_blank")}var WalletsManager_1;let WalletsManager=WalletsManager_1=class extends s$2{constructor(){super(),this.wallets=WalletsManager_1.generateEmptyWallet(),window.walletsManager=this,window.wallets=()=>this.wallets}static generateEmptyWallet(){return Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((e=>[e,new Aggregator(e)])))}render(){var e,i;return p`
+  `,"I got it")}function openChart(e){"binance"===e.exchange&&window.open(`https://www.binance.com/en/trade/${e.symbol}_${e.quote}`,"_blank")}class Aggregator{constructor(e,i){this.units=i||[],this.exchangeName=e}pushUnit(e,i){const t=this.units.find((i=>i[0]===e));t?t[1]+=i:this.units.push([e,i])}resolveQuotes(e){for(const i of this.units)if(i[0]!==e){const{quote:t,price:s}=ExchangesManager.getConversionPrice(i[0],e,this.exchangeName);t===e&&void 0!==s&&(i[0]=t,i[1]=s*i[1])}this.reduce()}reduce(){const e=[];for(const i of this.units){const t=e.find((e=>e[0]===i[0]));t?t[1]+=i[1]:e.push([i[0],i[1]])}this.units=e}isEmpty(){return!this.units.length}clone(){const e=[];for(const i of this.units)e.push([i[0],i[1]]);return new Aggregator(this.exchangeName,e)}toHtml(){return p`
+      <div>
+      ${this.units.map(((e,i)=>p`${outputPriceTemplate(e[1],e[0])}
+        ${i<this.units.length-1?p`<span> + </span>`:T}
+        `))}
+      </div>
+      `}}var WalletsManager_1;let WalletsManager=WalletsManager_1=class extends s$2{constructor(){super(),this.wallets=WalletsManager_1.generateEmptyWallet(),window.walletsManager=this,window.wallets=()=>this.wallets}static generateEmptyWallet(){return Object.fromEntries(Object.keys(ExchangesManager.exchanges).map((e=>[e,new Aggregator(e)])))}render(){var e,i;return p`
     <mwc-dialog heading="Funds">
       <div>
         <p>How many ${null===(e=window.spacesManager.space)||void 0===e?void 0:e.currency} do you have in your balance on ${firstLetterUpperCase(this.exchangeName)}?</p>
@@ -1575,11 +1575,6 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
       <mwc-button unelevated slot="primaryAction"
         @click="${this.onFundsDialogUpdate}">update</mwc-button>
     </mwc-dialog>
-    `}walletTemplate(e){return p`
-    <div style="display:flex;align-items:center;padding:8px 11px;background-color:#eeeeee;border-radius:5px 5px 0 0;margin: 5px 0">
-        <div style="font-weight:500">Wallet :</div>
-        <div style="color:#3f51b5;margin-left:12px">${formatOutputAggregation(e)||"empty"}</div>
-    </div>
     `}loadWallets(e){this.wallets=Object.fromEntries(Object.entries(e).map((([e,i])=>[e,new Aggregator(e,i)])))}onFundsDialogUpdate(){this.wallets[this.exchangeName]=parseFloat(this.fundsTextfield.value),this.dialog.close(),window.tradesInterface.requestUpdate(),window.spacesManager.save()}openWallet(e){this.exchangeName=e,this.dialog.show()}};__decorate([e$5()],WalletsManager.prototype,"wallets",void 0),__decorate([e$5()],WalletsManager.prototype,"exchangeName",void 0),__decorate([i$2("mwc-dialog")],WalletsManager.prototype,"dialog",void 0),__decorate([i$2("#funds-textfield")],WalletsManager.prototype,"fundsTextfield",void 0),WalletsManager=WalletsManager_1=__decorate([n$1("wallets-manager")],WalletsManager);let TextDialog=class extends s$2{render(){var e;return p`
     <mwc-dialog heading="${null!==(e=this.heading)&&void 0!==e?e:""}" escapeKeyAction="" scrimClickAction="">
       <div>
@@ -1588,7 +1583,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
 
       <mwc-button outlined slot="primaryAction" @click="${()=>{this.resolveFunction(),this.dialog.close()}}">${this.buttonTitle}</mwc-button>
     </mwc-dialog>
-    `}open(e,i,t){return this.heading=e,this.message=i,this.buttonTitle=t||"close",this.dialog.show(),new Promise((e=>{this.resolveFunction=e}))}};__decorate([e$5()],TextDialog.prototype,"heading",void 0),__decorate([e$5()],TextDialog.prototype,"message",void 0),__decorate([e$5()],TextDialog.prototype,"buttonTitle",void 0),__decorate([i$2("mwc-dialog")],TextDialog.prototype,"dialog",void 0),TextDialog=__decorate([n$1("text-dialog")],TextDialog);class TradesManager{constructor(e){this.sessions=e||[],window.tradesManager=this,window.sessions=this.sessions}createSession(e,i,t,s=!1,o){const d={id:Date.now(),exchange:e,symbol:i,quote:t,trades:[],virtual:s};return o&&(d.title=o),this.sessions.push(d),d}addTrade(e,i){e.trades.push(i)}deleteSession(e){this.sessions.splice(this.sessions.indexOf(e),1)}cloneSession(e){const i=this.sessions.indexOf(e),t=JSON.parse(JSON.stringify(e));return t.id=Date.now(),this.sessions.splice(i+1,0,t),t}deleteTrade(e){const i=this.getTradesSession(e),t=i.trades.indexOf(e);return-1!==t&&(i.trades.splice(t,1),!0)}deleteAllTrades(e){e.trades=[]}getTradesSession(e){return this.sessions.find((i=>i.trades.indexOf(e)>=0))}getSessions(e,i,t){return this.sessions.filter((s=>s.exchange===e&&s.symbol===i&&s.quote===t))}getSessionFromId(e){return this.sessions.find((i=>i.id===e))}getPairTrades(e){return this.sessions[e]}getSummarizedSessionTrades(e){return summarizeSessionTrades(e)}toString(){return JSON.stringify(this.sessions)}}function summarizeSessionTrades(e){return e.trades.reduce(((e,i)=>("buy"===i.type?(e.invested+=i.price*i.volume,e.volume+=i.volume):(e.invested-=i.price*i.volume,e.volume-=i.volume),e)),{invested:0,volume:0})}const getSummary=summarizeSessionTrades;function summarizeSession(e){const i=summarizeSessionTrades(e),t={...i},s=ExchangesManager.getPrice(e.exchange,e.symbol,e.quote);return s&&(t.price=s,t.total=s*i.volume,t.profit=t.total-i.invested,t.percent=(t.total-i.invested)/i.invested*100),t}const getSessionSummary=summarizeSession;let SessionStrip=class SessionStrip extends s$2{constructor(e,i){super(),this.session=e,this.viewOptions=i||{}}render(){return this.stripTemplate(this.session)}updated(){this.checkAlert()}stripTemplate(e){console.log(`strip rendered (${e.symbol})`);const i=this.summary=getSessionSummary(e);let t,s=null;if(i.price){const o=ExchangesManager.getConversionPrice(e.quote,window.spacesManager.space.currency,e.exchange);o.price&&o.quote===window.spacesManager.space.currency&&(i.invested,o.price,o.quote,t={value:i.total*o.price,quote:o.quote},s={value:i.profit*o.price,quote:o.quote})}const o=Object.assign({},window.options.sessionViewOptions,this.viewOptions);return p`
+    `}open(e,i,t){return this.heading=e,this.message=i,this.buttonTitle=t||"close",this.dialog.show(),new Promise((e=>{this.resolveFunction=e}))}};__decorate([e$5()],TextDialog.prototype,"heading",void 0),__decorate([e$5()],TextDialog.prototype,"message",void 0),__decorate([e$5()],TextDialog.prototype,"buttonTitle",void 0),__decorate([i$2("mwc-dialog")],TextDialog.prototype,"dialog",void 0),TextDialog=__decorate([n$1("text-dialog")],TextDialog);class TradesManager{constructor(e){this.sessions=e||[],window.tradesManager=this,window.sessions=this.sessions}createSession(e,i,t,s=!1,o){const d={id:Date.now(),exchange:e,symbol:i,quote:t,trades:[],virtual:s};return o&&(d.title=o),this.sessions.push(d),d}addTrade(e,i){e.trades.push(i)}deleteSession(e){this.sessions.splice(this.sessions.indexOf(e),1)}cloneSession(e){const i=this.sessions.indexOf(e),t=JSON.parse(JSON.stringify(e));return t.id=Date.now(),this.sessions.splice(i+1,0,t),t}deleteTrade(e){const i=this.getTradesSession(e),t=i.trades.indexOf(e);return-1!==t&&(i.trades.splice(t,1),!0)}deleteAllTrades(e){e.trades=[]}getTradesSession(e){return this.sessions.find((i=>i.trades.indexOf(e)>=0))}getSessions(e,i,t){return this.sessions.filter((s=>s.exchange===e&&s.symbol===i&&s.quote===t))}getSessionFromId(e){return this.sessions.find((i=>i.id===e))}getPairTrades(e){return this.sessions[e]}getSummarizedSessionTrades(e){return summarizeSessionTrades(e)}toString(){return JSON.stringify(this.sessions)}}function summarizeSessionTrades(e){return e.trades.reduce(((e,i)=>("buy"===i.type?(e.invested+=i.price*i.volume,e.volume+=i.volume):(e.invested-=i.price*i.volume,e.volume-=i.volume),e)),{invested:0,volume:0})}const getSummary=summarizeSessionTrades;function summarizeSession(e){const i=summarizeSessionTrades(e),t={...i},s=ExchangesManager.getPrice(e.exchange,e.symbol,e.quote);return s&&(t.price=s,t.total=s*i.volume,t.profit=t.total-i.invested,t.percent=(t.total-i.invested)/i.invested*100),t}const getSessionSummary=summarizeSession;let SessionStrip=class SessionStrip extends s$2{constructor(e,i){super(),this.session=e,this.viewOptions=i||{},console.log("new strip created")}render(){return this.stripTemplate(this.session)}updated(){this.checkAlert()}stripTemplate(e){const i=this.summary=getSessionSummary(e);let t,s=null;if(i.price){const o=ExchangesManager.getConversionPrice(e.quote,window.spacesManager.space.currency,e.exchange);o.price&&o.quote===window.spacesManager.space.currency&&(i.invested,o.price,o.quote,t={value:i.total*o.price,quote:o.quote},s={value:i.profit*o.price,quote:o.quote})}const o=Object.assign({},window.options.sessionViewOptions,this.viewOptions);return p`
     <div class="session"
         ?entitled="${e.title}"
         ?eventful="${o.events}"
@@ -2194,8 +2189,18 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
  * @license
  * Copyright 2018 Google LLC
  * SPDX-License-Identifier: Apache-2.0
- */;let TabBar=class extends TabBarBase{};TabBar.styles=[styles$1],TabBar=__decorate([n$1("mwc-tab-bar")],TabBar);let SessionsView=class extends s$2{constructor(){super(),window.sessionsView=this}render(){return void 0===window.sessions?T:p`
-    ${ExchangesManager.getAvailableExchanges().map((e=>{const i=window.sessions.filter((i=>i.exchange===e&&(window.options.exchangeViewOptions.showVirtual||!i.virtual)));this.profitAggregator=new Aggregator(e),this.totalValueAggregator=new Aggregator(e),this.walletAggregator=new Aggregator(e);const t=i.map((e=>({s:e,...getSessionSummary(e)}))).sort(((e,i)=>i.percent-e.percent));return console.log(t),p`
+ */;let TabBar=class extends TabBarBase{};TabBar.styles=[styles$1],TabBar=__decorate([n$1("mwc-tab-bar")],TabBar);let TotalStrip=class extends s$2{render(){var e;return p`
+    ${null===(e=this.aggregator)||void 0===e?void 0:e.toHtml()}
+    `}aggregateFromStrips(e){const i=new Aggregator(e[0].session.exchange);e.forEach((e=>{i.pushUnit(e.session.quote,e.summary.profit)})),i.resolveQuotes(window.spacesManager.space.currency),this.aggregator=i}};TotalStrip.styles=[r$4`
+    :host {
+      display: block;
+      background-color: #bdbdbd;
+      min-height: 20px;
+      padding: 6px;
+      border-radius: 3px;
+    }
+    `],__decorate([e$5()],TotalStrip.prototype,"aggregator",void 0),TotalStrip=__decorate([n$1("total-strip")],TotalStrip);let SessionsView=class extends s$2{constructor(){super(),window.sessionsView=this}render(){return void 0===window.sessions?T:p`
+    ${ExchangesManager.getAvailableExchanges().map((e=>{const i=window.sessions.filter((i=>i.exchange===e&&(window.options.exchangeViewOptions.showVirtual||!i.virtual))).map((e=>({s:e,...getSessionSummary(e)}))).sort(((e,i)=>i.percent-e.percent));return p`
       <div class="exchange-frame">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <mwc-button unelevated dense
@@ -2203,33 +2208,22 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
         </div>
 
 
-        ${t.map((e=>p`<session-strip .session=${e.s}></session-strip>`))}
+        ${i.map((e=>p`<session-strip .session=${e.s}></session-strip>`))}
 
 
         <!-- BOTTOM BAR -->
 
-        ${window.options.exchangeViewOptions.showWallet?window.walletsManager.walletTemplate(this.walletAggregator):T}
+        <total-strip .exchange=${e}></total-strip>
 
         <mwc-button unelevated icon="add"
           @click="${()=>window.tradesInterface.createDialog.open(e)}"
           style="--mdc-theme-primary:var(--on-background-color);--mdc-theme-on-primary:var(--main-text-color);border-radius:5px;display:flex;margin-top:12px;">add session</mwc-button>
-
-        ${(()=>(this.profitAggregator.resolveQuotes(window.spacesManager.space.currency),this.totalValueAggregator.resolveQuotes(window.spacesManager.space.currency),this.walletAggregator.resolveQuotes(window.spacesManager.space.currency),0===this.totalValueAggregator.units.length?T:p`
-          <div style="display:flex;align-items:center;justify-content:space-between;background-color:var(--mdc-theme-primary);padding:12px;border-radius:5px">
-            <div style="color:white">
-              <span>Total : </span><span style="color:#9bf1e5">${formatOutputAggregation(this.totalValueAggregator)}</span>
-            </div>
-            <div>
-            ${aggregationTemplate(this.profitAggregator,!0)}
-            </div>
-          </div>
-          `))()}
       </div>
       `}))}
 
     <!-- pre-session menu dialog placeholder -->
     <mwc-dialog></mwc-dialog>
-    `}requestUpdate(e,i){try{this.stripElements.forEach((e=>e.requestUpdate()))}catch(e){}return super.requestUpdate(e,i)}updated(){Promise.all([].map.call(this.stripElements,(e=>e.updateComplete))).then((e=>{}))}getStripFromSessionElement(e){return[...this.stripElements].find((i=>i.session===e))}openPreSessionMenu(e){const i=getSummary(e);this.dialog.heading=`${e.symbol} (vol: ${i.volume})`,w$1(p`
+    `}requestUpdate(e,i){try{this.stripElements.forEach((e=>e.requestUpdate()))}catch(e){}return super.requestUpdate(e,i)}async updated(){for(const e of ExchangesManager.getAvailableExchanges()){const i=[...this.stripElements].filter((i=>i.session.exchange===e&&!i.session.virtual));if(0===i.length)continue;await Promise.all([].map.call(i,(e=>e.updateComplete)));const t=[...this.totalStripElements].find((i=>i.exchange===e));t.aggregateFromStrips(i)}}getStripFromSessionElement(e){return[...this.stripElements].find((i=>i.session===e))}openPreSessionMenu(e){const i=getSummary(e);this.dialog.heading=`${e.symbol} (vol: ${i.volume})`,w$1(p`
     <style>
       /* mwc-dialog > mwc-button:not([slot=primaryAction]) {
         margin: 7px 0;
@@ -2278,7 +2272,7 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
       margin-left: 12px;
       font-weight: 500;
       color: var(--mdc-theme-primary);
-    }`],__decorate([i$2("mwc-dialog")],SessionsView.prototype,"dialog",void 0),__decorate([e$3("session-strip")],SessionsView.prototype,"stripElements",void 0),SessionsView=__decorate([n$1("sessions-view")],SessionsView);let SessionCreateDialog=class extends s$2{render(){let e,i;return this.exchange&&(e=sortAlphabetically(ExchangesManager.getAvailableSymbols(this.exchange)),this.symbol&&(i=sortAlphabetically(ExchangesManager.getAvailableQuotesFromSymbol(this.exchange,this.symbol)))),p`
+    }`],__decorate([i$2("mwc-dialog")],SessionsView.prototype,"dialog",void 0),__decorate([e$3("session-strip")],SessionsView.prototype,"stripElements",void 0),__decorate([e$3("total-strip")],SessionsView.prototype,"totalStripElements",void 0),SessionsView=__decorate([n$1("sessions-view")],SessionsView);let SessionCreateDialog=class extends s$2{render(){let e,i;return this.exchange&&(e=sortAlphabetically(ExchangesManager.getAvailableSymbols(this.exchange)),this.symbol&&(i=sortAlphabetically(ExchangesManager.getAvailableQuotesFromSymbol(this.exchange,this.symbol)))),p`
     <mwc-dialog heading="Create Session on ${firstLetterUpperCase(this.exchange)}"
         @opened="${this.fixOverflow}">
       <div style="width:400px"></div>
