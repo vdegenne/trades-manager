@@ -79,7 +79,6 @@ export class SessionStrip extends LitElement {
 
     return html`
     <div class="session"
-        style="z-index:${this.zIndex}"
         ?entitled="${session.title}"
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
