@@ -34,10 +34,10 @@ export class Aggregator {
         // in this case we should have a fallback where we convert the best conversion match returned
         // from the conversion method to the current currency calculated from the currency conversion
         // values imported from https://exchangeratesapi.io/.
-        const { quote, price } = ExchangesManager.getConversionPrice(unit[0], currency, this.exchangeName as AvailableExchanges);
-        if (quote === currency && price !== undefined) {
-          unit[0] = quote
-          unit[1] = price * unit[1]
+        const pConversion = ExchangesManager.getConversionPrice(unit[0], currency, this.exchangeName as AvailableExchanges);
+        if (pConversion && pConversion.quote === currency && pConversion.value !== undefined) {
+          unit[0] = pConversion.quote
+          unit[1] = pConversion.value * unit[1]
         }
         else {
           // @todo implement in case there is no available conversion from the exchange system
@@ -83,6 +83,10 @@ export class Aggregator {
       })}
       </div>
       `
+  }
+
+  toString () {
+    return formatOutputAggregation(this);
   }
 }
 

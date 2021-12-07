@@ -4,7 +4,7 @@ import { customElement, property } from 'lit/decorators.js';
 import { ExchangesManager } from "./ExchangesManager";
 import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
-import { getSessionSummary, getSummary, SessionSummary, TradeSession } from "./TradesManager";
+import { getSessionSummary, getSummary, SessionSummary, TradeSession, ValueQuote } from "./TradesManager";
 import { formatOutputPrice, openCryptowatchLink, outputPriceTemplate, percentTemplate, round } from "./util";
 
 @customElement('session-strip')
@@ -16,6 +16,9 @@ export class SessionStrip extends LitElement {
   public viewOptions!: Partial<SessionViewOptions>;
 
   public summary?: SessionSummary;
+  public hProfit?: ValueQuote; // human readable profit
+  public hInvested?: ValueQuote; // human readable invested
+
 
   private zIndex!: number;
 
@@ -23,7 +26,7 @@ export class SessionStrip extends LitElement {
     super()
     this.session = session;
     this.viewOptions = options || {}
-    console.log('new strip created')
+    // console.log('new strip created')
   }
 
   static styles = [
@@ -48,25 +51,31 @@ export class SessionStrip extends LitElement {
     const ss = this.summary = getSessionSummary(session)
     // const total = { value: 0, quote: session.quote }
     let totalConverted: { value: number, quote: string } | undefined = undefined
-    let investedConverted: { value: number, quote: string } | undefined = undefined // added
-    let profitConverted: { value: number, quote: string } | null = null;
+    // let investedConverted: { value: number, quote: string } | undefined = undefined // added
+    // let profitConverted: { value: number, quote: string } | null = null;
+    this.hProfit = this.hInvested = undefined;
     // const price = ExchangesManager.getPrice(session.exchange, session.symbol, session.quote)
     // let percent;
     if (ss.price) {
 
       // check if we can convert the values for UI comprehension
-      const quoteConversion = ExchangesManager.getConversionPrice(session.quote, window.spacesManager.space.currency, session.exchange)
-      if (quoteConversion.price && quoteConversion.quote === window.spacesManager.space.currency) {
-        investedConverted = { // added
-          value: ss.invested * quoteConversion.price,
+      const quoteConversion = ExchangesManager.getConversionPrice(
+          session.quote,
+          window.spacesManager.space.currency,
+          session.exchange
+      )
+
+      if (quoteConversion && quoteConversion.quote === window.spacesManager.space.currency) {
+        this.hProfit = {
+          value: ss.profit! * quoteConversion.value,
+          quote: quoteConversion.quote
+        }
+        this.hInvested = {
+          value: ss.invested * quoteConversion.value,
           quote: quoteConversion.quote
         }
         totalConverted = {
-          value: ss.total! * quoteConversion.price,
-          quote: quoteConversion.quote
-        }
-        profitConverted = {
-          value: ss.profit! * quoteConversion.price,
+          value: ss.total! * quoteConversion.value,
           quote: quoteConversion.quote
         }
       }
@@ -103,13 +112,13 @@ export class SessionStrip extends LitElement {
 
         <!-- GAIN -->
         <div style="display:flex;align-items:center;${viewOptions.showTotalValue ? 'margin-bottom:5px' : ''}" id="gain-tag">
-          ${viewOptions.showSourceProfit || !profitConverted ? html`
+          ${viewOptions.showSourceProfit || !this.hProfit ? html`
           <div>${outputPriceTemplate(ss.profit!, session.quote)}</div>
           ` : nothing }
-          ${profitConverted ? html`
+          ${this.hProfit ? html`
           <div style="display:flex;align-items:center;margin-left:4px;">
             ${viewOptions.showSourceProfit ? html`<span style="color:#00000033">(</span>` : nothing }
-            ${outputPriceTemplate(profitConverted.value, profitConverted.quote)}
+            ${outputPriceTemplate(this.hProfit.value, this.hProfit.quote)}
             ${viewOptions.showSourceProfit ? html`<span style="color:#00000033">)</span>` : nothing }
           </div>
           ` : nothing}
@@ -129,7 +138,7 @@ export class SessionStrip extends LitElement {
       </div>
 
       <!-- PERCENT -->
-        ${viewOptions.showPercent ? percentTemplate(ss) : nothing}
+        ${viewOptions.showPercent ? percentTemplate(ss.percent!, ss.percent === -100 && ss.volume === 0) : nothing}
         <!-- <div style="width:100px;overflow:hidden;overflow-x:auto;"> -->
         <!-- </div> -->
 
@@ -165,7 +174,7 @@ export class SessionStrip extends LitElement {
 
   private async checkAlert () {
     await this.updateComplete;
-    console.log(this.session)
+
     // Only alert if there is actually an alert and ...
     if (this.session === undefined || this.session.alert === undefined || this.session.alert.notified) return;
 

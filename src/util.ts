@@ -78,11 +78,12 @@ export function outputPriceTemplate (value: number, quote: string, light = false
   `
 }
 
-export function percentTemplate (summary: SessionSummary) {
-  const percent = summary.percent!;
+export function percentTemplate (percent: number, minus100Beauty = false) {
+  // const percent = summary.percent!;
   let backgroundColor = 'grey', color, text = `${round(percent) || '0'}%`;
   if (percent) {
-    if (percent === -100 && summary.volume === 0) {
+    if (minus100Beauty) {
+    // if (percent === -100 && summary.volume === 0) {
       text = '$$$'
       backgroundColor = '#ffeb3b'
     }
@@ -90,7 +91,8 @@ export function percentTemplate (summary: SessionSummary) {
     else if (percent < -12) backgroundColor = '#971212'
     else backgroundColor = 'red'
 
-    if (percent === -100 && summary.volume === 0) color = 'black'
+    if (minus100Beauty) color = 'black'
+    // if (percent === -100 && summary.volume === 0) color = 'black'
     else if (percent <= 0) color = 'white'
     else color = 'var(--text-on-background-color, white)'
   }

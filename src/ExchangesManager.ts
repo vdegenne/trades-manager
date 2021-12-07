@@ -2,7 +2,7 @@ import { KrakenManager } from './kraken/KrakenManager';
 import { BinanceManager } from "./binance/BinanceManager";
 import { CoingeckoPairsManager } from "./coingecko/CoingeckoManager";
 import { PairsManager } from "./PairsManager"
-import { TradeSession } from "./TradesManager";
+import { TradeSession, ValueQuote } from "./TradesManager";
 import { Currencies } from './app-container';
 
 export type Exchange = PairsManager;
@@ -91,30 +91,31 @@ export class ExchangesManager {
     }
   }
 
-  static getConversionPrice (symbol: string, preferredQuote: string, preferredExchange?: AvailableExchanges) {
-    const quotes = [preferredQuote].concat(Currencies.filter(c => c !== preferredQuote))
+  static getConversionPrice (from: string, to: string, preferredExchange?: AvailableExchanges): ValueQuote|undefined {
+    const quotes = [to].concat(Currencies.filter(c => c !== to))
     let exchanges = Object.values(this.exchanges)
     if (preferredExchange && preferredExchange !== 'others') {
       exchanges = [this.exchanges[preferredExchange]].concat(
         Object.entries(this.exchanges).filter(([exchangeName, exchange]) => exchangeName !== preferredExchange).map(([o, exchange]) => exchange)
       )
     }
-    let price: number|undefined = undefined
+    let value: number|undefined = undefined
     for (const quote of quotes) {
       for (const exchange of exchanges) {
         // try to get the price (normal conversion)
-        price = exchange.getPrice(symbol, quote)
-        if (price) {
-          return { quote, price }
+        value = exchange.getPrice(from, quote)
+        if (value) {
+          return { quote, value }
         }
         // or else we try to get the counter pair
-        price = exchange.getPrice(quote, symbol)
-        if (price) {
-          return { quote, price: 1/price }
+        value = exchange.getPrice(quote, from)
+        if (value) {
+          return { quote, value: 1/value }
         }
       }
     }
-    return { quote: undefined, price: undefined }
+    return undefined;
+    // return { quote: undefined, value: undefined }
   }
 
 }

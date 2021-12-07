@@ -57,6 +57,11 @@ export type SessionSummary = {
   percent: number|undefined,
 }
 
+export declare type ValueQuote = {
+  value: number;
+  quote: string;
+}
+
 declare global {
   interface Window {
     tradesManager: TradesManager;
@@ -199,8 +204,9 @@ export function summarizeSession (session: TradeSession): SessionSummary {
   if (price) {
     ssummary.price = price;
     ssummary.total = price * summary.volume;
-    ssummary.profit = ssummary.total - summary.invested
-    ssummary.percent = ((ssummary.total - summary.invested) / summary.invested) * 100;
+    ssummary.profit = ssummary.total - summary.invested;
+    // ssummary.percent = (ssummary.profit / summary.invested) * 100;
+    ssummary.percent = (ssummary.profit * 100) / summary.invested;
   }
 
   return ssummary as SessionSummary;
