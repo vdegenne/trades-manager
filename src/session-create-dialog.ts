@@ -105,13 +105,15 @@ export class SessionCreateDialog extends LitElement {
     this.dialog.shadowRoot!.querySelector<HTMLElement>('.mdc-dialog__content')!.style.overflow = 'visible'
   }
 
-  submit () {
+  async submit () {
     if (!this.symbol || !this.quote) { return }
-    window.sessionsInterface.createSession(this.exchange!, this.symbol!, this.quote!, this.virtualCheckbox.checked, this.titleTextfield.value || undefined)
+    const session = window.sessionsInterface.createSession(this.exchange!, this.symbol!, this.quote!, this.virtualCheckbox.checked, this.titleTextfield.value || undefined)
     // const session = window.tradesManager.createSession(this.exchange!, this.symbol!, this.quote!)
     // window.sessionsInterface.requestUpdate()
     // window.sessionsInterface.requestUpdate()
-    // window.sessionInterface.openSession(session)
+    await window.sessionsInterface.updateComplete
+    window.sessionsView.openPreSessionMenu(session)
+    // window.sessionsInterface.openSession(session)
     this.dialog.close()
   }
 

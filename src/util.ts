@@ -101,7 +101,7 @@ export function percentTemplate (percent: number, minus100Beauty = false) {
     color
   })
   return html`
-  <span class="percent" style=${styles}>${text}</span>
+  <span class="percent" style=${styles} title="gain/loss percentage">${text}</span>
         <!-- style="background-color:${!percent ? 'grey' : percent > 0 ? 'var(--green)' : (percent < -12 ? '#971212' : 'red')};color:var(--text-on-background-color, white)">${round(percent, 2) || '0'}%</span> -->
   `
 }

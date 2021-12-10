@@ -185,7 +185,7 @@ class AppContainer extends LitElement {
     ${this.confirmDialog}
     <text-dialog></text-dialog>
 
-    <mwc-snackbar leading></mwc-snackbar>
+    <mwc-snackbar></mwc-snackbar>
 
     <mwc-button unelevated dense icon="savings" style="--mdc-theme-primary:#181414;--mdc-theme-on-primary:#ffc107;font-size:9px;--mdc-typography-button-font-size:0.6rem;--mdc-button-horizontal-padding:10px"
       @click=${() => {
@@ -214,8 +214,9 @@ class AppContainer extends LitElement {
     window.textDialog = this.textDialog;
   }
 
-  toast (message: string) {
+  toast (message: string, timeoutMs = 4000) {
     this.snackbar.labelText = message;
+    this.snackbar.timeoutMs = timeoutMs;
     this.snackbar.show()
   }
 }

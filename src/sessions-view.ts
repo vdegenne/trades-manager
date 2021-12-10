@@ -80,6 +80,7 @@ export class SessionsView extends LitElement {
         <div style="display:flex;align-items:center;justify-content:space-between">
           <mwc-button unelevated dense
             style="">${firstLetterUpperCase(exchange)}</mwc-button>
+          <total-strip .exchange=${exchange} style="flex:1;margin-left:10px;"></total-strip>
         </div>
 
 
@@ -88,10 +89,6 @@ export class SessionsView extends LitElement {
           return html`<session-strip .session=${o.s} .zIndex=${zIndex}></session-strip>`
         })}
 
-
-        <!-- BOTTOM BAR -->
-
-        <total-strip .exchange=${exchange}></total-strip>
 
         <mwc-button unelevated icon="add"
           @click="${() => window.tradesInterface.createDialog.open(exchange)}"
@@ -252,8 +249,13 @@ export class SessionsView extends LitElement {
 
   openPreSessionMenu (session: TradeSession) {
     const summary = getSummary(session)
-    const sessionSummary = getSessionSummary(session)
-    this.dialog.heading = `${session.symbol} (${sessionSummary.price})`
+
+    const priceIntervalFct = () => {
+      const sessionSummary = getSessionSummary(session)
+      this.dialog.heading = `${session.symbol} (${sessionSummary.price} ${session.quote})`
+    }
+    priceIntervalFct()
+    const priceInterval = setInterval(priceIntervalFct, 1000)
 
     render(html`
     <style>
@@ -298,6 +300,12 @@ export class SessionsView extends LitElement {
     <mwc-button slot="primaryAction" dialogAction="close">cancel</mwc-button>
     `, this.dialog)
     this.dialog.open = true
+
+    const closedEvent = () => {
+      clearInterval(priceInterval)
+      this.dialog.removeEventListener('closed', closedEvent)
+    }
+    this.dialog.addEventListener('closed', closedEvent);
   }
 
   private changeSessionTitle (session: TradeSession) {

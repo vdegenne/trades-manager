@@ -24,10 +24,19 @@ export class TotalStrip extends LitElement {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background-color: #fafafa;
+      /* background-color: #fafafa; */
+      background-color: var(--on-background-color);
       min-height: 20px;
-      padding: 6px 9px;
+      padding: 0 0 0 9px;
       border-radius: 3px;
+    }
+
+    .percent {
+      color: white;
+      font-size: 14px;
+      border-radius: 0 4px 4px 0;
+      padding: 5px 10px;
+      opacity: 0.8;
     }
     `
   ]
@@ -52,9 +61,9 @@ export class TotalStrip extends LitElement {
     }
 
     return html`
-    <span style="color:blue">${this.investAggro?.toString()}</span>
+    <span style="color:#00bcd4" title="total invest value">${this.investAggro?.toString()}</span>
 
-    ${this.aggro?.toHtml()}
+    <div title="gain/loss">${this.aggro?.toHtml()}</div>
 
     ${percent ? percentTemplate(percent) : nothing}
     `

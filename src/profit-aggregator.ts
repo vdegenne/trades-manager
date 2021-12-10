@@ -75,13 +75,11 @@ export class Aggregator {
 
   toHtml () {
     return html`
-      <div>
       ${this.units.map((agg, i) => {
         return html`${outputPriceTemplate(agg[1], agg[0])}
         ${i < this.units.length - 1 ? html`<span> + </span>` : nothing }
         `
       })}
-      </div>
       `
   }
 

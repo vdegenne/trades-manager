@@ -19,25 +19,33 @@ export default css`
   box-shadow: rgb(0 0 0 / 20%) 0px 35px 15px -29px;
   position: relative;
 }
+.title {
+  background-color: var(--on-background-color);
+  color: var(--main-text-color);
+  font-size:0.9em;
+}
 .session[entitled] {
   margin-top: 30px;
+  border-radius: 0 0 2px 2px;
 }
 .session[eventful] {
   cursor: pointer;
   transition: background-color .2s linear;
 }
 .session[eventful]:hover {
-  /*background-color: var(--discreet-color);*/
-  background-color: #fff3e0;
+  background-color: var(--card-hover-color);
+  /* background-color: #fff3e0; */
+  /* background-color: #f5f5f5; */
 }
 .session[eventful]:hover .title {
-  background: #fff3e0;
+  background-color: var(--card-hover-color)
+  /* background-color: #f5f5f5; */
 }
 .session[eventful]:hover .price {
-  color: black
+  /* color: black */
 }
 .session[eventful]:hover .name mwc-icon {
-  color: white;
+  /* color: black; */
 }
 .session[external] {
   border: 2px solid #e0e0e0;
@@ -48,8 +56,9 @@ export default css`
 }
 .session > .title {
   position: absolute;
-  top: -21px;
-  right: 0;
+  left: 0; right: 0;
+  top: -19px;
+  /* right: 0; */
   /* left: 21px; */
   padding: 1px 9px;
   background-color: var(--on-background-color);
@@ -57,6 +66,7 @@ export default css`
   color: var(--main-text-color);
   border-radius: 5px 5px 0 0;
   z-index: -1;
+  transition: background-color .2s linear;
 }
 .session .name {
   display: flex;

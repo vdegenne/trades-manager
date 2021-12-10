@@ -15,6 +15,7 @@ import en from 'javascript-time-ago/locale/en.json'
 
 // --- Locale
 TimeAgo.addDefaultLocale(en)
+const timeAgo = new TimeAgo('en-US')
 
 
 @customElement('trades-interface')
@@ -36,14 +37,15 @@ export class tradesInterface extends LitElement {
 
   render() {
     const trades = this.session?.trades.slice().reverse()
-    const oldestTrade = this.session?.trades.length && this.session.trades[0];
+    const lastTrade = trades && trades[0];
+    // const oldestTrade = this.session?.trades.length && this.session.trades[0];
 
     return html`
     <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})"
         escapeKeyAction="">
       <div style="width:600px"></div>
       <div>
-        ${oldestTrade && oldestTrade.date ? `first trade : ${(new TimeAgo('en-US')).format(oldestTrade.date)}` : ''}
+        ${lastTrade && lastTrade.date ? `last trade : ${timeAgo.format(lastTrade.date)}` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center">
             <!-- <mwc-formfield label="Virtual">
@@ -97,8 +99,9 @@ export class tradesInterface extends LitElement {
   }
 
   tradeTemplate (trade: Trade, session: TradeSession, eventful = true) {
+    // console.log(trade.date!)
     return html`
-    <div class="trade">
+    <div class="trade" @click=${() => trade.date && window.app.toast(timeAgo.format(trade.date!).toString())}>
       <b style="color:${trade.type === 'buy' ? 'green' : 'red'}">${trade.type.toUpperCase()}</b>
       <div><span>${trade.price} ${session.quote}</span> <b style="position:relative;top:-1px;color:#bdbdbd">@</b> <span>${trade.volume}</span></div>
       ${eventful ? html`

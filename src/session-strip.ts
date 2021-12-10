@@ -129,7 +129,7 @@ export class SessionStrip extends LitElement {
         ${viewOptions.showTotalValue ? html`
           <div class="total-value">${formatOutputPrice(ss.invested, session.quote)}</div>
           <!-- <div class="total-value">
-            <span>${formatOutputPrice(ss.total!, session.quote)}yo</span>
+            <span>${formatOutputPrice(ss.total!, session.quote)}</span>
             ${session.quote !== window.spacesManager.space.currency && totalConverted !== undefined ? html`
             <span>(${formatOutputPrice(totalConverted.value, totalConverted.quote)})</span>
             ` : nothing}
