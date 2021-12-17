@@ -28,6 +28,7 @@ import { SessionAlert } from './session-alert'
 import './notification-manager'
 import clipboardCopy from 'clipboard-copy'
 import './ChangesManager'
+import { CoingeckoPairsManager } from './coingecko/CoingeckoManager'
 
 declare global {
   interface Window {
@@ -42,6 +43,8 @@ declare global {
     spacesInterface: {
       open: Function
     };
+
+    geckoSymbols: { id: string, s: string }[]
   }
 }
 

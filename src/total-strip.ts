@@ -83,7 +83,11 @@ export class TotalStrip extends LitElement {
       }
 
       /* Invested Aggro */
-      if (s.hInvested) {
+      // We do not include the value if the volume is zero
+      if (s.summary!.volume === 0) {
+        return;
+      }
+      else if (s.hInvested) {
         iAggro.pushUnit(s.hInvested.quote, s.hInvested.value)
       }
       else {

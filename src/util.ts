@@ -122,3 +122,21 @@ export function openChart(session: TradeSession) {
     window.open(`https://www.binance.com/en/trade/${session.symbol}_${session.quote}`, '_blank')
   }
 }
+
+
+// export async function geckoGetIdFromSymbol (symbol: string) {
+//     const Symbol = window.geckoSymbols.find(a => a.s === symbol)
+//     if (!Symbol) return
+//     return Symbol.id;
+// }
+
+// export async function geckoFetch (ids: string|string[], vs_currencies: string|string[]) {
+//   if (!(ids instanceof Array) && typeof ids === 'string') {
+//     ids = [ids]
+//   }
+//   if (!(vs_currencies instanceof Array) && typeof vs_currencies === 'string') {
+//     vs_currencies = [vs_currencies]
+//   }
+//   const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=${vs_currencies.join(',')}&include_24hr_change=true`)
+//   return await response.json()
+// }

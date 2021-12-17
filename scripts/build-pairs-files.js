@@ -52,6 +52,12 @@ async function buildCoingeckoPairs () {
       s: o.symbol.toUpperCase()
     }))
   ))
+  fs.writeFileSync('public/coingecko-symbols.json', JSON.stringify(
+    result.map(o => ({
+      id: o.id,
+      s: o.symbol.toUpperCase()
+    }))
+  ))
 
   // then the quotes
   result = await (await fetch('https://api.coingecko.com/api/v3/simple/supported_vs_currencies')).json()

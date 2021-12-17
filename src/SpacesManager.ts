@@ -108,6 +108,8 @@ export class SpacesManager extends LitElement {
 
   loadSpace (space: Space) {
     window.sessionsInterface.loadSessions(space.sessions)
+    window.ChangesManager.updateChanges()
+    // console.log(window.tradesManager.sessions)
 
     // window.walletsManager.loadWallets(space.wallets)
 
