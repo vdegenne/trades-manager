@@ -1,5 +1,5 @@
 // @TODO: do like Binance, dynamic page fetch
-import coingeckoSymbols from './coingecko-symbols.json'
+import coingeckoSymbols from '../../public/coingecko-symbols.json'
 import coingeckoQuotes from './coingecko-quotes.json'
 import ms from 'ms'
 import { PairsManager, PairsManagerInterface} from '../PairsManager'
