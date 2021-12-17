@@ -27,6 +27,7 @@ import './data/data-loader'
 import { SessionAlert } from './session-alert'
 import './notification-manager'
 import clipboardCopy from 'clipboard-copy'
+import './ChangesManager'
 
 declare global {
   interface Window {

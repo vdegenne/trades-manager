@@ -41,7 +41,7 @@ export class CoingeckoPairsManager extends PairsManager implements PairsManagerI
       return
     }
 
-    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=${vs_currencies}`)
+    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=${vs_currencies}&include_24hr_change=true`)
     const result = await response.json()
 
     for (const pair of this.pairs) {
