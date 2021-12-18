@@ -32,6 +32,8 @@
   "dependencies": {},
   "scripts": {
     "watch": "rollup -cw",
-    "build": "rollup -c --environment minify"
-  }
+    "build": "rollup -c --environment minify",
+    "deploy": "./deploy.sh"
+  },
+  "license": "BSD-3-Clause"
 }

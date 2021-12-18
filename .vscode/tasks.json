@@ -6,7 +6,14 @@
     {
       "label": "browser-sync",
       "type": "shell",
-      "command": "browser-sync public --files public/app.js --no-notify",
+      "command": "browser-sync public --files public/app.js --no-notify"
+    },
+    {
+      "type": "npm",
+      "script": "deploy",
+      "problemMatcher": [],
+      "label": "npm: deploy",
+      "detail": "git add .; git commit -m \"$1\"; git push"
     }
   ]
 }

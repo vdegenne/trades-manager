@@ -1622,7 +1622,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
           ${e.alert?p`<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${e.alert.notified?"#f44336":"inherit"}" title="${e.alert.limit} ${e.alert.value}"
               @mousedown="${i=>{i.stopPropagation(),window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(e))}}">notifications</mwc-icon>`:T}
         </div>
-        ${s.showPrice?p`<div class="price" style="display:flex;align-items:center;"><span>${i.price}</span><span style="margin-left:8px;color:${0!==o?o>0?"green":"red":"grey"}">${o?`${round$2(o)}%`:""}</span></div>`:T}
+        ${s.showPrice?p`<div class="price" style="display:flex;align-items:center;"><span>${i.price}</span><span style="margin-left:8px;padding:1px 4px;color:white;background-color:${0!==o?o>0?"green":"red":"grey"}">${o?`${round$2(o)}%`:""}</span></div>`:T}
       </div>
 
       <!-- middle part -->
