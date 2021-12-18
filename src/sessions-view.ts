@@ -78,9 +78,10 @@ export class SessionsView extends LitElement {
       return html`
       <div class="exchange-frame">
         <div style="display:flex;align-items:center;justify-content:space-between">
-          <mwc-button unelevated dense
-            style="">${firstLetterUpperCase(exchange)}</mwc-button>
-          <total-strip .exchange=${exchange} style="flex:1;margin-left:10px;"></total-strip>
+          <!-- <mwc-button unelevated dense
+            style="">${firstLetterUpperCase(exchange)}</mwc-button> -->
+          <span style="font-size:0.9em;color:white;background-color:black;padding:5px 10px;">${firstLetterUpperCase(exchange)}</span>
+          <total-strip .exchange=${exchange} style="flex:1"></total-strip>
         </div>
 
 

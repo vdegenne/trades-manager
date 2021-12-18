@@ -28,7 +28,7 @@ export class TotalStrip extends LitElement {
       background-color: var(--on-background-color);
       min-height: 20px;
       padding: 0 0 0 9px;
-      border-radius: 3px;
+      border-radius: 0 3px 3px 0;
     }
 
     .percent {
@@ -61,7 +61,7 @@ export class TotalStrip extends LitElement {
     }
 
     return html`
-    <span style="color:#00bcd4" title="total invest value">${this.investAggro?.toString()}</span>
+    <span style="color:#03a9f4" title="total invest value">${this.investAggro?.toString()}</span>
 
     <div title="gain/loss">${this.aggro?.toHtml()}</div>
 

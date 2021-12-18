@@ -1,6 +1,7 @@
-import { html, LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
+// import { LitElement } from 'lit';
+// import { customElement } from 'lit/decorators.js';
 import { BinanceManager } from './binance/BinanceManager';
+import { changeTagsList } from './change-tag';
 import { CoingeckoPairsManager } from './coingecko/CoingeckoManager'
 
 declare type Change = { [pair: string]: number };
@@ -10,16 +11,20 @@ declare type Changes = {
   'others': Change
 }
 
-@customElement('changes-manager')
-export class ChangesManager extends LitElement {
+// @customElement('changes-manager')
+export class ChangesManager {
   private _changes: Partial<Changes> = {}
   private _coinGeckoManager: CoingeckoPairsManager;
   private _binanceManager: BinanceManager;
 
   constructor() {
-    super()
+    // super()
     this._coinGeckoManager = new CoingeckoPairsManager()
     this._binanceManager = new BinanceManager()
+
+    setTimeout(() => {
+      this.updateChanges()
+    }, 1000 * 60 * 2)
   }
 
   // render() {
@@ -37,6 +42,7 @@ export class ChangesManager extends LitElement {
   public async updateChanges () {
     const changes = await this._binanceManager.fetchChanges()
     this._changes['binance'] = Object.fromEntries(changes.map(c => [c.symbol, c.priceChangePercent]))
+    changeTagsList.forEach(t => t.requestUpdate())
     return
     // Build-up the list of pairs to fetch
     // const symbols = [...new Set(window.tradesManager.sessions.map(s => s.symbol))];

@@ -1,10 +1,12 @@
-import "@material/mwc-icon/mwc-icon";import { css, html, LitElement, nothing } from 'lit';
+import "@material/mwc-icon/mwc-icon";
+import { css, html, LitElement, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ExchangesManager } from "./ExchangesManager";
 import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
-import { getSessionSummary, getSummary, SessionSummary, TradeSession, ValueQuote } from "./TradesManager";
+import { getSessionSummary, SessionSummary, TradeSession, ValueQuote } from "./TradesManager";
 import { formatOutputPrice, openCryptowatchLink, outputPriceTemplate, percentTemplate, round } from "./util";
+import './change-tag'
 
 @customElement('session-strip')
 export class SessionStrip extends LitElement {
@@ -85,7 +87,7 @@ export class SessionStrip extends LitElement {
 
     const viewOptions = Object.assign({}, window.options.sessionViewOptions, this.viewOptions)
 
-    let change = window.ChangesManager.getPairChange(session.symbol, session.quote)
+    // let change = window.ChangesManager.getPairChange(session.symbol, session.quote)
     // if (change !== undefined) {
     //   change = round(change)
     // }
@@ -108,7 +110,12 @@ export class SessionStrip extends LitElement {
           ${session.alert ? html`<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${session.alert.notified ? '#f44336': 'inherit'}" title="${session.alert!.limit} ${session.alert!.value}"
               @mousedown="${(e: MouseEvent) => {e.stopPropagation();window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(session)!)}}">notifications</mwc-icon>` : nothing}
         </div>
-        ${viewOptions.showPrice ? html`<div class="price" style="display:flex;align-items:center;"><span>${ss.price}</span><span style="margin-left:8px;padding:1px 4px;color:white;background-color:${change !== 0 ? (change > 0 ? 'green' : 'red') : 'grey'}">${change ? `${round(change)}%` : ''}</span></div>` : nothing }
+        ${viewOptions.showPrice ? html`
+        <div class="price" style="display:flex;align-items:center;">
+          <span>${ss.price}</span>
+          <change-tag .symbol=${session.symbol} .quote=${session.quote}></change-tag>
+        </div>` : nothing }
+
       </div>
 
       <!-- middle part -->

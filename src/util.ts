@@ -140,3 +140,7 @@ export function openChart(session: TradeSession) {
 //   const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=${vs_currencies.join(',')}&include_24hr_change=true`)
 //   return await response.json()
 // }
+
+export function percentColor (value) {
+  return value === 0 ? 'grey' : (value > 0 ? 'green' : 'red');
+}
