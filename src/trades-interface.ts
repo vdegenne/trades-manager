@@ -41,8 +41,7 @@ export class tradesInterface extends LitElement {
     // const oldestTrade = this.session?.trades.length && this.session.trades[0];
 
     return html`
-    <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})"
-        escapeKeyAction="">
+    <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})">
       <div style="width:600px"></div>
       <div>
         ${lastTrade && lastTrade.date ? `last trade : ${timeAgo.format(lastTrade.date)}` : ''}
