@@ -38,4 +38,9 @@ export class BinanceManager extends PairsManager implements PairsManagerInterfac
   getAvailableQuotesFromSymbol (symbol: string) {
     return [...new Set(window.BinancePairs.filter(p => p.s === symbol).map(p => p.q))]
   }
+
+  public async fetchChanges (pair?: string) {
+    const response = await fetch(`https://www.binance.com/api/v3/ticker/24hr${pair ? `symbol=${pair}` : ''}`)
+    return await response.json()
+  }
 }

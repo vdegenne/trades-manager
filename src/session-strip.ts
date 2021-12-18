@@ -1,4 +1,3 @@
-
 import "@material/mwc-icon/mwc-icon";import { css, html, LitElement, nothing } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { ExchangesManager } from "./ExchangesManager";

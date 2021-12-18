@@ -1,15 +1,25 @@
 import { html, LitElement } from 'lit';
 import { customElement } from 'lit/decorators.js';
+import { BinanceManager } from './binance/BinanceManager';
 import { CoingeckoPairsManager } from './coingecko/CoingeckoManager'
+
+declare type Change = { [pair: string]: number };
+declare type Changes = {
+  'binance': Change,
+  'kraken': Change,
+  'others': Change
+}
 
 @customElement('changes-manager')
 export class ChangesManager extends LitElement {
-  private _changes: { [pair: string]: number} = {}
+  private _changes: Partial<Changes> = {}
   private _coinGeckoManager: CoingeckoPairsManager;
+  private _binanceManager: BinanceManager;
 
   constructor() {
     super()
     this._coinGeckoManager = new CoingeckoPairsManager()
+    this._binanceManager = new BinanceManager()
   }
 
   // render() {
@@ -17,14 +27,17 @@ export class ChangesManager extends LitElement {
   // }
 
   public getPairChange (symbol: string, quote: string) {
-    if (quote.indexOf('USD') >= 0) {
-      quote = 'USD'
-    }
+    // if (quote.indexOf('USD') >= 0) {
+    //   quote = 'USD'
+    // }
     // console.log(quote, this._changes[`${symbol.toLocaleLowerCase()}/${quote.toLocaleLowerCase()}`])
-    return this._changes[`${symbol.toLocaleLowerCase()}/${quote.toLocaleLowerCase()}`]
+    return this._changes['binance'] ? this._changes['binance'][`${symbol}${quote}`] : undefined;
   }
 
   public async updateChanges () {
+    const changes = await this._binanceManager.fetchChanges()
+    this._changes['binance'] = Object.fromEntries(changes.map(c => [c.symbol, c.priceChangePercent]))
+    return
     // Build-up the list of pairs to fetch
     // const symbols = [...new Set(window.tradesManager.sessions.map(s => s.symbol))];
     const ids  = [...new Set(window.tradesManager.sessions.map(s => s.symbol))].map(s => this._coinGeckoManager.getIdFromSymbol(s)!)
