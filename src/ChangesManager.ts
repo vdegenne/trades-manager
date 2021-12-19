@@ -22,7 +22,7 @@ export class ChangesManager {
     this._coinGeckoManager = new CoingeckoPairsManager()
     this._binanceManager = new BinanceManager()
 
-    setTimeout(() => {
+    setInterval(() => {
       this.updateChanges()
     }, 1000 * 60 * 2)
   }
