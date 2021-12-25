@@ -6,7 +6,8 @@
     {
       "label": "browser-sync",
       "type": "shell",
-      "command": "browser-sync public --files public/app.js --no-notify"
+      "command": "browser-sync public --files public/app.js --no-notify",
+      "problemMatcher": []
     },
     {
       "type": "npm",

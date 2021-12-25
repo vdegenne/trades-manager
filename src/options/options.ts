@@ -7,6 +7,7 @@ export type Options = {
   exchangeViewOptions: {
     showWallet: boolean;
     showVirtual: boolean;
+    showTerminatedSession: boolean;
   }
 }
 
@@ -20,36 +21,40 @@ export type SessionViewOptions = {
 }
 
 export class OptionsManager {
-  public options: Options;
+  public options!: Options;
 
   constructor (options?: Options) {
-    if (options) {
-      this.options = options
-    } else {
+    if (!options) {
       // we load options from localstorage or the default object
-      this.options = localStorage.getItem('options') ? JSON.parse(localStorage.getItem('options')!) : this.default;
+      options = localStorage.getItem('options') ? JSON.parse(localStorage.getItem('options')!) : OptionsManager.default;
     }
 
-    if (this.options.generalOptions === undefined || this.options.generalOptions.darkMode === undefined) {
-      this.options.generalOptions = { darkMode: false };
+    if (options!.exchangeViewOptions.showTerminatedSession === undefined) {
+      options!.exchangeViewOptions.showTerminatedSession = true;
     }
 
+    // window.options = this.options
+    this.load(options!)
     window.optionsManager = this;
-    window.options = this.options
   }
 
-  loadOptions (options: Options) {
+  load (options: Options) {
     window.options = this.options = options;
   }
 
-  get default (): Options {
+  save () {
+    localStorage.setItem('options', JSON.stringify(this.options))
+  }
+
+  static get default (): Options {
     return {
       generalOptions: {
         darkMode: false
       },
       exchangeViewOptions: {
         showWallet: true,
-        showVirtual: true
+        showVirtual: true,
+        showTerminatedSession: true
       },
       sessionViewOptions: {
         events: true,
@@ -60,10 +65,6 @@ export class OptionsManager {
         showCross: false,
       }
     }
-  }
-
-  save () {
-    localStorage.setItem('options', JSON.stringify(this.options))
   }
 }
 

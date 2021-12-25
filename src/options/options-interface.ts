@@ -11,12 +11,10 @@ import '@material/mwc-icon-button-toggle'
 
 @customElement('options-interface')
 export class OptionsInterface extends LitElement {
-  @property({type:Object})
+  @state()
   private optionsManager: OptionsManager;
-
   @state()
   private options: Options; // clone object for the interface
-
   @state()
   private darkMode: boolean = false;
 
@@ -33,20 +31,22 @@ export class OptionsInterface extends LitElement {
 
   constructor (options?: Options) {
     super()
-    window.optionsInterface = this
 
     // Options loaded from the local memory
     this.optionsManager = new OptionsManager(options)
-    this.darkMode = this.optionsManager.options.generalOptions.darkMode;
+    // this.darkMode = this.optionsManager.options.generalOptions.darkMode;
 
     this.options = JSON.parse(JSON.stringify(this.optionsManager.options)) // cloning
+    this.darkMode = this.options.generalOptions.darkMode
 
+    // waiting for binance pairs before creating the strip
+    // to avoid ghost strip
     new Promise(async resolve => {
       while (window.BinancePairs === undefined) {
         await new Promise(r => setTimeout(r, 200))
       }
       resolve(null)
-    }).then(_ => this.strip = new SessionStrip(this.session))
+    }).then(() => this.strip = new SessionStrip(this.session))
   }
 
   static styles = [
@@ -65,8 +65,8 @@ export class OptionsInterface extends LitElement {
     if (this.strip === undefined) {
       return nothing;
     }
-
     this.strip.viewOptions = Object.assign({}, this.options.sessionViewOptions, { events: false });
+
     if (this.darkMode) {
       document.body.setAttribute('dark', '')
     }
@@ -114,6 +114,11 @@ export class OptionsInterface extends LitElement {
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showVirtual}"
             @change="${(e) => {this.options.exchangeViewOptions.showVirtual = e.target.checked; this.requestUpdate()}}"></mwc-checkbox>
         </mwc-formfield>
+        <br>
+        <mwc-formfield label="Show terminated sessions">
+          <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showTerminatedSession}"
+            @change="${(e) => {this.options.exchangeViewOptions.showTerminatedSession = e.target.checked}}"></mwc-checkbox>
+        </mwc-formfield>
       </div>
 
       <mwc-button outlined slot="secondaryAction" dialogAction="close">cancel</mwc-button>
@@ -125,19 +130,19 @@ export class OptionsInterface extends LitElement {
 
   private onDarkModeIconButtonToggleChange (e) {
     this.darkMode = e.detail.isOn;
-    this.options.generalOptions.darkMode = this.darkMode;
+    window.optionsManager.options.generalOptions.darkMode = this.darkMode;
     this.optionsManager.save()
   }
 
   requestUpdate() {
     try {
-      this.strip.requestUpdate()
+      this.strip!.requestUpdate()
     } catch (e) {}
     return super.requestUpdate()
   }
 
   async firstUpdated() {
-    // we make sure the pair BTC USDT is registered for the session template to show the right data
+    // we make sure the pair BTC USDT is registered for the session template to show the proper data
     await ExchangesManager.addPair('kraken', 'BTC', 'USDT', false)
     await ExchangesManager.exchanges['kraken'].updatePairs()
     this.requestUpdate()
@@ -169,11 +174,11 @@ export class OptionsInterface extends LitElement {
     this.save()
     this.dialog.close()
     window.sessionsInterface.requestUpdate()
-    window.app.toast('settings updated')
+    // window.app.toast('settings updated')
   }
 
   save () {
-    this.optionsManager.loadOptions(this.options)
+    this.optionsManager.load(this.options)
     this.optionsManager.save()
   }
 }

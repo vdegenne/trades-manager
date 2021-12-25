@@ -53,17 +53,17 @@ export class ChangesManager {
     // Fetch data from coinGecko
     const results = await this._coinGeckoManager.fetch(ids, quotes)
 
-    for (const id in results) {
-      const symbol = this._coinGeckoManager.getSymbolFromId(id)
-      const changeStrings = Object.keys(results[id]).filter(k => /(.+)_24h_change/.test(k))
-      for (const change_string of changeStrings) {
-        const quote = change_string.match(/(.+)_24h_change/)![1]
-        const changeValue = results[id][change_string]
-        // console.log(quote, changeValue)
-        if (symbol !== undefined && quote !== undefined && changeValue !== undefined)
-          this._changes[`${symbol.toLocaleLowerCase()}/${quote}`] = changeValue
-      }
-    }
+    // for (const id in results) {
+    //   const symbol = this._coinGeckoManager.getSymbolFromId(id)
+    //   const changeStrings = Object.keys(results[id]).filter(k => /(.+)_24h_change/.test(k))
+    //   for (const change_string of changeStrings) {
+    //     const quote = change_string.match(/(.+)_24h_change/)![1]
+    //     const changeValue = results[id][change_string]
+    //     // console.log(quote, changeValue)
+    //     if (symbol !== undefined && quote !== undefined && changeValue !== undefined)
+    //       this._changes[`${symbol.toLocaleLowerCase()}/${quote}`] = changeValue
+    //   }
+    // }
   }
 }
 

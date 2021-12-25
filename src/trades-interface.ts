@@ -1,17 +1,18 @@
-import { getSummary, Trade, TradeSession } from "./TradesManager";
+import { getSessionSummary, getSummary, Trade, TradeSession } from "./TradesManager";
 import { css, html, LitElement, nothing } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { customElement, query, state } from 'lit/decorators.js';
 import '@material/mwc-dialog'
 import '@material/mwc-button'
 import '@material/mwc-icon-button'
 import { Dialog } from "@material/mwc-dialog";
-import { firstLetterUpperCase, openVirtualInfoDialog } from "./util";
+import { firstLetterUpperCase, openVirtualInfoDialog, outputPriceTemplate } from "./util";
 import './session-create-dialog'
 import { SessionCreateDialog } from "./session-create-dialog";
 import './trade-create-dialog'
 import { TradeCreateDialog } from "./trade-create-dialog";
 import TimeAgo from 'javascript-time-ago'
 import en from 'javascript-time-ago/locale/en.json'
+import { ExchangesManager } from './ExchangesManager';
 
 // --- Locale
 TimeAgo.addDefaultLocale(en)
@@ -20,7 +21,7 @@ const timeAgo = new TimeAgo('en-US')
 
 @customElement('trades-interface')
 export class tradesInterface extends LitElement {
-  @property()
+  @state()
   private session?: TradeSession;
 
   @query('mwc-dialog') dialog!: Dialog;
@@ -36,15 +37,24 @@ export class tradesInterface extends LitElement {
   }
 
   render() {
-    const trades = this.session?.trades.slice().reverse()
-    const lastTrade = trades && trades[0];
+    if (this.session === undefined) return nothing;
+
+    const trades = this.session.trades.slice().reverse()
+    const lastTrade = trades[0];
     // const oldestTrade = this.session?.trades.length && this.session.trades[0];
+    const summary = getSessionSummary(this.session)
+    const profit = { value: summary.profit!, symbol: this.session.quote }
+    const conversion = ExchangesManager.getConversionPrice(this.session.quote, window.spacesManager.space.currency, this.session.exchange)
+    if (conversion) {
+      profit.value = profit.value * conversion.value
+      profit.symbol = conversion.quote
+    }
 
     return html`
-    <mwc-dialog heading="Session (${this.session?.symbol} on ${firstLetterUpperCase(this.session?.exchange)})">
+    <mwc-dialog heading="${this.session.symbol}/${this.session.quote} (${firstLetterUpperCase(this.session?.exchange)})">
       <div style="width:600px"></div>
       <div>
-        ${lastTrade && lastTrade.date ? `last trade : ${timeAgo.format(lastTrade.date)}` : ''}
+        <div style="text-align:right">${lastTrade && lastTrade.date ? `last trade : ${timeAgo.format(lastTrade.date)}` : ''}</div>
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="display:flex;align-items:center">
             <!-- <mwc-formfield label="Virtual">
@@ -62,8 +72,9 @@ export class tradesInterface extends LitElement {
         ` : nothing}
         </div>
 
-        <div style="padding: 7px 12px;background: #e0e0e0;color: #212121;border-radius: 0 0 5px 5px;">
-          <span>Total Volume : </span><span style="font-weight:500">${this.session ? getSummary(this.session).volume : ''}</span>
+        <div style="padding: 7px 12px;color:var(--main-text-color);border-radius: 0 0 5px 5px;">
+          <span>Total Volume : </span><span style="font-weight:500">${summary?.volume}</span><br>
+          <span>Profit : </span><span>${outputPriceTemplate(profit.value, profit.symbol)}</span>
         </div>
       </div>
 
@@ -72,14 +83,14 @@ export class tradesInterface extends LitElement {
         <a href="#" @click="${() => this.deleteAllTrades(this.session!)}">delete all trades</a>
       </div>
       <div>
-        <mwc-button outlined icon="notifications"
-          @click="${() => window.sessionAlert.open(window.sessionsView.getStripFromSessionElement(this.session!)!)}">alert</mwc-button>
         <!-- <mwc-button outlined icon="show_charts"
           @click="${() => window.tradeCreateDialog.open(this.session!)}">trade</mwc-button> -->
         <!-- <mwc-button outlined icon="title"
           @click="${(e) => window.tcodeInterface.open(this.session)}">tcode</mwc-button> -->
       </div>
 
+      <mwc-button unelevated slot="secondaryAction"
+        @click=${() => {this.dialog.close(); window.sessionsView.openPreSessionMenu(this.session!)}}><mwc-icon>arrow_back</mwc-icon></mwc-button>
       <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#4caf50"
         @click="${() => window.tradeCreateDialog.open(this.session!, 'buy')}">buy</mwc-button>
       <mwc-button unelevated slot="secondaryAction" style="--mdc-theme-primary:#f44336"
@@ -143,8 +154,9 @@ export class tradesInterface extends LitElement {
     window.spacesManager.save()
   }
 
-  public openSession (session: TradeSession) {
+  public async openSession (session: TradeSession) {
     this.session = session
+    await this.updateComplete
     this.dialog.show();
   }
 
@@ -205,6 +217,12 @@ export class tradesInterface extends LitElement {
     this.requestUpdate()
     window.sessionsInterface.requestUpdate()
     window.spacesManager.save()
+  }
+
+
+
+  public show() {
+    this.dialog.show()
   }
 }
 

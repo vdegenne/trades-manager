@@ -61,19 +61,20 @@ export class SessionsView extends LitElement {
 
     return html`
     ${ExchangesManager.getAvailableExchanges().map(exchange => {
-      const sessions = window.sessions.filter(session => session.exchange === exchange && (window.options.exchangeViewOptions.showVirtual || !session.virtual))
-
-      // this.profitAggregator = new Aggregator(exchange)
-      // this.totalValueAggregator = new Aggregator(exchange)
-      // this.walletAggregator = new Aggregator(exchange)
-
-      // if (sessions.length === 0) return nothing
+      /* Get the sessions (per exchange) */
+      const sessions = window.sessions.filter(s => {
+        if (s.exchange !== exchange) return false;
+        if (window.options.exchangeViewOptions.showVirtual === false && s.virtual) return false
+        if (window.options.exchangeViewOptions.showTerminatedSession === false) {
+          const summary = getSummary(s)
+          if (s.trades.length > 0 && summary.volume === 0) return false
+        }
+        return true
+      })
 
       const ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
         return b.percent! - a.percent!
       })
-      // ordered by percent for now
-      // console.log(ordered)
 
       return html`
       <div class="exchange-frame">
@@ -284,6 +285,8 @@ export class SessionsView extends LitElement {
     <mwc-button icon="title" dialogAction="close">t-code</mwc-button><br>
     <mwc-button style="--mdc-theme-primary:red" icon="delete" dialogAction="close"
       @click="${() => window.sessionsInterface.deleteSession(session)}">Delete session</mwc-button><br>
+    <mwc-button icon="notifications" dialogAction="close"
+      @click=${() => window.sessionAlert.open(this.getStripFromSessionElement(session)!)}>alert</mwc-button><br>
 
     <div style="display:flex;align-items:center">
       <mwc-formfield label="Virtual">
