@@ -16,6 +16,7 @@ import { Dialog } from "@material/mwc-dialog";
 import '@material/mwc-icon'
 import './total-strip'
 import { TotalStrip } from './total-strip';
+import { SessionCreateDialog } from './session-create-dialog';
 
 @customElement('sessions-view')
 export class SessionsView extends LitElement {
@@ -24,6 +25,7 @@ export class SessionsView extends LitElement {
   // private walletAggregator!: Aggregator;
 
   @query('mwc-dialog') dialog!: Dialog;
+  @query('session-create-dialog') createDialog!: SessionCreateDialog;
 
   @queryAll('session-strip') stripElements!: SessionStrip[];
   @queryAll('total-strip') totalStripElements!: TotalStrip[];
@@ -72,9 +74,13 @@ export class SessionsView extends LitElement {
         return true
       })
 
-      const ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
-        return b.percent! - a.percent!
+      // const ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
+      //   return b.percent! - a.percent!
+      // })
+      const ordered = sessions.sort((a, b) => {
+        return (window.ChangesManager.getPairChange(b.symbol, b.quote) || 0) - (window.ChangesManager.getPairChange(a.symbol, a.quote) || 0)
       })
+      console.log(ordered)
 
       return html`
       <div class="exchange-frame">
@@ -88,12 +94,12 @@ export class SessionsView extends LitElement {
 
         ${ordered.map(o => {
           zIndex--;
-          return html`<session-strip .session=${o.s} .zIndex=${zIndex}></session-strip>`
+          return html`<session-strip .session=${o} .zIndex=${zIndex}></session-strip>`
         })}
 
 
         <mwc-button unelevated icon="add"
-          @click="${() => window.tradesInterface.createDialog.open(exchange)}"
+          @click="${() => this.createDialog.open(exchange)}"
           style="--mdc-theme-primary:var(--on-background-color);--mdc-theme-on-primary:var(--main-text-color);border-radius:5px;display:flex;margin-top:12px;">add session</mwc-button>
       </div>
       `
@@ -101,6 +107,9 @@ export class SessionsView extends LitElement {
 
     <!-- pre-session menu dialog placeholder -->
     <mwc-dialog></mwc-dialog>
+
+    <session-create-dialog></session-create-dialog>
+
     `
   }
 

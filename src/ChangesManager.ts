@@ -13,7 +13,7 @@ declare type Changes = {
 
 // @customElement('changes-manager')
 export class ChangesManager {
-  private _changes: Partial<Changes> = {}
+  private _changes: Partial<Changes> = { binance: {} }
   private _coinGeckoManager: CoingeckoPairsManager;
   private _binanceManager: BinanceManager;
 
@@ -24,7 +24,7 @@ export class ChangesManager {
 
     setInterval(() => {
       this.updateChanges()
-    }, 1000 * 60 * 2)
+    }, 1000 * 20)
   }
 
   // render() {

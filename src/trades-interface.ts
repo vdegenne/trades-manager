@@ -25,7 +25,6 @@ export class tradesInterface extends LitElement {
   private session?: TradeSession;
 
   @query('mwc-dialog') dialog!: Dialog;
-  @query('session-create-dialog') createDialog!: SessionCreateDialog;
   @query('trade-create-dialog') createTradeDialog!: TradeCreateDialog;
 
   static styles = css`
@@ -101,8 +100,6 @@ export class tradesInterface extends LitElement {
         @click="${() => window.sessionsInterface.deleteSession(this.session!)}">delete</mwc-button> -->
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
-
-    <session-create-dialog></session-create-dialog>
 
     <trade-create-dialog></trade-create-dialog>
     `
