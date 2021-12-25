@@ -119,7 +119,7 @@ export function openVirtualInfoDialog () {
 
 export function openChart(session: TradeSession) {
   if (session.exchange === 'binance') {
-    window.open(`https://www.binance.com/en/trade/${session.symbol}_${session.quote}`, '_blank')
+    window.open(`https://www.binance.com/en/trade/${session.symbol}_${session.quote}?layout=pro`, '_blank')
   }
 }
 
