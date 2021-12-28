@@ -74,13 +74,21 @@ export class SessionsView extends LitElement {
         return true
       })
 
-      // const ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
-      //   return b.percent! - a.percent!
-      // })
-      const ordered = sessions.sort((a, b) => {
-        return (window.ChangesManager.getPairChange(b.symbol, b.quote) || 0) - (window.ChangesManager.getPairChange(a.symbol, a.quote) || 0)
-      })
-      console.log(ordered)
+      let ordered;
+      switch (window.options.exchangeViewOptions.sortBy) {
+        case '24hr':
+        ordered = sessions.sort((a, b) => {
+          return (window.ChangesManager.getPairChange(b.symbol, b.quote) || 0) - (window.ChangesManager.getPairChange(a.symbol, a.quote) || 0)
+        })
+        break;
+
+        case 'percent':
+        ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
+          return b.percent! - a.percent!
+        }).map(o => o.s)
+        break;
+      }
+      // console.log(ordered)
 
       return html`
       <div class="exchange-frame">

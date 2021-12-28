@@ -1,5 +1,5 @@
 import { css, html, LitElement, nothing } from 'lit';
-import { customElement, property, query } from 'lit/decorators.js';
+import { customElement, property, query, state } from 'lit/decorators.js';
 import { Dialog } from "@material/mwc-dialog";
 import { Radio } from "@material/mwc-radio";
 import { TextField } from "@material/mwc-textfield";
@@ -16,7 +16,7 @@ export class TCodeInterface extends LitElement {
   // @property()
   // private tcode;
 
-  @property()
+  @state()
   private validity = false;
 
   @property({type:Array})
@@ -44,11 +44,11 @@ export class TCodeInterface extends LitElement {
         <p>Use a <span>t-code</span> to quickly add a trade entry (learn more)</p>
         <mwc-textfield type="text" outlined style="width:100%" initialFocusAttribute
           helperPersistent helper="${this.textfield ? ['exchange', 'symbol', 'quote', 'type', 'price', 'quantity', 'fees (optional)'][this.textfield.value.split(':').length - 1] : 'exchange'}"
-          @keyup="${() => this.onTextFieldKeypress()}"></mwc-textfield>
+          @keyup="${(e) => this.onTextFieldKeypress(e)}"></mwc-textfield>
 
         <div id="sessions">
           ${this.sessions.length ? html`<h3 style="margin: 41px 0 4px;font-weight:500">It will be added to :</h3>` : nothing }
-          ${this.sessions.map((session, i) => {
+          ${this.sessions.reverse().map((session, i) => {
 
             if (session.virtual) return nothing;
 
@@ -58,7 +58,8 @@ export class TCodeInterface extends LitElement {
             <!-- <mwc-formfield label=""> -->
             <div style="display:flex;align-items:center;">
               <mwc-radio name="session" value="${session.id}" ?checked="${sessionIndex === 0}"></mwc-radio>
-              ${new SessionStrip(session, { events: false, showCross: false, showPrice: false })}
+              <session-strip .session=${session} .viewOptions=${{ events: false, showCross: false, showPrice: false }} style="width:100%"></session-strip>
+              <!-- ${new SessionStrip(session, { events: false, showCross: false, showPrice: false })} -->
             </div>
             <!-- </mwc-formfield> -->`
           })}
@@ -76,13 +77,15 @@ export class TCodeInterface extends LitElement {
 
   firstUpdated() {
     window.addEventListener('keypress', e => {
-      if (e.code === 'KeyT' && !e.ctrlKey && !e.altKey) {
-        this.open()
+      if (e.key === 't' && !e.ctrlKey && !e.altKey) {
+        if (this.dialog.open === false)
+          this.open()
       }
     })
   }
 
-  private onTextFieldKeypress() {
+  private onTextFieldKeypress(e) {
+    e.stopImmediatePropagation()
     this.textfield.setCustomValidity('')
     this.textfield.reportValidity()
     this.validity = false

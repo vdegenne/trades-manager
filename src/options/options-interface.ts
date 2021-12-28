@@ -104,6 +104,13 @@ export class OptionsInterface extends LitElement {
 
         ${this.strip}
 
+        <h4>Sort sessions by</h4>
+        <mwc-select outlined value=${this.options.exchangeViewOptions.sortBy} style="width:100%"
+          @change=${(e) => this.onSortByChange(e)}>
+          <mwc-list-item value="24hr">24hr change</mwc-list-item>
+          <mwc-list-item value="percent">Profit percentage</mwc-list-item>
+        </mwc-select>
+
         <h4>General view options</h4>
         <mwc-formfield label="Show wallet at the bottom">
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showWallet}"
@@ -130,8 +137,16 @@ export class OptionsInterface extends LitElement {
 
   private onDarkModeIconButtonToggleChange (e) {
     this.darkMode = e.detail.isOn;
-    window.optionsManager.options.generalOptions.darkMode = this.darkMode;
-    this.optionsManager.save()
+    this.options.generalOptions.darkMode = this.darkMode;
+    this.save()
+    // this.optionsManager.save()
+  }
+
+  private onSortByChange(e) {
+    this.options.exchangeViewOptions.sortBy = e.target.value;
+    window.sessionsView.requestUpdate()
+    // this.optionsManager.save()
+    this.save()
   }
 
   requestUpdate() {

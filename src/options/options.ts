@@ -8,6 +8,7 @@ export type Options = {
     showWallet: boolean;
     showVirtual: boolean;
     showTerminatedSession: boolean;
+    sortBy: '24hr'|'percent'
   }
 }
 
@@ -31,6 +32,9 @@ export class OptionsManager {
 
     if (options!.exchangeViewOptions.showTerminatedSession === undefined) {
       options!.exchangeViewOptions.showTerminatedSession = true;
+    }
+    if (options!.exchangeViewOptions.sortBy === undefined) {
+      options!.exchangeViewOptions.sortBy = '24hr'
     }
 
     // window.options = this.options
