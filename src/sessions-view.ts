@@ -77,16 +77,22 @@ export class SessionsView extends LitElement {
       let ordered;
       switch (window.options.exchangeViewOptions.sortBy) {
         case '24hr':
-        ordered = sessions.sort((a, b) => {
-          return (window.ChangesManager.getPairChange(b.symbol, b.quote) || 0) - (window.ChangesManager.getPairChange(a.symbol, a.quote) || 0)
-        })
-        break;
+          ordered = sessions.sort((a, b) => {
+            return (window.ChangesManager.getPairChange(b.symbol, b.quote) || 0) - (window.ChangesManager.getPairChange(a.symbol, a.quote) || 0)
+          })
+          break;
 
         case 'percent':
-        ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
-          return b.percent! - a.percent!
-        }).map(o => o.s)
-        break;
+          ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
+            return b.percent! - a.percent!
+          }).map(o => o.s)
+          break;
+
+        case 'invested':
+          ordered = sessions.map(s => ({s, ...getSessionSummary(s)})).sort((a, b) => {
+            return b.invested - a.invested
+          }).map(o => o.s)
+          break;
       }
       // console.log(ordered)
 

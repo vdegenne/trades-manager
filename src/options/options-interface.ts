@@ -109,6 +109,7 @@ export class OptionsInterface extends LitElement {
           @change=${(e) => this.onSortByChange(e)}>
           <mwc-list-item value="24hr">24hr change</mwc-list-item>
           <mwc-list-item value="percent">Profit percentage</mwc-list-item>
+          <mwc-list-item value="invested">Invested value</mwc-list-item>
         </mwc-select>
 
         <h4>General view options</h4>
@@ -124,7 +125,7 @@ export class OptionsInterface extends LitElement {
         <br>
         <mwc-formfield label="Show terminated sessions">
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showTerminatedSession}"
-            @change="${(e) => {this.options.exchangeViewOptions.showTerminatedSession = e.target.checked}}"></mwc-checkbox>
+            @change=${(e) => this.onShowTerminatedSessionClick(e)}></mwc-checkbox>
         </mwc-formfield>
       </div>
 
@@ -133,6 +134,12 @@ export class OptionsInterface extends LitElement {
         @click="${() => this.saveAndClose()}">save</mwc-button>
     </mwc-dialog>
     `
+  }
+
+  private onShowTerminatedSessionClick(e) {
+    this.options.exchangeViewOptions.showTerminatedSession = e.target.checked;
+    this.save()
+    window.sessionsView.requestUpdate()
   }
 
   private onDarkModeIconButtonToggleChange (e) {

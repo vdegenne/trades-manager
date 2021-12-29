@@ -1615,7 +1615,8 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
         ?entitled="${e.title}"
         ?eventful="${s.events}"
         ?virtual="${e.virtual}"
-        @mousedown="${i=>s.events&&this.onSessionElementClick(i,e)}">
+        @mousedown="${i=>s.events&&this.onSessionElementClick(i,e)}"
+        title="volume: ${this.summary.volume}">
 
       <!-- TITLE -->
       ${e.title?p`
@@ -1822,6 +1823,7 @@ let IconButtonToggle=class extends IconButtonToggleBase{};IconButtonToggle.style
           @change=${e=>this.onSortByChange(e)}>
           <mwc-list-item value="24hr">24hr change</mwc-list-item>
           <mwc-list-item value="percent">Profit percentage</mwc-list-item>
+          <mwc-list-item value="invested">Invested value</mwc-list-item>
         </mwc-select>
 
         <h4>General view options</h4>
@@ -1837,7 +1839,7 @@ let IconButtonToggle=class extends IconButtonToggleBase{};IconButtonToggle.style
         <br>
         <mwc-formfield label="Show terminated sessions">
           <mwc-checkbox ?checked="${this.options.exchangeViewOptions.showTerminatedSession}"
-            @change="${e=>{this.options.exchangeViewOptions.showTerminatedSession=e.target.checked}}"></mwc-checkbox>
+            @change=${e=>this.onShowTerminatedSessionClick(e)}></mwc-checkbox>
         </mwc-formfield>
       </div>
 
@@ -1845,7 +1847,7 @@ let IconButtonToggle=class extends IconButtonToggleBase{};IconButtonToggle.style
       <mwc-button unelevated slot="primaryAction"
         @click="${()=>this.saveAndClose()}">save</mwc-button>
     </mwc-dialog>
-    `)}onDarkModeIconButtonToggleChange(e){this.darkMode=e.detail.isOn,this.options.generalOptions.darkMode=this.darkMode,this.save()}onSortByChange(e){this.options.exchangeViewOptions.sortBy=e.target.value,window.sessionsView.requestUpdate(),this.save()}requestUpdate(){try{this.strip.requestUpdate()}catch(e){}return super.requestUpdate()}async firstUpdated(){await ExchangesManager.addPair("kraken","BTC","USDT",!1),await ExchangesManager.exchanges.kraken.updatePairs(),this.requestUpdate(),window.addEventListener("keypress",(e=>{e.ctrlKey||e.altKey||"KeyV"!==e.code||(this.options.exchangeViewOptions.showVirtual=!this.options.exchangeViewOptions.showVirtual,window.sessionsInterface.requestUpdate(),this.requestUpdate(),this.save())}))}changeSessionViewOption(e,i){this.options.sessionViewOptions[i]=e.target.checked,this.requestUpdate()}open(){this.options=JSON.parse(JSON.stringify(this.optionsManager.options)),this.dialog.show()}saveAndClose(){this.save(),this.dialog.close(),window.sessionsInterface.requestUpdate()}save(){this.optionsManager.load(this.options),this.optionsManager.save()}};OptionsInterface.styles=[sessionsStyles,r$4`
+    `)}onShowTerminatedSessionClick(e){this.options.exchangeViewOptions.showTerminatedSession=e.target.checked,this.save(),window.sessionsView.requestUpdate()}onDarkModeIconButtonToggleChange(e){this.darkMode=e.detail.isOn,this.options.generalOptions.darkMode=this.darkMode,this.save()}onSortByChange(e){this.options.exchangeViewOptions.sortBy=e.target.value,window.sessionsView.requestUpdate(),this.save()}requestUpdate(){try{this.strip.requestUpdate()}catch(e){}return super.requestUpdate()}async firstUpdated(){await ExchangesManager.addPair("kraken","BTC","USDT",!1),await ExchangesManager.exchanges.kraken.updatePairs(),this.requestUpdate(),window.addEventListener("keypress",(e=>{e.ctrlKey||e.altKey||"KeyV"!==e.code||(this.options.exchangeViewOptions.showVirtual=!this.options.exchangeViewOptions.showVirtual,window.sessionsInterface.requestUpdate(),this.requestUpdate(),this.save())}))}changeSessionViewOption(e,i){this.options.sessionViewOptions[i]=e.target.checked,this.requestUpdate()}open(){this.options=JSON.parse(JSON.stringify(this.optionsManager.options)),this.dialog.show()}saveAndClose(){this.save(),this.dialog.close(),window.sessionsInterface.requestUpdate()}save(){this.optionsManager.load(this.options),this.optionsManager.save()}};OptionsInterface.styles=[sessionsStyles,r$4`
     h4 {
       margin: 33px 0px 5px;
       font-weight: 500;
@@ -2264,7 +2266,7 @@ const styles$1=r$4`.mdc-tab-bar{width:100%}.mdc-tab{height:48px}.mdc-tab--stacke
       opacity: 0.8;
     }
     `],__decorate([e$5()],TotalStrip.prototype,"aggro",void 0),__decorate([e$5()],TotalStrip.prototype,"investAggro",void 0),__decorate([e$5()],TotalStrip.prototype,"percent",void 0),TotalStrip=__decorate([n$1("total-strip")],TotalStrip);let SessionsView=class extends s$2{constructor(){super(),window.sessionsView=this}render(){if(void 0===window.sessions)return T;let e=window.sessions.length;return p`
-    ${ExchangesManager.getAvailableExchanges().map((i=>{const t=window.sessions.filter((e=>{if(e.exchange!==i)return!1;if(!1===window.options.exchangeViewOptions.showVirtual&&e.virtual)return!1;if(!1===window.options.exchangeViewOptions.showTerminatedSession){const i=getSummary(e);if(e.trades.length>0&&0===i.volume)return!1}return!0}));let s;switch(window.options.exchangeViewOptions.sortBy){case"24hr":s=t.sort(((e,i)=>(window.ChangesManager.getPairChange(i.symbol,i.quote)||0)-(window.ChangesManager.getPairChange(e.symbol,e.quote)||0)));break;case"percent":s=t.map((e=>({s:e,...getSessionSummary(e)}))).sort(((e,i)=>i.percent-e.percent)).map((e=>e.s))}return p`
+    ${ExchangesManager.getAvailableExchanges().map((i=>{const t=window.sessions.filter((e=>{if(e.exchange!==i)return!1;if(!1===window.options.exchangeViewOptions.showVirtual&&e.virtual)return!1;if(!1===window.options.exchangeViewOptions.showTerminatedSession){const i=getSummary(e);if(e.trades.length>0&&0===i.volume)return!1}return!0}));let s;switch(window.options.exchangeViewOptions.sortBy){case"24hr":s=t.sort(((e,i)=>(window.ChangesManager.getPairChange(i.symbol,i.quote)||0)-(window.ChangesManager.getPairChange(e.symbol,e.quote)||0)));break;case"percent":s=t.map((e=>({s:e,...getSessionSummary(e)}))).sort(((e,i)=>i.percent-e.percent)).map((e=>e.s));break;case"invested":s=t.map((e=>({s:e,...getSessionSummary(e)}))).sort(((e,i)=>i.invested-e.invested)).map((e=>e.s))}return p`
       <div class="exchange-frame">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <!-- <mwc-button unelevated dense

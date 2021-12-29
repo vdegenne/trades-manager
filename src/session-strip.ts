@@ -97,7 +97,8 @@ export class SessionStrip extends LitElement {
         ?entitled="${session.title}"
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
-        @mousedown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}">
+        @mousedown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
+        title="volume: ${this.summary.volume}">
 
       <!-- TITLE -->
       ${ session.title ? html`
