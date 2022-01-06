@@ -95,6 +95,17 @@ export class TradesManager {
     return session
   }
 
+  public addSession (session: Partial<TradeSession>) {
+    const s: Partial<TradeSession> = {
+      id: Date.now(),
+      trades: [],
+      alert: { value: 0.5, limit: '>', notified: false },
+      ...session
+    }
+    this.sessions.push(s as TradeSession)
+    return s as TradeSession
+  }
+
   addTrade(session: TradeSession, trade: Trade) {
     session.trades.push(trade)
   }

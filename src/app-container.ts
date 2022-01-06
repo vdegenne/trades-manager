@@ -28,7 +28,7 @@ import { SessionAlert } from './session-alert'
 import './notification-manager'
 import clipboardCopy from 'clipboard-copy'
 import './ChangesManager'
-import { CoingeckoPairsManager } from './coingecko/CoingeckoManager'
+import './trade-create-dialog'
 
 declare global {
   interface Window {

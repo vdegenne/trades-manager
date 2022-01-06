@@ -7,16 +7,9 @@ import '@material/mwc-icon-button'
 import { Dialog } from "@material/mwc-dialog";
 import { firstLetterUpperCase, openVirtualInfoDialog, outputPriceTemplate } from "./util";
 import './session-create-dialog'
-import { SessionCreateDialog } from "./session-create-dialog";
 import './trade-create-dialog'
-import { TradeCreateDialog } from "./trade-create-dialog";
-import TimeAgo from 'javascript-time-ago'
-import en from 'javascript-time-ago/locale/en.json'
 import { ExchangesManager } from './ExchangesManager';
-
-// --- Locale
-TimeAgo.addDefaultLocale(en)
-const timeAgo = new TimeAgo('en-US')
+import { timeAgo } from './time-ago';
 
 
 @customElement('trades-interface')
@@ -25,7 +18,6 @@ export class tradesInterface extends LitElement {
   private session?: TradeSession;
 
   @query('mwc-dialog') dialog!: Dialog;
-  @query('trade-create-dialog') createTradeDialog!: TradeCreateDialog;
 
   static styles = css`
   `
@@ -100,8 +92,6 @@ export class tradesInterface extends LitElement {
         @click="${() => window.sessionsInterface.deleteSession(this.session!)}">delete</mwc-button> -->
       <mwc-button outlined slot="primaryAction" dialogAction="close">close</mwc-button>
     </mwc-dialog>
-
-    <trade-create-dialog></trade-create-dialog>
     `
   }
 

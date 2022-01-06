@@ -19,6 +19,7 @@
     "@rollup/plugin-typescript": "^8.3.0",
     "@types/javascript-time-ago": "^2.0.3",
     "@types/ms": "^0.7.31",
+    "browser-sync": "^2.27.7",
     "clipboard-copy": "^4.0.1",
     "javascript-time-ago": "^2.3.10",
     "lit": "^2.0.2",
@@ -29,10 +30,10 @@
     "rollup-plugin-terser": "^7.0.2",
     "typescript": "^4.4.4"
   },
-  "dependencies": {},
   "scripts": {
     "watch": "rollup -cw",
     "build": "rollup -c --environment minify",
+    "browser-sync": "browser-sync public --files public/app.js --no-notify",
     "deploy": "./deploy.sh"
   },
   "license": "BSD-3-Clause"

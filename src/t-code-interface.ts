@@ -150,7 +150,7 @@ export class TCodeInterface extends LitElement {
         price: tcode.price,
         volume: tcode.quantity,
         fees: tcode.fees || 0,
-        date: Date.now()
+        date: Date.now(),
       })
     } catch (e) {
       return; // canceled

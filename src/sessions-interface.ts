@@ -157,8 +157,11 @@ export class SessionsInterface extends LitElement {
     `
   }
 
-  createSession (exchangeName: AvailableExchanges, symbol: string, quote: string, virtual = false, title?: string) {
-    const session = this.tradesManager.createSession(exchangeName, symbol, quote, virtual, title)
+  createSession (exchange: AvailableExchanges, symbol: string, quote: string, virtual = false, title?: string) {
+    const session = this.tradesManager.addSession(Object.assign({
+      exchange, symbol, quote, virtual
+    }, title ? { title } : {}))
+    // const session = this.tradesManager.createSession(exchangeName, symbol, quote, virtual, title)
     this.requestUpdate()
     ExchangesManager.addPair(session.exchange, session.symbol, session.quote, false)
     ExchangesManager.exchanges[session.exchange].updatePairs()

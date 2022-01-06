@@ -7,6 +7,8 @@ import sessionsStyles from "./styles/sessions-styles";
 import { getSessionSummary, SessionSummary, TradeSession, ValueQuote } from "./TradesManager";
 import { formatOutputPrice, openCryptowatchLink, outputPriceTemplate, percentTemplate, round } from "./util";
 import './change-tag'
+import { timeAgo } from './time-ago';
+
 
 @customElement('session-strip')
 export class SessionStrip extends LitElement {
@@ -87,6 +89,11 @@ export class SessionStrip extends LitElement {
 
     const viewOptions = Object.assign({}, window.options.sessionViewOptions, this.viewOptions)
 
+    const title = `
+    volume: ${this.summary.volume}${session.trades.length && session.trades[0].date ? `
+last trade: ${timeAgo.format(session.trades[0].date)}` : '' }${session.trades.length && session.trades[session.trades.length - 1].date ? `
+first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as number)}` : '' }
+    `
     // let change = window.ChangesManager.getPairChange(session.symbol, session.quote)
     // if (change !== undefined) {
     //   change = round(change)
@@ -98,7 +105,7 @@ export class SessionStrip extends LitElement {
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
         @mousedown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
-        title="volume: ${this.summary.volume}">
+        title="${title}">
 
       <!-- TITLE -->
       ${ session.title ? html`
