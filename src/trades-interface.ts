@@ -13,7 +13,7 @@ import { timeAgo } from './time-ago';
 
 
 @customElement('trades-interface')
-export class tradesInterface extends LitElement {
+export class TradesInterface extends LitElement {
   @state()
   private session?: TradeSession;
 
@@ -215,6 +215,6 @@ export class tradesInterface extends LitElement {
 
 declare global {
   interface Window {
-    tradesInterface: tradesInterface
+    tradesInterface: TradesInterface
   }
 }

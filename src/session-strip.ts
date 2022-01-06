@@ -105,6 +105,7 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
         @mousedown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
+        oncontextmenu="return false"
         title="${title}">
 
       <!-- TITLE -->
@@ -182,7 +183,11 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
 
   private onSessionElementClick(e: PointerEvent, session: TradeSession) {
     if (e.button === 2) {
-      openCryptowatchLink(session)
+      setTimeout(() => openCryptowatchLink(session), 100)
+      // e.preventDefault()
+      // e.stopImmediatePropagation()
+      // e.stopPropagation()
+      // return false
     }
     else {
       window.sessionsView.openPreSessionMenu(session)

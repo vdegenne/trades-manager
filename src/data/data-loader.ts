@@ -1,4 +1,4 @@
-import { Options } from "../options/options"
+import { Options, OptionsManager } from "../options/options"
 import { Space } from "../SpacesManager"
 
 export type AppData = {
@@ -29,7 +29,7 @@ export class DataLoader {
       throw new Error('Options are missing from the data')
     }
     if (!object.options.exchangeViewOptions || object.options.exchangeViewOptions.showWallet === undefined
-      || !Object.keys(window.optionsManager.default.sessionViewOptions).every(prop => prop in object.options.sessionViewOptions))
+      || !Object.keys(OptionsManager.default.sessionViewOptions).every(prop => prop in object.options.sessionViewOptions))
     {
       throw new Error('Some properties are missing from the option data')
     }

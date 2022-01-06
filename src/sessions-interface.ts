@@ -13,7 +13,7 @@ import { SessionsView } from "./sessions-view";
 import { AvailableExchanges, ExchangesManager } from "./ExchangesManager";
 import { sortAlphabetically } from "./util";
 import './trades-interface'
-import { tradesInterface } from "./trades-interface";
+import { TradesInterface } from "./trades-interface";
 import { SessionStrip } from "./session-strip";
 
 // type FormData = {
@@ -30,7 +30,7 @@ import { SessionStrip } from "./session-strip";
 @customElement('sessions-interface')
 export class SessionsInterface extends LitElement {
   public tradesManager!: TradesManager
-  public tradesInterface: tradesInterface;
+  public tradesInterface: TradesInterface;
   public sessionsView: SessionsView;
 
   // @property()
@@ -70,7 +70,7 @@ export class SessionsInterface extends LitElement {
     // this.tradesManager = new TradeManager()
 
     // sessions interface
-    this.tradesInterface = new tradesInterface();
+    this.tradesInterface = new TradesInterface();
 
     // trades view
     this.sessionsView = new SessionsView()

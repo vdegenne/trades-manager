@@ -58,7 +58,8 @@ export class OptionsManager {
       exchangeViewOptions: {
         showWallet: true,
         showVirtual: true,
-        showTerminatedSession: true
+        showTerminatedSession: true,
+        sortBy: '24hr'
       },
       sessionViewOptions: {
         events: true,
