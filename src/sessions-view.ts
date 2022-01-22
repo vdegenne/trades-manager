@@ -76,6 +76,13 @@ export class SessionsView extends LitElement {
 
       let ordered;
       switch (window.options.exchangeViewOptions.sortBy) {
+        case 'newest':
+          ordered = sessions.sort((a, b) => {
+            const lastADate = a.trades[0] ? a.trades[0].date || a.id : undefined;
+            const lastBDate = b.trades[0] ? b.trades[0].date || b.id : undefined;
+            return lastBDate! - lastADate!;
+          })
+          break;
         case '24hr':
           ordered = sessions.sort((a, b) => {
             return (window.ChangesManager.getPairChange(b.symbol, b.quote) || 0) - (window.ChangesManager.getPairChange(a.symbol, a.quote) || 0)

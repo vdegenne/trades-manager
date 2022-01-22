@@ -2,14 +2,26 @@ import { html, nothing } from 'lit';
 import {styleMap} from 'lit/directives/style-map.js';
 import { Aggregator } from "./profit-aggregator";
 import { SessionSummary, TradeSession } from "./TradesManager";
+import coinmarketcap from "coinmarketcap-s2l";
 
 export function round(value: number, precision = 2) {
   return Math.round(value * (10**precision)) / (10**precision);
 }
 
-export function openCryptowatchLink (session: TradeSession) {
+export function openCryptowatch (session: TradeSession) {
   window.open(
     `https://cryptowat.ch/charts/${session.exchange}:${session.symbol}-${session.quote}`,
+    '_blank'
+  )
+}
+
+export function openCoinMarketCap (session: TradeSession) {
+  window.open(coinmarketcap(session.symbol), '_blank')
+}
+
+export function openTradingView (session: TradeSession) {
+  window.open(
+    `https://www.tradingview.com/symbols/${session.symbol}${session.quote}/`,
     '_blank'
   )
 }

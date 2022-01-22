@@ -107,6 +107,7 @@ export class OptionsInterface extends LitElement {
         <h4>Sort sessions by</h4>
         <mwc-select outlined value=${this.options.exchangeViewOptions.sortBy} style="width:100%"
           @change=${(e) => this.onSortByChange(e)}>
+          <mwc-list-item value="newest">Newest</mwc-list-item>
           <mwc-list-item value="24hr">24hr change</mwc-list-item>
           <mwc-list-item value="percent">Profit percentage</mwc-list-item>
           <mwc-list-item value="invested">Invested value</mwc-list-item>

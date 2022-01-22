@@ -1,13 +1,14 @@
 import "@material/mwc-icon/mwc-icon";
 import { css, html, LitElement, nothing } from 'lit';
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, query } from 'lit/decorators.js';
 import { ExchangesManager } from "./ExchangesManager";
 import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
 import { getSessionSummary, SessionSummary, TradeSession, ValueQuote } from "./TradesManager";
-import { formatOutputPrice, openCryptowatchLink, outputPriceTemplate, percentTemplate, round } from "./util";
+import { formatOutputPrice, openCoinMarketCap, openCryptowatch, openTradingView, outputPriceTemplate, percentTemplate, round } from "./util";
 import './change-tag'
 import { timeAgo } from './time-ago';
+import { Menu } from '@material/mwc-menu';
 
 
 @customElement('session-strip')
@@ -24,6 +25,8 @@ export class SessionStrip extends LitElement {
 
 
   private zIndex!: number;
+
+  @query('mwc-menu') menu!: Menu;
 
   constructor (session: TradeSession, options?: Partial<SessionViewOptions>) {
     super()
@@ -104,7 +107,7 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
         ?entitled="${session.title}"
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
-        @mousedown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
+        @click="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
         oncontextmenu="return false"
         title="${title}">
 
@@ -113,7 +116,29 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
       <div class="title">${session.title}</div>
       ` : nothing }
 
-      <div>
+      <div @click=${(e) => { e.stopPropagation(); this.menu.show() }}>
+        <mwc-menu style="display:absolute" @click=${(e) => { e.stopPropagation() }}>
+          <mwc-list-item graphic="icon"
+              @click=${() => { openCoinMarketCap(session) }}>
+            <img slot="graphic" src="/images/coinmarketcap.ico">
+            <span>CoinMarketCap</span>
+          </mwc-list-item>
+          <mwc-list-item graphic="icon"
+              @click=${() => { openTradingView(session) }}>
+            <img slot="graphic" src="/images/tradingview.ico">
+            <span>TradingView</span>
+          </mwc-list-item>
+          <mwc-list-item graphic="icon"
+              @click=${() => { openCryptowatch(session) }}>
+            <img slot="graphic" src="/images/cryptowatch.png">
+            <span>Cryptowatch</span>
+          </mwc-list-item>
+          <li divider role="separator"></li>
+          <mwc-list-item graphic="icon">
+            <mwc-icon slot="graphic">close</mwc-icon>
+            <span>close</span>
+          </mwc-list-item>
+        </mwc-menu>
         <div style="display:flex;align-items:center">
           <div class="name">${session.symbol}<mwc-icon>sync_alt</mwc-icon>${session.quote}</div>
           ${session.alert ? html`<mwc-icon style="--mdc-icon-size:18px;margin-left:7px;cursor:pointer;color:${session.alert.notified ? '#f44336': 'inherit'}" title="${session.alert!.limit} ${session.alert!.value}"
@@ -124,7 +149,6 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
           <span>${ss.price}</span>
           <change-tag .symbol=${session.symbol} .quote=${session.quote}></change-tag>
         </div>` : nothing }
-
       </div>
 
       <!-- middle part -->
@@ -183,7 +207,7 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
 
   private onSessionElementClick(e: PointerEvent, session: TradeSession) {
     if (e.button === 2) {
-      setTimeout(() => openCryptowatchLink(session), 100)
+      setTimeout(() => openCryptowatch(session), 100)
       // e.preventDefault()
       // e.stopImmediatePropagation()
       // e.stopPropagation()

@@ -8,7 +8,7 @@ export type Options = {
     showWallet: boolean;
     showVirtual: boolean;
     showTerminatedSession: boolean;
-    sortBy: '24hr'|'percent'|'invested'
+    sortBy: '24hr'|'percent'|'invested'|'newest'
   }
 }
 
