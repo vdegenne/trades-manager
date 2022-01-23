@@ -29,6 +29,7 @@ import './notification-manager'
 import clipboardCopy from 'clipboard-copy'
 import './ChangesManager'
 import './trade-create-dialog'
+import { Select } from '@material/mwc-select'
 
 declare global {
   interface Window {
@@ -84,7 +85,7 @@ class AppContainer extends LitElement {
     window.appTitle = 'Tradon'
     window.confirmDialog = this.confirmDialog
 
-    this.optionsInterface = new OptionsInterface()
+    window.optionsInterface = this.optionsInterface = new OptionsInterface()
     this.sessionsInterface = new SessionsInterface()
     this.tCodeInterface = new TCodeInterface()
     this.importExport = new ImportExport()
@@ -156,6 +157,16 @@ class AppContainer extends LitElement {
       </div>
     </header>
 
+    <div style="text-align:right">
+    <mwc-select value=${window.options.exchangeViewOptions.sortBy}
+      @click=${(e) => { window.optionsInterface.onSortByChange(e) }}>
+      <mwc-list-item value="newest">Newest</mwc-list-item>
+      <mwc-list-item value="24hr">24hr change</mwc-list-item>
+      <mwc-list-item value="percent">Profit percentage</mwc-list-item>
+      <mwc-list-item value="invested">Invested value</mwc-list-item>
+    </mwc-select>
+    </div>
+
     ${this.optionsInterface}
 
     ${window.spacesInterface}
@@ -216,6 +227,11 @@ class AppContainer extends LitElement {
 
   firstUpdated() {
     window.textDialog = this.textDialog;
+
+    const select = (this.shadowRoot!.querySelector('mwc-select') as Select)
+    select.updateComplete.then(() => {
+      (select.shadowRoot!.querySelector('.mdc-select__anchor') as HTMLElement).style.height = '40px'
+    })
   }
 
   toast (message: string, timeoutMs = 4000) {

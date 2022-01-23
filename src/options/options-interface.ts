@@ -150,7 +150,7 @@ export class OptionsInterface extends LitElement {
     // this.optionsManager.save()
   }
 
-  private onSortByChange(e) {
+  public onSortByChange(e) {
     this.options.exchangeViewOptions.sortBy = e.target.value;
     window.sessionsView.requestUpdate()
     // this.optionsManager.save()

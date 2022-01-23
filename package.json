@@ -38,5 +38,8 @@
     "browser-sync": "browser-sync public --files public/app.js --no-notify",
     "deploy": "./deploy.sh"
   },
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "build": "^0.1.4"
+  }
 }
