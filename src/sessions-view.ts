@@ -2,7 +2,7 @@ import { css, html, LitElement, nothing, render } from 'lit';
 import { customElement, query, queryAll } from 'lit/decorators.js';
 import{ live } from 'lit/directives/live.js'
 import { getSummary, Trade, TradesManager, TradeSession, getSessionSummary } from "./TradesManager";
-import { firstLetterUpperCase, formatOutputPrice, openChart, openVirtualInfoDialog, outputPriceTemplate, round } from "./util";
+import { firstLetterUpperCase, formatOutputPrice, openVirtualInfoDialog, outputPriceTemplate, round } from "./util";
 // import { openCryptowatchLink } from "./util";
 import '@material/mwc-icon-button'
 import { ExchangesManager } from "./ExchangesManager";
@@ -78,8 +78,8 @@ export class SessionsView extends LitElement {
       switch (window.options.exchangeViewOptions.sortBy) {
         case 'newest':
           ordered = sessions.sort((a, b) => {
-            const lastADate = a.trades[0] ? a.trades[0].date || a.id : undefined;
-            const lastBDate = b.trades[0] ? b.trades[0].date || b.id : undefined;
+            const lastADate = a.trades[a.trades.length - 1] ? a.trades[a.trades.length - 1].date || a.id : undefined;
+            const lastBDate = b.trades[b.trades.length - 1] ? b.trades[b.trades.length - 1].date || b.id : undefined;
             return lastBDate! - lastADate!;
           })
           break;
@@ -121,7 +121,7 @@ export class SessionsView extends LitElement {
 
         <mwc-button unelevated icon="add"
           @click="${() => this.createDialog.open(exchange)}"
-          style="--mdc-theme-primary:var(--on-background-color);--mdc-theme-on-primary:var(--main-text-color);border-radius:5px;display:flex;margin-top:12px;">add session</mwc-button>
+          style="--mdc-theme-primary:transparent;--mdc-theme-on-primary:silver;border-radius:5px;display:flex;margin-top:12px;">add session</mwc-button>
       </div>
       `
     })}
@@ -309,7 +309,6 @@ export class SessionsView extends LitElement {
         @click="${() => window.tradeCreateDialog.open(session, 'sell')}">sell</mwc-button>
     </div>
     <mwc-button icon="history" @click="${() => window.tradesInterface.openSession(session)}" dialogAction="close">Trade history</mwc-button><br>
-    <mwc-button icon="timeline" @click="${() => openChart(session)}">See chart</mwc-button><br>
     <mwc-button icon="edit" dialogAction="close"
       @click="${() => this.changeSessionTitle(session)}">Change title</mwc-button><br>
     <mwc-button icon="title" dialogAction="close">t-code</mwc-button><br>

@@ -26,6 +26,12 @@ export function openTradingView (session: TradeSession) {
   )
 }
 
+export function openBinance (session: TradeSession) {
+  if (session.exchange === 'binance') {
+    window.open(`https://www.binance.com/en/trade/${session.symbol}_${session.quote}?layout=pro`, '_blank')
+  }
+}
+
 export function breakLiteralPair (pair: string) {
   return {
     symbol: pair.split('-')[0],
@@ -129,11 +135,6 @@ export function openVirtualInfoDialog () {
 }
 
 
-export function openChart(session: TradeSession) {
-  if (session.exchange === 'binance') {
-    window.open(`https://www.binance.com/en/trade/${session.symbol}_${session.quote}?layout=pro`, '_blank')
-  }
-}
 
 
 // export async function geckoGetIdFromSymbol (symbol: string) {

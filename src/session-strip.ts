@@ -5,7 +5,7 @@ import { ExchangesManager } from "./ExchangesManager";
 import { SessionViewOptions } from "./options/options";
 import sessionsStyles from "./styles/sessions-styles";
 import { getSessionSummary, SessionSummary, TradeSession, ValueQuote } from "./TradesManager";
-import { formatOutputPrice, openCoinMarketCap, openCryptowatch, openTradingView, outputPriceTemplate, percentTemplate, round } from "./util";
+import { formatOutputPrice, openBinance, openCoinMarketCap, openCryptowatch, openTradingView, outputPriceTemplate, percentTemplate, round } from "./util";
 import './change-tag'
 import { timeAgo } from './time-ago';
 import { Menu } from '@material/mwc-menu';
@@ -93,9 +93,9 @@ export class SessionStrip extends LitElement {
     const viewOptions = Object.assign({}, window.options.sessionViewOptions, this.viewOptions)
 
     const title = `
-    volume: ${this.summary.volume}${session.trades.length && session.trades[0].date ? `
-last trade: ${timeAgo.format(session.trades[0].date)}` : '' }${session.trades.length && session.trades[session.trades.length - 1].date ? `
-first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as number)}` : '' }
+    volume: ${this.summary.volume}${session.trades.length && session.trades[session.trades.length - 1].date ? `
+last trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as number)}` : '' }${session.trades.length && session.trades[0].date ? `
+first trade: ${timeAgo.format(session.trades[0].date as number)}` : '' }
     `
     // let change = window.ChangesManager.getPairChange(session.symbol, session.quote)
     // if (change !== undefined) {
@@ -107,7 +107,7 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
         ?entitled="${session.title}"
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
-        @click="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
+        @pointerdown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
         oncontextmenu="return false"
         title="${title}">
 
@@ -116,8 +116,13 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
       <div class="title">${session.title}</div>
       ` : nothing }
 
-      <div @click=${(e) => { e.stopPropagation(); this.menu.show() }}>
+      <div @pointerdown=${(e) => { e.stopPropagation(); this.menu.show() }}>
         <mwc-menu style="display:absolute" @click=${(e) => { e.stopPropagation() }}>
+          <mwc-list-item graphic="icon"
+              @click=${() => { openCryptowatch(session) }}>
+            <img slot="graphic" src="/images/cryptowatch.png">
+            <span>Cryptowatch</span>
+          </mwc-list-item>
           <mwc-list-item graphic="icon"
               @click=${() => { openCoinMarketCap(session) }}>
             <img slot="graphic" src="/images/coinmarketcap.ico">
@@ -129,9 +134,9 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
             <span>TradingView</span>
           </mwc-list-item>
           <mwc-list-item graphic="icon"
-              @click=${() => { openCryptowatch(session) }}>
-            <img slot="graphic" src="/images/cryptowatch.png">
-            <span>Cryptowatch</span>
+              @click=${() => { openBinance(session) }}>
+            <img slot="graphic" src="/images/binance.ico">
+            <span>Binance</span>
           </mwc-list-item>
           <li divider role="separator"></li>
           <mwc-list-item graphic="icon">
@@ -207,11 +212,12 @@ first trade: ${timeAgo.format(session.trades[session.trades.length - 1].date as 
 
   private onSessionElementClick(e: PointerEvent, session: TradeSession) {
     if (e.button === 2) {
-      setTimeout(() => openCryptowatch(session), 100)
-      // e.preventDefault()
+      // setTimeout(() => openCryptowatch(session), 100)
+      setTimeout(() => window.tradesInterface.openSession(session), 200)
       // e.stopImmediatePropagation()
       // e.stopPropagation()
       // return false
+
     }
     else {
       window.sessionsView.openPreSessionMenu(session)

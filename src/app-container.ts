@@ -157,7 +157,7 @@ class AppContainer extends LitElement {
       </div>
     </header>
 
-    <div style="text-align:right">
+    <div style="text-align:right;margin-bottom:6px">
     <mwc-select value=${window.options.exchangeViewOptions.sortBy}
       @click=${(e) => { window.optionsInterface.onSortByChange(e) }}>
       <mwc-list-item value="newest">Newest</mwc-list-item>
