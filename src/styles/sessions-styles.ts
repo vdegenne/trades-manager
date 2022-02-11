@@ -18,6 +18,9 @@ export default css`
   /* box-shadow: rgb(0 0 0 / 20%) 0px 1px 4px -1px; */
   box-shadow: rgb(0 0 0 / 20%) 0px 35px 15px -29px;
   position: relative;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .title {
   background-color: var(--on-background-color);

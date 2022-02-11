@@ -107,7 +107,8 @@ first trade: ${timeAgo.format(session.trades[0].date as number)}` : '' }
         ?entitled="${session.title}"
         ?eventful="${viewOptions.events}"
         ?virtual="${session.virtual}"
-        @pointerdown="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
+        @click="${(e) => viewOptions.events && this.onSessionElementClick(e, session)}"
+        @pointerdown=${(e) => { this.onPointerDown(e, session) }}
         oncontextmenu="return false"
         title="${title}">
 
@@ -116,7 +117,7 @@ first trade: ${timeAgo.format(session.trades[0].date as number)}` : '' }
       <div class="title">${session.title}</div>
       ` : nothing }
 
-      <div @pointerdown=${(e) => { e.stopPropagation(); this.menu.show() }}>
+      <div @click=${(e) => { e.stopPropagation(); this.menu.show() }}>
         <mwc-menu style="display:absolute" @click=${(e) => { e.stopPropagation() }}>
           <mwc-list-item graphic="icon"
               @click=${() => { openCryptowatch(session) }}>
@@ -222,6 +223,12 @@ first trade: ${timeAgo.format(session.trades[0].date as number)}` : '' }
     else {
       window.sessionsView.openPreSessionMenu(session)
       // window.tradesInterface.openSession(session)
+    }
+  }
+
+  private onPointerDown (e: PointerEvent, session: TradeSession) {
+    if (e.button === 2) {
+      setTimeout(() => window.tradesInterface.openSession(session), 200)
     }
   }
 

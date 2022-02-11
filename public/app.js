@@ -1463,6 +1463,9 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
   /* box-shadow: rgb(0 0 0 / 20%) 0px 1px 4px -1px; */
   box-shadow: rgb(0 0 0 / 20%) 0px 35px 15px -29px;
   position: relative;
+  outline: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .title {
   background-color: var(--on-background-color);
@@ -1615,7 +1618,8 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
         ?entitled="${e.title}"
         ?eventful="${t.events}"
         ?virtual="${e.virtual}"
-        @pointerdown="${s=>t.events&&this.onSessionElementClick(s,e)}"
+        @click="${s=>t.events&&this.onSessionElementClick(s,e)}"
+        @pointerdown=${s=>{this.onPointerDown(s,e)}}
         oncontextmenu="return false"
         title="${o}">
 
@@ -1624,7 +1628,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
       <div class="title">${e.title}</div>
       `:w$1}
 
-      <div @pointerdown=${e=>{e.stopPropagation(),this.menu.show()}}>
+      <div @click=${e=>{e.stopPropagation(),this.menu.show()}}>
         <mwc-menu style="display:absolute" @click=${e=>{e.stopPropagation()}}>
           <mwc-list-item graphic="icon"
               @click=${()=>{openCryptowatch(e)}}>
@@ -1711,7 +1715,7 @@ const styles$7=r$4`.material-icons{font-family:var(--mdc-icon-font, "Material Ic
         display:none;
       }
     </style>
-    `}queryGainValue(){var e,s;return null===(s=null===(e=this.shadowRoot)||void 0===e?void 0:e.querySelector("#gain-tag"))||void 0===s?void 0:s.textContent}onSessionElementClick(e,s){2===e.button?setTimeout((()=>window.tradesInterface.openSession(s)),200):window.sessionsView.openPreSessionMenu(s)}async checkAlert(){var _a;if(await this.updateComplete,void 0===this.session||void 0===this.session.alert||this.session.alert.notified)return;if(!await window.notificationService.checkPermission())return;const gainValue=parseFloat(null===(_a=this.queryGainValue())||void 0===_a?void 0:_a.trim()),shouldNotify=eval(`${gainValue} ${this.session.alert.limit} ${this.session.alert.value}`);shouldNotify&&(window.notificationService.notify(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`,{session:this.session}),this.session.alert.notified=!0,this.requestUpdate(),window.spacesManager.save())}};function validateTCode(e){if("string"==typeof e){if(e.split(":").length>7)throw new Error("Invalid tcode (length)");e=resolveTCode(e)}if(void 0===e)throw new Error("Invalid tcode (not defined)");if("exchange"in e&&!Object.keys(ExchangesManager.exchanges).includes(e.exchange))throw new Error("The exchange doesn't exist");const s=ExchangesManager.exchanges[e.exchange];if("symbol"in e&&!s.getAvailableSymbols().includes(e.symbol))throw new Error("The symbol is not available in this exchange");if("quote"in e&&!ExchangesManager.exchanges[e.exchange].getAvailableQuotesFromSymbol(e.symbol).includes(e.quote))throw new Error("The quote is not available for this symbol");if("type"in e&&"buy"!==e.type&&"sell"!==e.type)throw new Error("The type should be either 'buy' or 'sell'");if("price"in e&&isNaN(e.price))throw new Error("The price should be a number");if("quantity"in e&&isNaN(e.quantity))throw new Error("The quantity should be a number");if("fees"in e&&isNaN(e.fees))throw new Error("The fees should be a number");return e}function resolveTCode(e){const s=e.split(":");if(""===s[s.length-1]&&s.pop(),0===s.length)return{};const i=["exchange","symbol","quote","type","price","quantity","fees"],t=Object.fromEntries(s.map(((e,s)=>{const t=i[s];let o=e;return"exchange"===t&&(o=e.toLowerCase()),"symbol"!==t&&"quote"!==t||(o=e.toUpperCase()),"type"===t&&("b"===e&&(o="buy"),"s"===e&&(o="sell")),"price"!==t&&"quantity"!==t&&"fees"!==t||(o=parseFloat(e)),[i[s],o]})));return t}function isTCodeComplete(e){return"exchange"in e&&"symbol"in e&&"quote"in e&&"type"in e&&"price"in e&&"quantity"in e}SessionStrip.styles=[r$4`
+    `}queryGainValue(){var e,s;return null===(s=null===(e=this.shadowRoot)||void 0===e?void 0:e.querySelector("#gain-tag"))||void 0===s?void 0:s.textContent}onSessionElementClick(e,s){2===e.button?setTimeout((()=>window.tradesInterface.openSession(s)),200):window.sessionsView.openPreSessionMenu(s)}onPointerDown(e,s){2===e.button&&setTimeout((()=>window.tradesInterface.openSession(s)),200)}async checkAlert(){var _a;if(await this.updateComplete,void 0===this.session||void 0===this.session.alert||this.session.alert.notified)return;if(!await window.notificationService.checkPermission())return;const gainValue=parseFloat(null===(_a=this.queryGainValue())||void 0===_a?void 0:_a.trim()),shouldNotify=eval(`${gainValue} ${this.session.alert.limit} ${this.session.alert.value}`);shouldNotify&&(window.notificationService.notify(`${this.session.symbol} ${this.session.alert.limit} ${this.session.alert.value}`,{session:this.session}),this.session.alert.notified=!0,this.requestUpdate(),window.spacesManager.save())}};function validateTCode(e){if("string"==typeof e){if(e.split(":").length>7)throw new Error("Invalid tcode (length)");e=resolveTCode(e)}if(void 0===e)throw new Error("Invalid tcode (not defined)");if("exchange"in e&&!Object.keys(ExchangesManager.exchanges).includes(e.exchange))throw new Error("The exchange doesn't exist");const s=ExchangesManager.exchanges[e.exchange];if("symbol"in e&&!s.getAvailableSymbols().includes(e.symbol))throw new Error("The symbol is not available in this exchange");if("quote"in e&&!ExchangesManager.exchanges[e.exchange].getAvailableQuotesFromSymbol(e.symbol).includes(e.quote))throw new Error("The quote is not available for this symbol");if("type"in e&&"buy"!==e.type&&"sell"!==e.type)throw new Error("The type should be either 'buy' or 'sell'");if("price"in e&&isNaN(e.price))throw new Error("The price should be a number");if("quantity"in e&&isNaN(e.quantity))throw new Error("The quantity should be a number");if("fees"in e&&isNaN(e.fees))throw new Error("The fees should be a number");return e}function resolveTCode(e){const s=e.split(":");if(""===s[s.length-1]&&s.pop(),0===s.length)return{};const i=["exchange","symbol","quote","type","price","quantity","fees"],t=Object.fromEntries(s.map(((e,s)=>{const t=i[s];let o=e;return"exchange"===t&&(o=e.toLowerCase()),"symbol"!==t&&"quote"!==t||(o=e.toUpperCase()),"type"===t&&("b"===e&&(o="buy"),"s"===e&&(o="sell")),"price"!==t&&"quantity"!==t&&"fees"!==t||(o=parseFloat(e)),[i[s],o]})));return t}function isTCodeComplete(e){return"exchange"in e&&"symbol"in e&&"quote"in e&&"type"in e&&"price"in e&&"quantity"in e}SessionStrip.styles=[r$4`
     :host {
       display: block;
     }
