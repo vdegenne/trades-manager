@@ -26,10 +26,9 @@ self.addEventListener('notificationclick', (e) => {
     //   }
     // }
   }))
-  // }
-  // console.log(n.data.session)
-  // e.notification.close()
-  // if (e.stopImmediatePropagation.)
-  // console.log(clients[0])
-  // clients[0].focus()
+})
+
+
+self.addEventListener('fetch', function (e) {
+  //
 })
