@@ -1,28 +1,31 @@
-/// <reference no-default-lib="true"/>
-/// <reference lib="esnext" />
 /// <reference lib="WebWorker" />
-const sw = /** @type {ServiceWorkerGlobalScope & typeof globalThis} */ (globalThis)
 
-sw.addEventListener('install', (e) => {
-  sw.skipWaiting();
+// export empty type because of tsc --isolatedModules flag
+export type {};
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('install', (e) => {
+  self.skipWaiting();
 
   e.waitUntil(
     caches.open('v1').then(function (cache) {
       return cache.addAll([
+        './',
+        './index.html',
         './app.js'
       ])
     })
   )
 })
 
-sw.addEventListener('push', (event) => {
+self.addEventListener('push', (event) => {
   console.log('yo')
-  sw.registration.showNotification('test', {
+  self.registration.showNotification('test', {
     silent: false
   })
 })
 
-sw.addEventListener('notificationclick', (e) => {
+self.addEventListener('notificationclick', (e) => {
   const n = e.notification;
   n.close()
   // if (n.data.session.exchange === 'binance') {
@@ -42,7 +45,7 @@ sw.addEventListener('notificationclick', (e) => {
 })
 
 
-sw.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', function(event) {
   console.log(event.request)
   event.respondWith(
     caches.match(event.request)
