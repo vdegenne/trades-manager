@@ -9,6 +9,8 @@ sw.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open('v1').then(function (cache) {
       return cache.addAll([
+        './',
+        './index.html',
         './app.js'
       ])
     })
@@ -45,6 +47,8 @@ sw.addEventListener('notificationclick', (e) => {
 sw.addEventListener('fetch', function(event) {
   console.log(event.request)
   event.respondWith(
-    caches.match(event.request)
+            caches.match(event.request).then(response=>{
+              return response || fetch(event.request)
+            })
   );
 });
