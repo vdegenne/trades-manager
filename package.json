@@ -35,7 +35,7 @@
   "scripts": {
     "watch": "rollup -cw",
     "build": "rollup -c --environment minify",
-    "browser-sync": "browser-sync public --files public/app.js --no-notify",
+    "browser-sync": "browser-sync public --files public/app.js --no-notify --https",
     "deploy": "./deploy.sh"
   },
   "license": "BSD-3-Clause",

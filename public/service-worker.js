@@ -1,5 +1,13 @@
-self.addEventListener('install', () => {
+self.addEventListener('install', (e) => {
   self.skipWaiting();
+
+  e.waitUntil(
+    caches.open('v1').then(function (cache) {
+      return cache.addAll([
+        './app.js'
+      ])
+    })
+  )
 })
 
 self.addEventListener('push', (event) => {
@@ -29,6 +37,9 @@ self.addEventListener('notificationclick', (e) => {
 })
 
 
-self.addEventListener('fetch', function (e) {
-  //
-})
+self.addEventListener('fetch', function(event) {
+  console.log(event.request)
+  event.respondWith(
+    caches.match(event.request)
+  );
+});
