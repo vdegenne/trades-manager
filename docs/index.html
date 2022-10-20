@@ -124,7 +124,7 @@
     <script type="module" src="./app.js"></script>
     <script>
       (async function () {
-        window.BinancePairs = await (await fetch('/binance-pairs.json')).json()
+        window.BinancePairs = await (await fetch('./binance-pairs.json')).json()
         // window.GeckoSymbols = await (await fetch('/coingecko-symbols.json')).json()
       })()
     </script>
