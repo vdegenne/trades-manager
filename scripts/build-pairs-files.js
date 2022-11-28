@@ -13,7 +13,7 @@ async function buildBinancePairs () {
   const response = await fetch(`https://www.binance.com/api/v3/exchangeInfo`)
   const data = await response.json()
 
-  fs.writeFileSync('./public/binance-pairs.json',
+  fs.writeFileSync('./docs/binance-pairs.json',
     JSON.stringify(
       data.symbols.map(s => ({
         s: s.baseAsset,
@@ -52,7 +52,7 @@ async function buildCoingeckoPairs () {
       s: o.symbol.toUpperCase()
     }))
   ))
-  fs.writeFileSync('public/coingecko-symbols.json', JSON.stringify(
+  fs.writeFileSync('docs/coingecko-symbols.json', JSON.stringify(
     result.map(o => ({
       id: o.id,
       s: o.symbol.toUpperCase()
